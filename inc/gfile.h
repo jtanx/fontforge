@@ -30,6 +30,10 @@
 /* home directories for fontforge */
 enum { Cache, Config, Data };
 
+#if defined(__MINGW32__)
+typedef uint16_t mode_t;
+#endif
+
 int mkdir_p(const char *path, mode_t mode);
 char *smprintf(char *fmt, ...);
 

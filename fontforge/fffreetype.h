@@ -28,7 +28,12 @@
 #ifndef _FFFREETYPE_H
 #define _FFFREETYPE_H
 
-#if !defined(_NO_FREETYPE) && !defined(_NO_MMAP)
+#if !defined(_NO_FREETYPE)
+
+#if defined(__MINGW32__)
+# include <Windows.h>
+#endif
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
@@ -44,9 +49,7 @@
 #endif
 #include <unistd.h>
 
-#if defined(__MINGW32__)
-# include "winmmap.h"
-#else
+#if !defined(__MINGW32__)
 # include <sys/mman.h>
 #endif
 

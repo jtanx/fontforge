@@ -99,14 +99,14 @@ return -ENOTDIR;
 	for(p = tmp + 1; *p; p++)
 	if(*p == '/') {
 		*p = 0;
-		r = mkdir(tmp, mode);
+		r = MKDIR(tmp, mode);
 		if (r < 0 && errno != EEXIST)
 return -errno;
 		*p = '/';
 	}
 
 	/* try to make the whole path */
-	r = mkdir(tmp, mode);
+	r = MKDIR(tmp, mode);
 	if(r < 0 && errno != EEXIST)
 return -errno;
 	/* creation successful or the file already exists */
