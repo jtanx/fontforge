@@ -39,7 +39,6 @@
 #if defined(__MINGW32__)
 #  include <winsock2.h>
 #  include <windows.h>
-#  include <plibc.h>
 extern const char *inet_ntop(int af, const void *src, char *dst, size_t size);
 #else
 extern int h_errno;
