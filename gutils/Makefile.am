@@ -47,7 +47,7 @@ if LIBZMQ
 libgutils_la_LIBADD += $(LIBZMQ_LIBS)
 endif
 
-libgutils_la_LDFLAGS = $(MY_CFLAGS) -version-info $(LIBGUTILS_VERSION)
+libgutils_la_LDFLAGS = $(MY_CFLAGS) -version-info $(LIBGUTILS_VERSION) -no-undefined
 
 #--------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ libgioftp_la_CPPFLAGS = "-I$(top_builddir)/inc" "-I$(top_srcdir)/inc"	\
 
 libgioftp_la_LIBADD = $(MY_LIBS) $(top_builddir)/Unicode/libgunicode.la
 
-libgioftp_la_LDFLAGS = $(MY_CFLAGS) -version-info $(LIBGIOFTP_VERSION)
+libgioftp_la_LDFLAGS = $(MY_CFLAGS) -version-info $(LIBGIOFTP_VERSION) -no-undefined
 
 #--------------------------------------------------------------------------
 

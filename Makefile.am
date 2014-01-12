@@ -30,7 +30,7 @@ ACLOCAL_AMFLAGS = -I m4
 #--------------------------------------------------------------------------
 
 AM_CPPFLAGS =
-AM_LDFLAGS =
+AM_LDFLAGS = -no-undefined
 
 BUILT_SOURCES =
 EXTRA_DIST =

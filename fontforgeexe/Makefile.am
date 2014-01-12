@@ -96,7 +96,7 @@ if THE_PROGRAMS
 fontforge_SOURCES = main.c
 fontforge_CPPFLAGS = $(AM_CPPFLAGS)
 fontforge_LDADD = libfontforgeexe.la $(LDADD)
-fontforge_LDFLAGS = $(MY_CFLAGS) -export-dynamic
+fontforge_LDFLAGS = $(MY_CFLAGS) -export-dynamic -no-undefined
 if LIBZMQ
 fontforge_LDADD += $(top_builddir)/collab/libzmqcollab.la $(MY_LIBS) $(LIBZMQ_LIBS)
 endif
@@ -140,7 +140,7 @@ endif MACINTOSH
 libfontforgeexe_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBZMQ_CFLAGS)
 libfontforgeexe_la_LIBADD = $(LTDLDEPS) $(LIBADD) $(GUILIBADD) $(MACFFEXE_LIBADD) $(MY_LIBS)
 
-libfontforgeexe_la_LDFLAGS = $(MY_CFLAGS) -version-info $(LIBFONTFORGEEXE_VERSION)
+libfontforgeexe_la_LDFLAGS = $(MY_CFLAGS) -version-info $(LIBFONTFORGEEXE_VERSION) -no-undefined
 if LIBZMQ
 libfontforgeexe_la_LIBADD += $(top_builddir)/collab/libzmqcollab.la $(LIBZMQ_LIBS)
 endif
