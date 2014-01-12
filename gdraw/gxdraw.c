@@ -823,6 +823,7 @@ static void  mingw_set_wm_name(Display* display, Window window, const unichar_t*
 	    XSetWMName(display, window, &prop);
 	    XFree(prop.value);
 	}
+        free(a_str);
     }
 }
 /* Set WM IconName unichar */
@@ -834,6 +835,7 @@ static void  mingw_set_wm_icon_name(Display* display, Window window, const unich
 	    XSetWMIconName(display, window, &prop);
 	    XFree(prop.value);
 	}
+        gfree(a_str);
     }
 }
 /* SET WM Name utf8 */
