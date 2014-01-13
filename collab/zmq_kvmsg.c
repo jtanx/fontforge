@@ -469,8 +469,8 @@ void
 kvmsg_set_uuid (kvmsg_t *self)
 {
     assert (self);
-    zmq_msg_t *msg = &self->frame [FRAME_UUID];
 #if !defined(__MINGW32__)
+	zmq_msg_t *msg = &self->frame [FRAME_UUID];
     uuid_t uuid;
     uuid_generate (uuid);
     if (self->present [FRAME_UUID])
@@ -585,7 +585,7 @@ kvmsg_dump (kvmsg_t *self)
         fprintf (stderr, "[seq:%" PRId64 "]", kvmsg_sequence (self));
         fprintf (stderr, "[key:%s]", kvmsg_key (self));
         //  .until
-        fprintf (stderr, "[size:%zd] ", size);
+        fprintf (stderr, "[size:%" G_GSIZE_FORMAT "] ", size);
         if (zlist_size (self->props)) {
             fprintf (stderr, "[");
             char *prop = zlist_first (self->props);

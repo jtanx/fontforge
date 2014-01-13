@@ -241,7 +241,7 @@ s_collector (zloop_t *loop, zmq_pollitem_t *poller, void *args)
 		strcpy( ba.fontname, fontname );
 	    }
 
-	    service_beacon = zbeacon_new( 5670 );
+	    service_beacon = zbeacon_new( self->ctx, 5670 );
 	    zbeacon_set_interval (service_beacon, 300 );
 	    zbeacon_publish (service_beacon, (byte*)&ba, sizeof(ba));
 	}
@@ -304,7 +304,7 @@ s_ping (zloop_t *loop, zmq_pollitem_t *poller, void *args)
 /* } */
 
 static int
-s_flush_ttl (zloop_t *loop, zmq_pollitem_t *poller, void *args)
+s_flush_ttl (zloop_t *loop, int timer_id, void *args)
 {
 //    clonesrv_t *self = (clonesrv_t *) args;
 //    if (self->kvmap)

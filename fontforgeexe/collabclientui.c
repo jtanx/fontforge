@@ -434,7 +434,7 @@ collabclient_ensureClientBeacon(void)
     client_beacon_timerID = 0;
     
     
-    client_beacon = zbeacon_new (5670);
+    client_beacon = zbeacon_new (obtainMainZMQContext(), 5670);
     zbeacon_subscribe (client_beacon, NULL, 0);
     int fd = 0;
     size_t fdsz = sizeof(fd);
@@ -725,7 +725,7 @@ collabclient_sendRedo_Internal( FontViewBase *fv, SplineChar *sc, Undoes *undo, 
 static void
 collabclient_sendRedo_Internal_CV( CharViewBase *cv, Undoes *undo, int isLocalUndo )
 {
-    printf("collabclient_sendRedo_Internal_CV() cv:%p\h", cv );
+    printf("collabclient_sendRedo_Internal_CV() cv:%p\n", cv );
     collabclient_sendRedo_Internal( cv->fv, cv->sc, undo, isLocalUndo );
 }
 
