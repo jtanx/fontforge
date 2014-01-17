@@ -837,9 +837,12 @@ char *getFontForgeUserDir(int dir) {
 return NULL;
 	}
 #if defined(__MINGW32__)
-	/* If we are on Windows, just use the home directory (%APPDATA% or
-	 * %USERPROFILE% in that order) for everything */
-return home;
+        if (getenv("FF_PORTABLE") != NULL) {
+            buf = smprintf("%s/preferences/", getShareDir());
+        } else {
+            buf = smprintf("%s/FontForge/", getUserHomeDir());
+        }
+        return buf;
 #else
 	/* Home directory exists, so check for environment variables.  For each of
 	 * XDG_{CACHE,CONFIG,DATA}_HOME, assign `def` as the corresponding fallback
@@ -955,6 +958,7 @@ char *GFileGetHomeDocumentsDir(void)
     my_documents[ pos++ ] = '\\';
     my_documents[ pos++ ] = '\0';
     ret = copy( my_documents );
+    _backslash_to_slash(ret);
     return ret;
 #endif
 
