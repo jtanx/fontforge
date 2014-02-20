@@ -68,6 +68,8 @@ libgunicode_la_SOURCES =	\
 
 #	usprintf.c
 
+LIBADD =  $(top_builddir)/lib/libgnu.la
+
 libgunicode_la_CFLAGS = $(WARN_CFLAGS)
 libgunicode_la_CPPFLAGS = "-I$(top_builddir)/inc" "-I$(top_srcdir)/inc"	\
 	"-I$(top_builddir)/lib" "-I$(top_srcdir)/lib"			\
@@ -76,7 +78,7 @@ libgunicode_la_CPPFLAGS = "-I$(top_builddir)/inc" "-I$(top_srcdir)/inc"	\
 libgunicode_la_LDFLAGS = $(MY_CFLAGS) -version-info $(LIBGUNICODE_VERSION) \
 	${MY_LIB_LDFLAGS}
 
-libgunicode_la_LIBADD = $(MY_LIBS)
+libgunicode_la_LIBADD = $(MY_LIBS) $(LIBADD)
 
 #--------------------------------------------------------------------------
 
