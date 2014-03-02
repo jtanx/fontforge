@@ -25,13 +25,15 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-pyexec_LTLIBRARIES = psMat.la fontforge.la
+pyexec_LTLIBRARIES = libPsMat.la libfontforgepy.la
 
-psMat_la_SOURCES = psMatpyhook.c
-psMat_la_LIBADD = $(LIBADD)
+libPsMat_la_SOURCES = psMatpyhook.c
+libPsMat_la_LIBADD = $(LIBADD)
+libPsMat_la_LDFLAGS = $(MY_LIB_LDFLAGS)
 
-fontforge_la_SOURCES = fontforgepyhook.c
-fontforge_la_LIBADD = $(LIBADD)
+libfontforgepy_la_SOURCES = fontforgepyhook.c
+libfontforgepy_la_LIBADD = $(LIBADD)
+libfontforgepy_la_LDFLAGS = $(MY_LIB_LDFLAGS)
 
 AM_CFLAGS = $(WARN_CFLAGS)
 
