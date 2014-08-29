@@ -1375,6 +1375,8 @@ static void _InterpretPS(IO *wrapper, EntityChar *ec, RetStack *rs) {
 	    }
 	  break;
 	  case pt_pop:
+		sp--;
+		break;
 	  case pt_clear:
             sp = 0;
 	  break;
