@@ -91,11 +91,6 @@ extern void setup_cocoa_app();
 //#  endif
 #endif
 
-#if defined(__MINGW32__)
-#include <windows.h>
-#define sleep(n) Sleep(1000 * (n))
-#endif
-
 #include "collabclientui.h"
 
 extern int AutoSaveFrequency;
