@@ -162,7 +162,7 @@ static GDirEntry* _gio_create_dirent(const char *path, const char *name) {
 static void _gio_file_dir(GIOControl *gc, char *path) {
     GDirEntry *head=NULL, *last=NULL, *cur;
     GDir *dir = NULL;
-    GError *error;
+    GError *error = NULL;
     const gchar *ent_name;
     
     dir = g_dir_open(path, 0, &error);
@@ -200,7 +200,7 @@ static void _gio_file_dir(GIOControl *gc, char *path) {
         }
     }
 #endif
-    
+
     g_dir_close(dir);
     
     gc->iodata = head;
