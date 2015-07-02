@@ -1,0 +1,66 @@
+platform:
+  - x64
+branches:
+  only:
+  - master
+clone_depth: 10
+environment:
+  global:
+    MSYS2_BASEVER: 20150512
+    MBASH: msys64\usr\bin\sh --login -c
+    REPOMSYS: >
+      Server = https://www2.futureware.at/~nickoe/msys2-mirror/msys2-$arch\n
+      Server = http://downloads.sourceforge.net/project/msys2/REPOS/MSYS2/$arch\n
+    REPOMINGW32: >
+      Server = https://www2.futureware.at/~nickoe/msys2-mirror/mingw32\n
+      Server = http://downloads.sourceforge.net/project/msys2/REPOS/MINGW/i686\n
+    REPOMINGW64: >
+      Server = https://www2.futureware.at/~nickoe/msys2-mirror/mingw64\n
+      Server = http://downloads.sourceforge.net/project/msys2/REPOS/MINGW/x86_64\n
+    REPOFFLIB: >
+      \n[fontforgelibs32]\n
+      Server = http://downloads.sourceforge.net/project/fontforgebuilds/build-system-extras/fontforgelibs/i686\n
+      [fontforgelibs64]\n
+      Server = http://downloads.sourceforge.net/project/fontforgebuilds/build-system-extras/fontforgelibs/x86_64\n
+    FFCONFIGURE: >
+      --enable-shared --disable-static --datarootdir=/usr/share/share_ff
+      --with-freetype-source=`cygpath -m $APPVEYOR_BUILD_FOLDER/freetype-2.6`
+      --without-libzmq --without-libreadline
+  matrix:
+    - MSYSTEM: MINGW32
+      MBITS: 32
+      VCXSRV: VcXsrv-1.14.2-minimal.tar.xz
+    - MSYSTEM: MINGW64
+      MBITS: 64
+      VCXSRV: VcXsrv-1.17.0.0-x86_64-minimal.tar.xz
+
+#The cache is slightly slower than just downloading the files but this is okay
+cache:
+  - '%APPVEYOR_BUILD_FOLDER%\msys2.tar.xz -> .appveyor.yml'
+  - '%APPVEYOR_BUILD_FOLDER%\msys64\var\cache\pacman\pkg'
+install:
+  - git clone --depth=1 --branch=master git://github.com/jtanx/fontforgebuilds.git
+  - appveyor DownloadFile "http://potrace.sourceforge.net/download/1.12/potrace-1.12.win%MBITS%.tar.gz" -FileName "%APPVEYOR_BUILD_FOLDER%\fontforgebuilds\original-archives\binaries\potrace-1.12.win%MBITS%.tar.gz"
+  - appveyor DownloadFile "http://downloads.sourceforge.net/project/fontforgebuilds/build-system-extras/%VCXSRV%" -FileName "%APPVEYOR_BUILD_FOLDER%\fontforgebuilds\original-archives\binaries\%VCXSRV%"
+  - appveyor DownloadFile "http://download.savannah.gnu.org/releases/freetype/freetype-2.6.tar.bz2" -FileName "%APPVEYOR_BUILD_FOLDER%\fontforgebuilds\original-archives\sources\freetype-2.6.tar.bz2"
+  - if not exist msys2.tar.xz appveyor DownloadFile "http://kent.dl.sourceforge.net/project/msys2/Base/x86_64/msys2-base-x86_64-%MSYS2_BASEVER%.tar.xz" -FileName "msys2.tar.xz"
+  - 7z x msys2.tar.xz
+  - 7z x msys2.tar > NUL
+  - call %MBASH% ""
+  - call %MBASH% "pacman-key -r 2E618C78; pacman-key --lsign-key 2E618C78;"
+  - call %MBASH% "pacman -Sy; pacman --needed --noconfirm -S bash pacman pacman-mirrors msys2-runtime"
+  - call %MBASH% "echo -e $REPOMSYS > /etc/pacman.d/mirrorlist.msys"
+  - call %MBASH% "echo -e $REPOMINGW32 > /etc/pacman.d/mirrorlist.mingw32"
+  - call %MBASH% "echo -e $REPOMINGW64 > /etc/pacman.d/mirrorlist.mingw64"
+  - call %MBASH% "echo -e $REPOFFLIB >> /etc/pacman.conf"
+  - call %MBASH% "cd $APPVEYOR_BUILD_FOLDER/fontforgebuilds; exec 0</dev/null; ./ffbuild.sh --appveyor --depsonly"
+build_script:
+  - call %MBASH% "cd $APPVEYOR_BUILD_FOLDER/fontforgebuilds; exec 0</dev/null; ./ffbuild.sh --appveyor"
+  - call %MBASH% "cd $APPVEYOR_BUILD_FOLDER/fontforgebuilds; exec 0</dev/null; FFPATH=`cygpath -m $APPVEYOR_BUILD_FOLDER` ./make-portable-package.sh appveyor"
+  - call %MBASH% "pacman -Sc --noconfirm"
+test: off
+artifacts:
+  - path: fontforgebuilds\*-appveyor.7z
+    name: FontForge $(MBITS)-bit build
+  - path: fontforgebuilds\*-debugging-symbols.7z
+    name: FontForge $(MBITS)-bit debugging symbols
