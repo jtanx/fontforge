@@ -291,7 +291,6 @@ return( -1 );
 /* ************************************************************************** */
 
 static struct string_list *default_pyinit_dirs(void);
-static int dir_exists(const char* path);
 
 
 static void FreeStringArray( int cnt, char **names ) {
@@ -890,7 +889,7 @@ static PyObject *PyFF_OpenFont(PyObject *UNUSED(self), PyObject *args) {
 
     if ( !PyArg_ParseTuple(args,"es|i", "UTF-8", &filename, &openflags ))
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     /* The actual filename opened may be different from the one passed
@@ -917,7 +916,7 @@ static PyObject *PyFF_FontsInFile(PyObject *UNUSED(self), PyObject *args) {
 
     if ( !PyArg_ParseTuple(args,"es","UTF-8",&filename) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
     ret = GetFontNames(locfilename, 1);
     free(locfilename);
@@ -3963,7 +3962,7 @@ static PyObject *PyFFLayer_export(PyFF_Layer *self, PyObject *args) {
 
     if ( !PyArg_ParseTuple(args,"es","UTF-8",&filename) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     pt = strrchr(locfilename,'.');
@@ -7589,14 +7588,9 @@ Py_RETURN( self );
 static PyObject *PyFFGlyph_autoTrace(PyObject *self, PyObject *UNUSED(args)) {
     SplineChar *sc = ((PyFF_Glyph *) self)->sc;
     int layer = ((PyFF_Glyph *) self)->layer;
-    char **at_args;
-
-    at_args = AutoTraceArgs(false);
-    if ( at_args==(char **) -1 ) {
-	PyErr_Format(PyExc_EnvironmentError, "Bad autotrace args" );
-return(NULL);
+    if (!SCAutoTrace(sc, layer, false)) {
+        PyErr_Format(PyExc_EnvironmentError, "Autotrace failed");
     }
-    _SCAutoTrace(sc, layer, at_args);
 Py_RETURN( self );
 }
 
@@ -7617,11 +7611,11 @@ static PyObject *PyFFGlyph_import(PyObject *self, PyObject *args) {
 
     if ( !PyArg_ParseTuple(args,"es|O","UTF-8",&filename, &flags) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     /* Check if the file exists and is readable */
-    if ( access(locfilename,R_OK)!=0 ) {
+    if ( !GFileReadable(locfilename) ) {
 	PyErr_SetFromErrnoWithFilename(PyExc_IOError,locfilename);
 	free(locfilename);
 return( NULL );
@@ -7686,7 +7680,7 @@ static PyObject *PyFFGlyph_export(PyObject *self, PyObject *args) {
 
     if ( !PyArg_ParseTuple(args,"es|OO","UTF-8",&filename,&foo,&bar) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     pt = strrchr(locfilename,'.');
@@ -13358,7 +13352,7 @@ return (NULL);
     if ( !PyArg_ParseTuple(args,"es|i","UTF-8",&filename,
 	    &to_background) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     ext = strrchr(locfilename,'.');
@@ -13432,7 +13426,7 @@ static PyObject *PyFFFont_compareFonts(PyFF_Font *self,PyObject *args) {
 return (NULL);
     if ( !PyArg_ParseTuple(args,"OesO", &other, "UTF-8", &filename, &flagstuple ))
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     if ( !PyType_IsSubtype(&PyFF_FontType, Py_TYPE(other)) ) {
@@ -15286,7 +15280,7 @@ static PyObject *PyFFFont_Save(PyFF_Font *self, PyObject *args) {
     if ( filename!=NULL )
     {
 	/* Save As - Filename was provided */
-	locfilename = utf82def_copy(filename);
+	locfilename = utf82fsys_copy(filename);
 	PyMem_Free(filename);
 
 	pt = strrchr(locfilename,'.');
@@ -15491,7 +15485,7 @@ return( NULL );
 return( NULL );
 	}
     }
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
     if ( !GenerateScript(fv->sf,locfilename,bitmaptype,iflags,resolution,subfontdirectory,
 	    NULL,fv->normal==NULL?fv->map:fv->normal,rename_to,layer) ) {
@@ -15647,7 +15641,7 @@ return( NULL );
 return( NULL );
     }
 
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     if ( !WriteTTC(locfilename,head,ff_ttc,bf,iflags,layer,ittcflags)) {
@@ -15675,7 +15669,7 @@ return (NULL);
     fv = self->fv;
     if ( !PyArg_ParseTuple(args,"es|s","UTF-8",&filename,&lookup_name) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
 
     if ( lookup_name!=NULL ) {
@@ -15715,7 +15709,7 @@ return (NULL);
     fv = self->fv;
     if ( !PyArg_ParseTuple(args,"es","UTF-8",&filename) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
     if ( !LoadKerningDataFromMetricsFile(fv->sf,locfilename,fv->map)) {
 	PyErr_Format(PyExc_EnvironmentError, "No metrics data found");
@@ -15739,7 +15733,7 @@ return (NULL);
     if ( !PyArg_ParseTuple(args,"es|ii","UTF-8",&filename,
 	    &preserveCrossFontKerning, &openflags) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
     sf = LoadSplineFont(locfilename,openflags);
     if ( sf==NULL ) {
@@ -15767,7 +15761,7 @@ return (NULL);
     fv = self->fv;
     if ( !PyArg_ParseTuple(args,"des|i",&fraction,"UTF-8",&filename, &openflags) )
 return( NULL );
-    locfilename = utf82def_copy(filename);
+    locfilename = utf82fsys_copy(filename);
     free(filename);
     sf = LoadSplineFont(locfilename,openflags);
     if ( sf==NULL ) {
@@ -16019,7 +16013,7 @@ static PyObject *PyFFFont_printSample(PyFF_Font *self, PyObject *args) {
             sample = utf82u_copy(sampleArg);
             samplefile = NULL;
         } else {
-            samplefile = utf82def_copy(sampleArg);
+            samplefile = utf82fsys_copy(sampleArg);
             sample = NULL;
         }
     }
@@ -18520,26 +18514,26 @@ extern void PyFF_FreePythonPersistent(void *python_persistent) {
 }
 
 static void LoadFilesInPythonInitDir(char *dir) {
-    DIR *diro;
-    struct dirent *ent;
+    GDir *diro;
+    const gchar *ent_name;
     struct string_list *filelist=NULL;
     struct string_list *item;
 
-    diro = opendir(dir);
+    diro = g_dir_open(dir, 0, NULL);
     if ( diro==NULL )		/* It's ok not to have any python init scripts */
 return;
 
-    while ( (ent = readdir(diro))!=NULL ) {
+    while ( (ent_name = g_dir_read_name(diro))!=NULL ) {
 	char buffer[PATH_MAX+2];
-	char *pt = strrchr(ent->d_name,'.');
+	char *pt = strrchr(ent_name,'.');
 	if ( pt==NULL )
     continue;
 	if ( strcmp(pt,".py")==0 ) {
-	    snprintf( buffer, sizeof(buffer), "%s/%s", dir, ent->d_name );
+	    snprintf( buffer, sizeof(buffer), "%s/%s", dir, ent_name );
 	    filelist = prepend_string_list( filelist, buffer );
 	}
     }
-    closedir(diro);
+    g_dir_close(diro);
 
     filelist = sort_string_list( filelist );
 
@@ -18556,13 +18550,6 @@ return;
     }
     showPythonErrors = 1;
     delete_string_list( filelist );
-}
-
-static int dir_exists(const char* path) {
-    struct stat st;
-    if ( stat(path,&st)==0 && S_ISDIR(st.st_mode) )
-	return 1;
-    return 0;
 }
 
 static struct string_list *default_pyinit_dirs(void) {
@@ -18584,12 +18571,12 @@ static struct string_list *default_pyinit_dirs(void) {
 
     if ( sharedir!=NULL ) {
 	snprintf(buffer,sizeof(buffer),"%s/%s",sharedir,subdir);
-	if ( dir_exists(buffer) ) {
+	if ( GFileIsDir(buffer) ) {
 	    pathlist = append_string_list( pathlist, buffer );
 	}
 	else { /* Fall back to version-less python */
 	    snprintf(buffer,sizeof(buffer),"%s/%s",sharedir,"python");
-	    if ( dir_exists(buffer) ) {
+	    if ( GFileIsDir(buffer) ) {
 		pathlist = append_string_list( pathlist, buffer );
 	    }
 	}
@@ -18597,12 +18584,12 @@ static struct string_list *default_pyinit_dirs(void) {
 
     if ( userdir!=NULL ) {
 	snprintf(buffer,sizeof(buffer),"%s/%s",userdir,subdir);
-	if ( dir_exists(buffer) ) {
+	if ( GFileIsDir(buffer) ) {
 	    pathlist = append_string_list( pathlist, buffer );
 	}
 	else { /* Fall back to version-less python */
 	    snprintf(buffer,sizeof(buffer),"%s/%s",userdir,"python");
-	    if ( dir_exists(buffer) ) {
+	    if ( GFileIsDir(buffer) ) {
 		pathlist = append_string_list( pathlist, buffer );
 	    }
 	}

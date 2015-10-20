@@ -33,6 +33,7 @@
 #include <ustring.h>
 #include <errno.h>
 #include <unistd.h>
+#include "ffglib.h"
 #include "intl.h"
 
 #ifdef __MINGW32__
@@ -331,9 +332,9 @@ void hotkeysSave() {
     char* newpath = getHotkeyFilename(0);
 #ifdef __MINGW32__
     //Atomic rename doesn't exist on Windows.
-    unlink(newpath);
+    g_unlink(newpath);
 #endif
-    int rc = rename( fn, newpath );
+    int rc = g_rename( fn, newpath );
     int e = errno;
     free(fn);
     free(newpath);
