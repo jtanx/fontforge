@@ -3645,7 +3645,7 @@ func_require_gnulib_submodule ()
 
         shallow=
         $GIT clone -h 2>&1 |func_grep_q -- --depth \
-            && shallow='--depth 365'
+            && shallow='--depth 50'
 
         func_show_eval "$GIT clone $shallow '$gnulib_url' '$gnulib_path'" \
           func_cleanup_gnulib

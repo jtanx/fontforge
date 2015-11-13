@@ -214,17 +214,6 @@ AC_PATH_PROG([UPDATE_MIME_DATABASE],[update-mime-database],[:])
 AC_PATH_PROG([UPDATE_DESKTOP_DATABASE],[update-desktop-database],[:])
 AC_PATH_PROG([PLUTIL],[plutil],[:])
 
-if test "y$HOMEBREW_BREW_FILE" != "y"; then
-   echo "detected a homebrew build environment"
-   PYLIBDIR=$(${HOMEBREW_PREFIX}/bin/python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
-   PYPKGCONFIG="$( cd "$PYLIBDIR/../../pkgconfig" && pwd )"
-   export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$PYPKGCONFIG"
-   echo "found python pkg_config information: $PYPKGCONFIG"
-   if test "y$PYTHON" = "y"; then
-     export PYTHON="${HOMEBREW_PREFIX}/bin/python"
-   fi
-fi
-
 AM_PATH_PYTHON([2.7])
 PKG_CHECK_MODULES([PYTHON],[python-"${PYTHON_VERSION}"])
 i_do_have_python_scripting=yes;

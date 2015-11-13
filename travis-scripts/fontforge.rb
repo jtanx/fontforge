@@ -5,7 +5,7 @@
 class MyDownloadStrategy < GitDownloadStrategy
   # get the PR
   def fetch
-    system "rsync -a /Users/travis/build/fontforge/fontforge/. /Library/Caches/Homebrew/fontforge--git"
+    system "rsync -a $TRAVIS_BUILD_DIR/. /Library/Caches/Homebrew/fontforge--git"
   end
 
   def reset_args
@@ -27,7 +27,7 @@ class Fontforge < Formula
   homepage "https://fontforge.github.io"
   url "https://github.com/fontforge/fontforge/archive/20150430.tar.gz"
   sha256 "430c6d02611c7ca948df743e9241994efe37eda25f81a94aeadd9b6dd286ff37"
-  head "file:///Users/travis/build/fontforge/fontforge", :branch => "FETCH_HEAD", :using => MyDownloadStrategy
+  head "file://$TRAVIS_BUILD_DIR", :branch => "FETCH_HEAD", :using => MyDownloadStrategy
   revision 1
 
   bottle do
@@ -37,26 +37,31 @@ class Fontforge < Formula
     sha256 "bfc3c9062cbc8defca80a9660682f86df28541a349b064f7894648ae626ae1d5" => :mountain_lion
   end
 
-  option "with-giflib", "Build with GIF support"
   option "with-extra-tools", "Build with additional font tools"
+  option "with-collab", "Build with collab features"
 
-  deprecated_option "with-gif" => "with-giflib"
+  deprecated_option "with-x" => "with-x11"
 
+  # I have no idea why this doesn't work...
+  gui_opts = build.with?("x11") ? ["with-x11"] : []
+  collab_opts = build.with?("collab") ? [] : [:optional]
+  
   # Autotools are required to build from source in all releases.
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "pkg-config" => :build
   depends_on "libtool" => :run
+  depends_on "cairo" => "with-x11"
+  depends_on "pango" => "with-x11"
   depends_on "gettext"
-  depends_on "pango"
-  depends_on "zeromq"
-  depends_on "czmq"
-  depends_on "cairo"
+  depends_on "zeromq" => collab_opts
+  depends_on "czmq" => collab_opts
   depends_on "libpng" => :recommended
   depends_on "jpeg" => :recommended
   depends_on "libtiff" => :recommended
-  depends_on "giflib" => :optional
-  depends_on "libspiro" => :optional
+  depends_on "giflib" => :recommended
+  depends_on "libspiro" => :recommended
+  depends_on :x11 => :optional
   depends_on :python if MacOS.version <= :snow_leopard
 
   # This may be causing font-display glitches and needs further isolation & fixing.
@@ -81,17 +86,23 @@ class Fontforge < Formula
       --disable-silent-rules
       --disable-dependency-tracking
       --with-pythonbinary=#{pydir}/bin/python2.7
-      --without-x
     ]
+    
+    if build.with? "x11"
+      args << "--with-x"
+    else
+      args << "--without-x"
+    end
+    
+    if build.head?
+      args << "--with-freetype-source=./freetype-2.6.1"
+    end
 
     args << "--without-libpng" if build.without? "libpng"
     args << "--without-libjpeg" if build.without? "jpeg"
     args << "--without-libtiff" if build.without? "libtiff"
     args << "--without-giflib" if build.without? "giflib"
     args << "--without-libspiro" if build.without? "libspiro"
-
-    # Fix linker error; see: https://trac.macports.org/ticket/25012
-    ENV.append "LDFLAGS", "-lintl"
 
     # Reset ARCHFLAGS to match how we build
     ENV["ARCHFLAGS"] = "-arch #{MacOS.preferred_arch}"
@@ -116,11 +127,6 @@ class Fontforge < Formula
   end
 
   def post_install
-    # Now we create a copy in /tmp that the script_osx.sh can use to
-    # roll a package
-    #
-    # WARNING: using rsync runs into all sorts of troubles with autotools.
-    system "cp -aL . /tmp/fontforge-source-tree/"
   end
 
   test do

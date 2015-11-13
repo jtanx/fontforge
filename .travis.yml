@@ -6,7 +6,7 @@ branches:
   only:
     - master
 os:
-  - linux
+#  - linux
   - osx
 
 before_install: ./travis-scripts/before_install_${TRAVIS_OS_NAME}.sh
