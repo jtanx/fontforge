@@ -8,12 +8,12 @@ if [ y${IPYTHON_COUNT} = y0 ]; then
 fi
 
 BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-TEMPDIR=/tmp/fontforge-app-bundle
+WORK=/tmp/fontforge-app-bundle
 rm -rf /tmp/fontforge-app-bundle
-mkdir -p $TEMPDIR
+mkdir -p $WORK
 
-scriptdir=$TEMPDIR/FontForge.app/Contents/MacOS
-bundle_res=$TEMPDIR/FontForge.app/Contents/Resources
+scriptdir=$WORK/FontForge.app/Contents/MacOS
+bundle_res=$WORK/FontForge.app/Contents/Resources
 bundle_bin="$bundle_res/opt/local/bin"
 bundle_lib="$bundle_res/opt/local/lib"
 bundle_libexec="$bundle_res/opt/local/libexec"
@@ -21,45 +21,16 @@ bundle_etc="$bundle_res/opt/local/etc"
 bundle_share="$bundle_res/opt/local/share"
 export PATH="$PATH:$scriptdir:/usr/local/bin"
 
-rsync -av $BASE/osx/FontForge.app $TEMPDIR/
-#cp ./fontforge/MacFontForgeAppBuilt.zip $TEMPDIR/
-#unzip -d $TEMPDIR $TEMPDIR/MacFontForgeAppBuilt.zip
-echo "...doing the make install..."
-DESTDIR=$bundle_res make install
+# Copy the FontForge.App template into our working tree
+rsync -av $BASE/osx/FontForge.app $WORK/
+rsync -av /usr/local/lib $bundle_res/opt/local/
+rsync -av /usr/local/bin $bundle_res/opt/local/
+rsync -av /usr/local/etc $bundle_res/opt/local/
+rsync -av /usr/local/share $bundle_res/opt/local/
+ls -R $WORK/
+ls -l $WORK/FontForge.app/Contents/Resources/opt/local/share/
 
-
-echo "...creating links to work with homebrew install too"
-mkdir -p $bundle_res/opt
-#cd $bundle_res/opt
-#ln -s ../usr/local/Cellar/fontforge/HEAD local
-#cd $ORIGDIR
-
-echo "...setup FontForge.app bundle..."
-echo "rsync from $bundle_res/opt/local/share/fontforge/osx/FontForge.app  ..to..  $TEMPDIR/ "
-echo "...before..."
-ls -l /tmp/fontforge-app-bundle/FontForge.app/Contents/Resources/opt/local/share/
-#rsync -av $bundle_res/opt/local/share/fontforge/osx/FontForge.app $TEMPDIR/
-cd $bundle_res/usr/local/Cellar/fontforge/HEAD/share/fontforge/osx
-rsync -av FontForge.app $TEMPDIR/
 cd $ORIGDIR
-echo "...after..."
-ls -l  $bundle_res/opt
-find $bundle_res/opt
-cd $bundle_res/opt
-mv local/etc ../usr/local/Cellar/fontforge/HEAD/
-rmdir local
-echo "...after2..."
-cd $bundle_res/opt
-ln -s ../usr/local/Cellar/fontforge/HEAD local
-ls -l /tmp/fontforge-app-bundle/FontForge.app/Contents/Resources/opt/local/share/
-cd $ORIGDIR
-
-# FIXME
-#cp -av /tmp/ldd /tmp/fontforge-app-bundle/FontForge.app/Contents/MacOS/
-
-
-#echo "...patching..."
-#patch -d $TEMPDIR/FontForge.app -p0 < osx/ipython-embed-fix.patch
 
 echo "...on with the rest..."
 sed -i -e "s|Gdraw.ScreenWidthCentimeters:.*|Gdraw.ScreenWidthCentimeters: 34|g" \
@@ -73,7 +44,7 @@ sed -i -e "s|Gdraw.GMenu.MacIcons:.*|Gdraw.GMenu.MacIcons: True|g" \
 # FONTFORGE_MODTIME before FONTFORGE_MODTIME_RAW so that the head -1
 # will pick the prefix name from the sorted include file.
 #
-osxmetadata_file=$TEMPDIR/FontForge.app/Contents/Resources/English.lproj/InfoPlist.string
+osxmetadata_file=$WORK/FontForge.app/Contents/Resources/English.lproj/InfoPlist.string
 sort ./inc/fontforge-config.h >|/tmp/fontforge-config-sorted
 
 FONTFORGE_MODTIME_STR=$(grep FONTFORGE_MODTIME_STR /tmp/fontforge-config-sorted | head -1 | sed 's/^[^ ]*[ ][^ ]*[ ]//g')
@@ -93,9 +64,9 @@ sed -i -e "s/CFBundleShortVersionString.*/CFBundleShortVersionString = \"$CFBund
 sed -i -e "s/CFBundleGetInfoString.*/CFBundleGetInfoString = \"$CFBundleGetInfoString\"/g" $osxmetadata_file
 
 # Replace version strings in Info.plist 
-sed -i -e "s/CFBundleShortVersionStringChangeMe/$CFBundleShortVersionString/g" $TEMPDIR/FontForge.app/Contents/Info.plist 
-sed -i -e "s/CFBundleGetInfoStringChangeMe/$CFBundleGetInfoString/g" $TEMPDIR/FontForge.app/Contents/Info.plist
-sed -i -e "s/CFBundleVersionChangeMe/$FONTFORGE_VERSIONDATE_RAW/g" $TEMPDIR/FontForge.app/Contents/Info.plist
+sed -i -e "s/CFBundleShortVersionStringChangeMe/$CFBundleShortVersionString/g" $WORK/FontForge.app/Contents/Info.plist 
+sed -i -e "s/CFBundleGetInfoStringChangeMe/$CFBundleGetInfoString/g" $WORK/FontForge.app/Contents/Info.plist
+sed -i -e "s/CFBundleVersionChangeMe/$FONTFORGE_VERSIONDATE_RAW/g" $WORK/FontForge.app/Contents/Info.plist
 
 
 
@@ -540,7 +511,7 @@ done
 # Wrap it all up.
 #
 
-cd $TEMPDIR
+cd $WORK
 find FontForge.app -exec touch {} \;
 rm -f  ~/FontForge.app.zip
 zip -9 --symlinks -r ~/FontForge.app.zip FontForge.app
