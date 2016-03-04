@@ -27,8 +27,8 @@ rsync -av /usr/local/lib $bundle_res/opt/local/
 rsync -av /usr/local/bin $bundle_res/opt/local/
 rsync -av /usr/local/etc $bundle_res/opt/local/
 rsync -av /usr/local/share $bundle_res/opt/local/
-ls -R $WORK/
-ls -l $WORK/FontForge.app/Contents/Resources/opt/local/share/
+#ls -R $WORK/
+#ls -l $WORK/FontForge.app/Contents/Resources/opt/local/share/
 
 cd $ORIGDIR
 
