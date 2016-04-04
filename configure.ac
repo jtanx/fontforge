@@ -368,6 +368,8 @@ PKG_CHECK_MODULES([GLIB],[glib-2.0 >= 2.6 gio-2.0])
 
 if test x"${i_do_have_gui}" = xyes; then
    PKG_CHECK_MODULES([PANGO],[pango >= 1.10 pangoxft])
+   PKG_CHECK_MODULES([PANGOCAIRO],[pangocairo])
+   PKG_CHECK_MODULES([GDK], [gdk-3.0])
 fi
 
 PKG_CHECK_MODULES([FREETYPE],[freetype2 >= 2.3.7])
@@ -381,7 +383,6 @@ FONTFORGE_ARG_WITH_GIFLIB
 FONTFORGE_ARG_WITH_LIBJPEG
 FONTFORGE_ARG_WITH_LIBPNG
 FONTFORGE_ARG_WITH_LIBTIFF
-FONTFORGE_ARG_WITH_CAIRO # do this test only 'after' zlib and png checks
 FONTFORGE_ARG_WITH_LIBSPIRO
 FONTFORGE_ARG_WITH_LIBUNINAMESLIST
 #FONTFORGE_ARG_WITH_LIBUNICODENAMES
@@ -392,10 +393,6 @@ if test x"${i_do_have_x}" = xyes; then
    if test x"${i_do_have_libzmq}" = xyes; then
       AC_DEFINE(BUILD_COLLAB,[1],[Build the Collab Code])
    fi
-fi
-
-if test x"${i_do_have_cairo}" = xyes; then
-   PKG_CHECK_MODULES([PANGOCAIRO],[pangocairo])
 fi
 
 FONTFORGE_CONFIG_FREETYPE_DEBUGGER
@@ -592,6 +589,7 @@ my_cflags="${my_cflags} ${GLIB_CFLAGS}"
 my_cflags="${my_cflags} ${CAIRO_CFLAGS}"
 my_cflags="${my_cflags} ${PANGO_CFLAGS}"
 my_cflags="${my_cflags} ${PANGOCAIRO_CFLAGS}"
+my_cflags="${my_cflags} ${GDK_CFLAGS}"
 my_cflags="${my_cflags} ${FREETYPE_CFLAGS}"
 my_cflags="${my_cflags} ${GIFLIB_CFLAGS}"
 my_cflags="${my_cflags} ${LIBJPEG_CFLAGS}"
@@ -618,9 +616,7 @@ test x"${i_do_have_libpng}" = xyes && my_libs="${my_libs} ${LIBPNG_LIBS}"
 test x"${i_do_have_libtiff}" = xyes && my_libs="${my_libs} ${LIBTIFF_LIBS}"
 test x"${i_do_have_libuninameslist}" = xyes && my_libs="${my_libs} ${LIBUNINAMESLIST_LIBS}"
 test x"${i_do_have_libunicodenames}" = xyes && my_libs="${my_libs} ${LIBUNICODENAMES_LIBS}"
-test x"${i_do_have_cairo}" = xyes && my_libs="${my_libs} ${CAIRO_LIBS}"
-test x"${i_do_have_cairo}" = xyes && my_libs="${my_libs} ${PANGOCAIRO_LIBS}"
-test x"${i_do_have_gui}" = xyes && my_libs="${my_libs} ${PANGO_LIBS}"
+test x"${i_do_have_gui}" = xyes && my_libs="${my_libs} ${PANGO_LIBS} ${CAIRO_LIBS} ${PANGOCAIRO_LIBS} ${GDK_LIBS}"
 test x"${i_do_have_x}" = xyes && my_libs="${my_libs} ${X_PRE_LIBS} ${X_LIBS} ${X_EXTRA_LIBS}"
 test x"${i_do_have_libreadline}" = xyes && my_libs="${my_libs} ${LIBREADLINE_LIBS}"
 my_libs="${my_libs} ${PYTHON_LIBS}"
@@ -851,7 +847,6 @@ Summary of optional features:
 Summary of optional dependencies:
 
 Optional Library	UseIt?	HaveIt?	WebsiteURL
-  cairo			${with_cairo}	${i_do_have_cairo}	${cairo_url}
   giflib		${with_giflib}	${i_do_have_giflib}	${giflib_url}
   libjpeg		${with_libjpeg}	${i_do_have_libjpeg}	${libjpeg_url}
   libpng		${with_libpng}	${i_do_have_libpng}	${libpng_url}
