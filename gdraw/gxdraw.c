@@ -2013,16 +2013,9 @@ static void _GXDraw_Pixmap( GWindow _w, GWindow _pixmap, GRect *src, int32 x, in
 		x,y,1);
     } else {
 	_GXDraw_SetClipFunc(gdisp,gw->ggc);
-#ifndef _NO_LIBCAIRO
-	/* FIXME: _GXCDraw_CopyArea makes the glyph dissabear in the class kern
-	 * dialog */
-	if ( 0 && gw->usecairo )
-	    _GXCDraw_CopyArea(pixmap,gw,src,x,y);
-	else
-#endif
-	    XCopyArea(gdisp->display,pixmap->w,gw->w,gdisp->gcstate[gw->ggc->bitmap_col].gc,
-		    src->x,src->y,	src->width,src->height,
-		    x,y);
+    //FIXME: _GXCDraw_CopyArea makes the glyph dissabear in the class kern dialog
+    //Is that still relevant? Brief test indicates it's ok...
+    _GXCDraw_CopyArea(pixmap,gw,src,x,y);
     }
 }
 
