@@ -951,7 +951,7 @@ return;
 		if ( sp->flexx ) {
 		    /* cp is a reference point */
 		    DrawPoint_SetupRectForSize( &r, cx, cy, 5 );
-		    GDrawDrawElipse(pixmap,&r,selectedpointcol );
+		    GDrawDrawEllipse(pixmap,&r,selectedpointcol );
 		}
 	    }
 	    if ( !onlynumber )
@@ -1042,9 +1042,9 @@ return;
 	r.x = x - r.width  / 2;
 	r.y = y - r.height / 2;
 	if ( sp->selected || isfake )
-	    GDrawDrawElipse(pixmap,&r,col);
+	    GDrawDrawEllipse(pixmap,&r,col);
 	else
-	    GDrawFillElipse(pixmap,&r,col);
+	    GDrawFillEllipse(pixmap,&r,col);
     }
     else if ( sp->pointtype==pt_corner )
     {
@@ -1111,7 +1111,7 @@ return;
     if ( truetype_markup && sp->roundx ) {
 	r.x = x-5; r.y = y-5;
 	r.width = r.height = 11;
-	GDrawDrawElipse(pixmap,&r,selectedpointcolmasked);
+	GDrawDrawEllipse(pixmap,&r,selectedpointcolmasked);
     } else if ( !onlynumber && !truetype_markup ) {
 	if ((( sp->roundx || sp->roundy ) &&
 		 (((cv->showrounds&1) && cv->scale>=.3) || (cv->showrounds&2))) ||
@@ -1119,12 +1119,12 @@ return;
 		sp->hintmask!=NULL ) {
 	    r.x = x-5; r.y = y-5;
 	    r.width = r.height = 11;
-	    GDrawDrawElipse(pixmap,&r,col);
+	    GDrawDrawEllipse(pixmap,&r,col);
 	}
 	if (( sp->flexx && cv->showhhints ) || (sp->flexy && cv->showvhints)) {
 	    r.x = x-5; r.y = y-5;
 	    r.width = r.height = 11;
-	    GDrawDrawElipse(pixmap,&r,
+	    GDrawDrawEllipse(pixmap,&r,
 			    MaybeMaskColorToAlphaChannelOverride( sp->flexx ? hflexhintcol : vflexhintcol,
 								  AlphaChannelOverride ));
 	}
@@ -1213,9 +1213,9 @@ return;
     } else {
 	--r.x; --r.y; r.width +=2; r.height += 2;
 	if ( selected )
-	    GDrawDrawElipse(pixmap,&r,col);
+	    GDrawDrawEllipse(pixmap,&r,col);
 	else
-	    GDrawFillElipse(pixmap,&r,col);
+	    GDrawFillEllipse(pixmap,&r,col);
     }
     GDrawSetLineWidth(pixmap,0);
 }
@@ -1316,7 +1316,7 @@ static void CVMarkInterestingLocations(CharView *cv, GWindow pixmap,
 	    GDrawDrawLine(pixmap,sx-4,sy,sx+4,sy, col);
 	    GDrawDrawLine(pixmap,sx,sy-4,sx,sy+4, col);
 	    r.x = sx-4; r.y = sy-4;
-	    GDrawDrawElipse(pixmap,&r,col);
+	    GDrawDrawEllipse(pixmap,&r,col);
 	}
     }
 }
@@ -4053,7 +4053,7 @@ void CVInfoDrawText(CharView *cv, GWindow pixmap ) {
     else
 	sp = cv->p.sp!=NULL ? cv->p.sp : cv->lastselpt;
     if ( sp==NULL && cp==NULL )
-	    if ( cv->active_tool==cvt_rect || cv->active_tool==cvt_elipse ||
+	    if ( cv->active_tool==cvt_rect || cv->active_tool==cvt_ellipse ||
 		    cv->active_tool==cvt_poly || cv->active_tool==cvt_star ||
 		    cv->active_tool==cvt_scale || cv->active_tool==cvt_skew ||
 		    cv->active_tool==cvt_rotate || cv->active_tool==cvt_flip ) {
@@ -5027,7 +5027,7 @@ return;		/* I treat this more like a modifier key change than a button press */
       case cvt_knife:
 	CVMouseDownKnife(cv);
       break;
-      case cvt_rect: case cvt_elipse: case cvt_poly: case cvt_star:
+      case cvt_rect: case cvt_ellipse: case cvt_poly: case cvt_star:
 	CVMouseDownShape(cv,event);
       break;
     }
@@ -5424,7 +5424,7 @@ return;
       case cvt_knife:
 	CVMouseMoveKnife(cv,&p);
       break;
-      case cvt_rect: case cvt_elipse: case cvt_poly: case cvt_star:
+      case cvt_rect: case cvt_ellipse: case cvt_poly: case cvt_star:
 	CVMouseMoveShape(cv);
       break;
     }
@@ -5583,7 +5583,7 @@ static void CVMouseUp(CharView *cv, GEvent *event ) {
       case cvt_knife:
 	CVMouseUpKnife(cv,event);
       break;
-      case cvt_rect: case cvt_elipse: case cvt_poly: case cvt_star:
+      case cvt_rect: case cvt_ellipse: case cvt_poly: case cvt_star:
 	CVMouseUpShape(cv);
 	CVGridHandlePossibleFitChar( cv );
       break;
