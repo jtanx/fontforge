@@ -2,7 +2,6 @@
 # define _GXCDRAWP_H
 
 extern int _GXCDraw_hasCairo(void);
-#ifndef _NO_LIBCAIRO
 
 extern void _GXCDraw_NewWindow(GXWindow nw);
 extern void _GXCDraw_ResizeWindow(GXWindow gw,GRect *rect);
@@ -16,6 +15,7 @@ extern void _GXCDraw_SetDifferenceMode(GXWindow gw);
 
 extern void _GXCDraw_Clear(GXWindow gw, GRect *rect);
 extern void _GXCDraw_DrawLine(GXWindow gw, int32 x,int32 y, int32 xend,int32 yend);
+extern void _GXCDraw_DrawArrow(GXWindow gw, double x, double y, double xend, double yend);
 extern void _GXCDraw_DrawArc(GXWindow gw, GRect *rect, double start_angle, double end_angle);
 extern void _GXCDraw_DrawRect(GXWindow gw, GRect *rect);
 extern void _GXCDraw_FillRect(GXWindow gw, GRect *rect);
@@ -51,10 +51,8 @@ extern void _GXCDraw_Flush(GXWindow gw);
 extern void _GXCDraw_DirtyRect(GXWindow gw,double x, double y, double width, double height);
 
 #include "fontP.h"
-#endif
 extern void _GXPDraw_NewWindow(GXWindow nw);
 extern void _GXPDraw_DestroyWindow(GXWindow nw);
-#include "fontP.h"
 extern PangoFontDescription *_GXPDraw_configfont(GWindow gw, GFont *font);
 extern int32 _GXPDraw_DoText8(GWindow w, int32 x, int32 y,
 	const char *text, int32 cnt, Color col,

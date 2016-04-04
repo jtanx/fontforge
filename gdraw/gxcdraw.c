@@ -39,20 +39,13 @@
 # include <sys/utsname.h>
 #endif
 
-#ifdef _NO_LIBCAIRO
-static int usecairo = false;
-#else
 static int usecairo = true;
-#endif
-
-
 
 void GDrawEnableCairo(int on) {
     usecairo=on;
     /* Obviously, if we have no library, enabling it will do nothing */
 }
 
-#ifndef _NO_LIBCAIRO
 /* ************************************************************************** */
 /* ***************************** Cairo Library ****************************** */
 /* ************************************************************************** */
@@ -242,6 +235,45 @@ void _GXCDraw_DrawLine(GXWindow gw, int32 x,int32 y, int32 xend,int32 yend) {
 	cairo_line_to(gw->cc,xend,yend);
     }
     cairo_stroke(gw->cc);
+}
+
+/**
+ *  \brief Draw a line with a filled arrow head at its end.
+ *
+ *  \param [in] gw The window to draw on.
+ *  \param [in] x Start of the arrow (x)
+ *  \param [in] y Start of the arrow (y)
+ *  \param [in] xend End of the arrow (x)
+ *  \param [in] yend End of the arrow (y)
+ */
+void _GXCDraw_DrawArrow(GXWindow gw, double x, double y, double xend, double yend) {
+    int width = GXCDrawSetline(gw,gw->ggc);
+    if (width & 1) {
+        x += .5; y += .5; xend += .5; yend += .5;
+    }
+
+    const double head_angle = 0.5;
+    double angle = atan2(yend - y, xend - x) + M_PI;
+    double length = sqrt((x - xend)*(x - xend)+(y - yend)*(y - yend));
+
+    cairo_new_path(gw->cc);
+    cairo_move_to(gw->cc, x, y);
+    cairo_line_to(gw->cc, xend, yend);
+    cairo_stroke(gw->cc);
+
+    if (length < 2) { //No point arrowing something so small
+        return;
+    } else if (length > 20) {
+        length = 10;
+    } else {
+        length *= 2./3.;
+    }
+    cairo_new_path(gw->cc);
+    cairo_move_to(gw->cc, xend, yend);
+    cairo_line_to(gw->cc, xend + length * cos(angle - head_angle), yend + length * sin(angle - head_angle));
+    cairo_line_to(gw->cc, xend + length * cos(angle + head_angle), yend + length * sin(angle + head_angle));
+    cairo_close_path(gw->cc);
+    cairo_fill(gw->cc);
 }
 
 /**
@@ -852,12 +884,6 @@ void _GXCDraw_Flush(GXWindow gw) {
 void _GXCDraw_DirtyRect(GXWindow gw,double x, double y, double width, double height) {
     cairo_surface_mark_dirty_rectangle(gw->cs,x,y,width,height);
 }
-#else
-int _GXCDraw_hasCairo(void) {
-return(false);
-}
-
-#endif	/* ! _NO_LIBCAIRO */
 
 /* ************************************************************************** */
 /* ***************************** Pango Library ****************************** */
@@ -865,9 +891,7 @@ return(false);
 
 #  define GTimer GTimer_GTK
 #  include <pango/pangoxft.h>
-#  if !defined(_NO_LIBCAIRO)
-#   include <pango/pangocairo.h>
-#  endif
+#  include <pango/pangocairo.h>
 #  undef GTimer
 
 /* ************************************************************************** */
@@ -894,7 +918,6 @@ static void my_xft_render_layout(XftDraw *xftw,XftColor *fgcol,
     pango_layout_iter_free(iter);
 }
 
-# if !defined(_NO_LIBCAIRO)
 /* Strangely the equivalent routine was not part of the pangocairo library */
 /* Oh there's pango_cairo_layout_path but that's more restrictive and probably*/
 /*  less efficient */
@@ -921,7 +944,6 @@ static void my_cairo_render_layout(cairo_t *cc, Color fg,
     } while ( pango_layout_iter_next_run(iter));
     pango_layout_iter_free(iter);
 }
-#endif
 
 /* ************************************************************************** */
 /* ****************************** Pango Window ****************************** */
@@ -929,8 +951,6 @@ static void my_cairo_render_layout(cairo_t *cc, Color fg,
 void _GXPDraw_NewWindow(GXWindow nw) {
     GXDisplay *gdisp = nw->display;
 
-# if !defined(_NO_LIBCAIRO)
-    if ( nw->usecairo ) {
 	/* using pango through cairo is different from using it on bare X */
 	if ( gdisp->pangoc_context==NULL ) {
 	    gdisp->pangoc_fontmap = pango_cairo_font_map_get_default();
@@ -941,19 +961,6 @@ void _GXPDraw_NewWindow(GXWindow nw) {
 	}
 	if (nw->pango_layout==NULL)
 	    nw->pango_layout = pango_layout_new(gdisp->pangoc_context);
-    } else
-# endif
-    {
-	if ( gdisp->pango_context==NULL ) {
-	    gdisp->pango_fontmap = pango_xft_get_font_map(gdisp->display,gdisp->screen);
-	    gdisp->pango_context = pango_xft_get_context(gdisp->display,gdisp->screen);
-	    /* No obvious way to get or set the resolution of pango_xft */
-	}
-	nw->xft_w = XftDrawCreate(gdisp->display,nw->w,gdisp->visual,gdisp->cmap);
-	if ( nw->pango_layout==NULL )
-	    nw->pango_layout = pango_layout_new(gdisp->pango_context);
-    }
-return;
 }
 
 void _GXPDraw_DestroyWindow(GXWindow nw) {
@@ -975,17 +982,11 @@ PangoFontDescription *_GXPDraw_configfont(GWindow w, GFont *font) {
 
     /* initialize cairo and pango if not initialized, e.g. root window */
     if (gw->pango_layout == NULL){
-#ifndef _NO_LIBCAIRO
 	_GXCDraw_NewWindow(gw);
-#endif
 	_GXPDraw_NewWindow(gw);
     }
 
-#ifdef _NO_LIBCAIRO
-    PangoFontDescription **fdbase = &font->pango_fd;
-#else
-    PangoFontDescription **fdbase = gw->usecairo ? &font->pangoc_fd : &font->pango_fd;
-#endif
+    PangoFontDescription **fdbase = &font->pangoc_fd;
 
     if ( *fdbase!=NULL )
 return( *fdbase );
@@ -1042,28 +1043,7 @@ int32 _GXPDraw_DoText8(GWindow w, int32 x, int32 y,
     pango_layout_set_text(gw->pango_layout,(char *) text,cnt);
     pango_layout_get_pixel_extents(gw->pango_layout,NULL,&rect);
     if ( drawit==tf_drawit ) {
-# if !defined(_NO_LIBCAIRO)
-	if ( gw->usecairo ) {
-	    my_cairo_render_layout(gw->cc,col,gw->pango_layout,x,y);
-	} else
-#endif
-	{
-	    XftColor fg;
-	    XRenderColor fgcol;
-	    XRectangle clip;
-	    fgcol.red = COLOR_RED(col)<<8; fgcol.green = COLOR_GREEN(col)<<8; fgcol.blue = COLOR_BLUE(col)<<8;
-	    if ( COLOR_ALPHA(col)!=0 )
-		fgcol.alpha = COLOR_ALPHA(col)*0x101;
-	    else
-		fgcol.alpha = 0xffff;
-	    XftColorAllocValue(gdisp->display,gdisp->visual,gdisp->cmap,&fgcol,&fg);
-	    clip.x = gw->ggc->clip.x;
-	    clip.y = gw->ggc->clip.y;
-	    clip.width = gw->ggc->clip.width;
-	    clip.height = gw->ggc->clip.height;
-	    XftDrawSetClipRectangles(gw->xft_w,0,0,&clip,1);
-	    my_xft_render_layout(gw->xft_w,&fg,gw->pango_layout,x,y);
-	}
+        my_cairo_render_layout(gw->cc,col,gw->pango_layout,x,y);
     } else if ( drawit==tf_rect ) {
 	PangoLayoutIter *iter;
 	PangoLayoutRun *run;
@@ -1119,14 +1099,8 @@ void _GXPDraw_FontMetrics(GWindow gw, GFont *fi, int *as, int *ds, int *ld) {
     PangoFontMetrics *fm;
 
     _GXPDraw_configfont(gw, fi);
-# if !defined(_NO_LIBCAIRO)
-    if ( gw->usecairo )
-	pfont = pango_font_map_load_font(gdisp->pangoc_fontmap,gdisp->pangoc_context,
+    pfont = pango_font_map_load_font(gdisp->pangoc_fontmap,gdisp->pangoc_context,
 		fi->pangoc_fd);
-    else
-#endif
-	pfont = pango_font_map_load_font(gdisp->pango_fontmap,gdisp->pango_context,
-		fi->pango_fd);
     fm = pango_font_get_metrics(pfont,NULL);
     *as = pango_font_metrics_get_ascent(fm)/PANGO_SCALE;
     *ds = pango_font_metrics_get_descent(fm)/PANGO_SCALE;
@@ -1156,28 +1130,7 @@ void _GXPDraw_LayoutDraw(GWindow w, int32 x, int32 y, Color col) {
     GXWindow gw = (GXWindow) w;
     GXDisplay *gdisp = gw->display;
 
-# if !defined(_NO_LIBCAIRO)
-    if ( gw->usecairo ) {
-	my_cairo_render_layout(gw->cc,col,gw->pango_layout,x,y);
-    } else
-#endif
-    {
-	XftColor fg;
-	XRenderColor fgcol;
-	XRectangle clip;
-	fgcol.red = COLOR_RED(col)<<8; fgcol.green = COLOR_GREEN(col)<<8; fgcol.blue = COLOR_BLUE(col)<<8;
-	if ( COLOR_ALPHA(col)!=0 )
-	    fgcol.alpha = COLOR_ALPHA(col)*0x101;
-	else
-	    fgcol.alpha = 0xffff;
-	XftColorAllocValue(gdisp->display,gdisp->visual,gdisp->cmap,&fgcol,&fg);
-	clip.x = gw->ggc->clip.x;
-	clip.y = gw->ggc->clip.y;
-	clip.width = gw->ggc->clip.width;
-	clip.height = gw->ggc->clip.height;
-	XftDrawSetClipRectangles(gw->xft_w,0,0,&clip,1);
-	my_xft_render_layout(gw->xft_w,&fg,gw->pango_layout,x,y);
-    }
+    my_cairo_render_layout(gw->cc,col,gw->pango_layout,x,y);
 }
 
 void _GXPDraw_LayoutIndexToPos(GWindow w, int index, GRect *pos) {

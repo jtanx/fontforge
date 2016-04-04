@@ -145,9 +145,6 @@ static void _dousage(void) {
 #if MyMemory
     printf( "\t-memory\t\t\t (turns on memory checks, debugging)\n" );
 #endif
-#ifndef _NO_LIBCAIRO
-    printf( "\t-usecairo=yes|no  Use (or not) the cairo library for drawing\n" );
-#endif
     printf( "\t-help\t\t\t (displays this message, and exits)\n" );
     printf( "\t-docs\t\t\t (displays this message, invokes a browser)\n\t\t\t\t (Using the BROWSER environment variable)\n" );
     printf( "\t-version\t\t (prints the version of fontforge and exits)\n" );
@@ -816,52 +813,6 @@ static void DoAutoRecoveryPostRecover_PromptUserGraphically(SplineFont *sf)
     _FVMenuSaveAs( (FontView*)sf->fv );
 }
 
-#if defined(__MINGW32__) && !defined(_NO_LIBCAIRO)
-/**
- * \brief Load fonts from the specified folder for the UI to use.
- * This should only be used if Cairo is used on Windows, which defaults to the
- * Win32 font backend.
- * This is an ANSI version, so files which contain characters outside of the
- * user's locale will fail to be loaded.
- * \param prefix The folder to read fonts from. Currently the pixmaps folder
- *               and the folder 'ui-fonts' in the FontForge preferences folder.
- */
-static void WinLoadUserFonts(const char *prefix) {
-    HANDLE fileHandle;
-    WIN32_FIND_DATA fileData;
-    char path[MAX_PATH], *ext;
-    HRESULT ret;
-    int i;
-
-    if (prefix == NULL) {
-        return;
-    }
-    ret = snprintf(path, MAX_PATH, "%s/*.???", prefix);
-    if (ret <= 0 || ret >= MAX_PATH) {
-        return;
-    }
-
-    fileHandle = FindFirstFileA(path, &fileData);
-    if (fileHandle != INVALID_HANDLE_VALUE) do {
-        ext = strrchr(fileData.cFileName, '.');
-        if (!ext || (strcasecmp(ext, ".ttf") && strcasecmp(ext, ".ttc") &&
-                     strcasecmp(ext,".otf")))
-        {
-            continue;
-        }
-        ret = snprintf(path, MAX_PATH, "%s/%s", prefix, fileData.cFileName);
-        if (ret > 0 && ret < MAX_PATH) {
-            //printf("WIN32-FONT-TEST: %s\n", path);
-            ret = AddFontResourceExA(path, FR_PRIVATE, NULL);
-            //if (ret > 0) {
-            //    printf("\tLOADED FONT OK!\n");
-            //}
-        }
-    } while (FindNextFileA(fileHandle, &fileData) != 0);
-}
-#endif
-
-
 int fontforge_main( int argc, char **argv ) {
     extern const char *source_modtime_str;
     extern const char *source_version_str;
@@ -877,7 +828,6 @@ int fontforge_main( int argc, char **argv ) {
     int ds, ld;
     int openflags=0;
     int doopen=0, quit_request=0;
-    bool use_cairo = true;
 
 #if !(GLIB_CHECK_VERSION(2, 35, 0))
     g_type_init();
@@ -1088,13 +1038,7 @@ int fontforge_main( int argc, char **argv ) {
 	else if ( strcmp(pt,"-memory")==0 )
 	    __malloc_debug(5);
 # endif
-	else if ( strncmp(pt,"-usecairo",strlen("-usecairo"))==0 ) {
-	    if ( strcmp(pt,"-usecairo=no")==0 )
-	        use_cairo = false;
-	    else
-	        use_cairo = true;
-	    GDrawEnableCairo(use_cairo);
-	} else if ( strcmp(pt,"-nosplash")==0 )
+	else if ( strcmp(pt,"-nosplash")==0 )
 	    splash = 0;
 	else if ( strcmp(pt,"-quiet")==0 )
 	    /* already checked for this earlier, no need to do it again */;
@@ -1147,30 +1091,6 @@ int fontforge_main( int argc, char **argv ) {
     }
 
     ensureDotFontForgeIsSetup();
-#if defined(__MINGW32__) && !defined(_NO_LIBCAIRO)
-    //Load any custom fonts for the user interface
-    if (use_cairo) {
-        char *system_load = getGResourceProgramDir();
-        char *user_load = getFontForgeUserDir(Data);
-        char lbuf[MAX_PATH];
-        int lret;
-
-        if (system_load != NULL) {
-            //Follow the FontConfig APPSHAREFONTDIR location
-            lret = snprintf(lbuf, MAX_PATH, "%s/../share/fonts", system_load);
-            if (lret > 0 && lret < MAX_PATH) {
-                WinLoadUserFonts(lbuf);
-            }
-        }
-        if (user_load != NULL) {
-            lret = snprintf(lbuf, MAX_PATH, "%s/%s", user_load, "ui-fonts");
-            if (lret > 0 && lret < MAX_PATH) {
-                WinLoadUserFonts(lbuf);
-            }
-            free(user_load);
-        }
-    }
-#endif
     InitImageCache(); // This is in gtextinfo.c. It zeroes imagecache for us.
     atexit(&ClearImageCache); // We register the destructor, which is also in gtextinfo.c.
     GDrawCreateDisplays(display,argv[0]);
@@ -1294,7 +1214,6 @@ exit( 0 );
 		    strcmp(pt,"-nosplash")==0 || strcmp(pt,"-recover=none")==0 ||
 		    strcmp(pt,"-recover=clean")==0 || strcmp(pt,"-recover=auto")==0 ||
 		    strcmp(pt,"-dontopenxdevices")==0 || strcmp(pt,"-unique")==0 ||
-		    strncmp(pt,"-usecairo",strlen("-usecairo"))==0 ||
 		    strcmp(pt,"-home")==0 || strcmp(pt,"-quiet")==0
 		    || strcmp(pt,"-forceuihidden")==0 )
 	    /* Already done, needed to be before display opened */;

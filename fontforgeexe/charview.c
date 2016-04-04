@@ -1909,13 +1909,13 @@ return;
 	y1 = y2-8;
     if ( md->x ) {
 	ya = (y1+y2)/2;
-	GDrawDrawArrow(pixmap, x1,ya, x2,ya, 2, mdhintcol);
+	GDrawDrawArrow(pixmap, x1,ya, x2,ya, mdhintcol);
 	GDrawSetDashedLine(pixmap,5,5,off);
 	GDrawDrawLine(pixmap, x1,ya, x1,y1, mdhintcol);
 	GDrawDrawLine(pixmap, x2,ya, x2,y2, mdhintcol);
     } else {
 	xa = (x1+x2)/2;
-	GDrawDrawArrow(pixmap, xa,y1, xa,y2, 2, mdhintcol);
+	GDrawDrawArrow(pixmap, xa,y1, xa,y2, mdhintcol);
 	GDrawSetDashedLine(pixmap,5,5,off);
 	GDrawDrawLine(pixmap, xa,y1, x1,y1, mdhintcol);
 	GDrawDrawLine(pixmap, xa,y2, x2,y2, mdhintcol);
@@ -11469,12 +11469,10 @@ static void swlistcheck(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e)) {
 	    mi->ti.checked = cv->showdebugchanges;
 	  break;
 	  case MID_SnapOutlines:
-#ifndef _NO_LIBCAIRO
 	    if ( GDrawHasCairo(cv->v)&gc_alpha ) {
 		mi->ti.checked = cv->snapoutlines;
 		mi->ti.disabled = false;
 	    } else
-#endif
 	    {
 		mi->ti.checked = true;
 		mi->ti.disabled = true;

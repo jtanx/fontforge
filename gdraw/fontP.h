@@ -174,9 +174,7 @@ struct font_name {
 struct font_instance {
     FontRequest rq;		/* identification of this instance */
     PangoFontDescription *pango_fd;
-#ifndef _NO_LIBCAIRO
     PangoFontDescription *pangoc_fd;
-#endif
 };
 
 typedef struct font_state {

@@ -669,16 +669,13 @@ return;
     PSDrawDoPoly(ps,points,3,"fill");
 }
 
-static void PSDrawDrawArrowLine(GWindow w, int32 x,int32 y,int32 xend,int32 yend,int16 arrows,Color col) {
+static void PSDrawDrawArrowLine(GWindow w, int32 x,int32 y,int32 xend,int32 yend,Color col) {
     GPSWindow ps = (GPSWindow ) w;
 
     ps->ggc->fg = col;
     PSDrawSetline(ps);
     PSMoveTo(ps,x,y);
     PSLineTo(ps,xend,yend);
-    if ( arrows&1 )
-	PSDrawArrow(ps,x,y,xend,yend);
-    if ( arrows&2 )
 	PSDrawArrow(ps,xend,yend,x,y);
 }
 

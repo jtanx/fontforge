@@ -1111,9 +1111,7 @@ static void GTimerRemoveWindowTimers(GXWindow gw);
 static void GXDrawDestroyWindow(GWindow w) {
     GXWindow gw = (GXWindow) w;
 
-    if ( gw->usecairo )
 	_GXCDraw_DestroyWindow(gw);
-
     _GXPDraw_DestroyWindow(gw);
 
     if ( gw->is_pixmap ) {
@@ -1749,14 +1747,12 @@ return( true );
 
 static void GXDrawPushClipOnly(GWindow w)
 {
-    if ( ((GXWindow) w)->usecairo )
-        _GXCDraw_PushClipOnly((GXWindow) w);
+    _GXCDraw_PushClipOnly((GXWindow) w);
 }
 
 static void GXDrawClipPreserve(GWindow w)
 {
-    if ( ((GXWindow) w)->usecairo )
-        _GXCDraw_ClipPreserve((GXWindow) w);
+    _GXCDraw_ClipPreserve((GXWindow) w);
 }
 
 static void GXDrawSetDifferenceMode(GWindow w) {
@@ -1792,13 +1788,11 @@ static void GXDrawPushClip(GWindow w, GRect *rct, GRect *old) {
 	w->ggc->clip.x = w->ggc->clip.y = -100;
 	w->ggc->clip.height = w->ggc->clip.width = 1;
     }
-    if ( ((GXWindow) w)->usecairo )
 	_GXCDraw_PushClip((GXWindow) w);
 }
 
 static void GXDrawPopClip(GWindow w, GRect *old) {
     w->ggc->clip = *old;
-    if ( ((GXWindow) w)->usecairo )
 	_GXCDraw_PopClip((GXWindow) w);
 }
 
@@ -1811,65 +1805,11 @@ static void GXDrawClear(GWindow gw, GRect *rect) {
 
 static void GXDrawDrawLine(GWindow w, int32 x,int32 y, int32 xend,int32 yend, Color col) {
     w->ggc->fg = col;
-
-    if ( ((GXWindow) w)->usecairo ) {
-	_GXCDraw_DrawLine((GXWindow) w,x,y,xend,yend);
-    } else {
-	if (((GXWindow) w)->usecairo )
-	    _GXCDraw_Flush((GXWindow) w);
-    {
-	GXDisplay *display = (GXDisplay *) (w->display);
-	GXDrawSetline(display,w->ggc);
-	XDrawLine(display->display,((GXWindow) w)->w,display->gcstate[w->ggc->bitmap_col].gc,x,y,xend,yend);
-    }
-	if (((GXWindow) w)->usecairo ) {
-	    if ( xend<x ) { int temp = x; x = xend; xend=temp;}
-	    if ( yend<y ) { int temp = y; y = yend; yend=temp;}
-	    _GXCDraw_DirtyRect((GXWindow) w,x,y,xend-x+1,yend-y+1);
-	}
-    }
+    _GXCDraw_DrawLine((GXWindow) w,x,y,xend,yend);
 }
 
-static void _DrawArrow(GXWindow gxw, int32 x, int32 y, int32 xother, int32 yother ) {
-    GXDisplay *display = gxw->display;
-    XPoint points[3];
-    double a;
-    int off1, off2;
-    double len;
-
-    if ( x==xother && y==yother )
-return;
-    a = atan2(y-yother,x-xother);
-    len = sqrt((double) (x-xother)*(x-xother)+(y-yother)*(y-yother));
-    if ( len>20 ) len = 10; else len = 2*len/3;
-    if ( len<2 )
-return;
-
-    points[0].x = x; points[0].y = y;
-    off1 = len*sin(a+3.1415926535897932/8)+.5; off2 = len*cos(a+3.1415926535897932/8)+.5;
-    points[1].x = x-off2; points[1].y = y-off1;
-    off1 = len*sin(a-3.1415926535897932/8)+.5; off2 = len*cos(a-3.1415926535897932/8)+.5;
-    points[2].x = x-off2; points[2].y = y-off1;
-    XFillPolygon(display->display,gxw->w,display->gcstate[gxw->ggc->bitmap_col].gc,points,3,Complex,CoordModeOrigin);
-    XDrawLines(display->display,gxw->w,display->gcstate[gxw->ggc->bitmap_col].gc,points,3,CoordModeOrigin);
-}
-
-// FIXME:???
-static void GXDrawDrawArrow(GWindow gw, int32 x,int32 y, int32 xend,int32 yend, int16 arrows, Color col) {
-    GXWindow gxw = (GXWindow) gw;
-    GXDisplay *display = gxw->display;
-
-#ifndef _NO_LIBCAIRO
-    if ( gxw->usecairo )
-	GDrawIError("DrawArrow not supported");
-#endif
-    gxw->ggc->fg = col;
-    GXDrawSetline(display,gxw->ggc);
-    XDrawLine(display->display,gxw->w,display->gcstate[gxw->ggc->bitmap_col].gc,x,y,xend,yend);
-    if ( arrows&1 )
-	_DrawArrow(gxw,x,y,xend,yend);
-    if ( arrows&2 )
-	_DrawArrow(gxw,xend,yend,x,y);
+static void GXDrawDrawArrow(GWindow gw, int32 x,int32 y, int32 xend,int32 yend, Color col) {
+    _GXCDraw_DrawArrow((GXWindow)gw, x, y, xend, yend);
 }
 
 static void GXDrawDrawRect(GWindow gw, GRect *rect, Color col) {
@@ -1935,45 +1875,30 @@ static void GXDrawFillPoly(GWindow gw, GPoint *pts, int16 cnt, Color col) {
 }
 
 static enum gcairo_flags GXDrawHasCairo(GWindow w) {
-    if ( ((GXWindow) w)->usecairo )
 return( _GXCDraw_CairoCapabilities( (GXWindow) w));
-
-return( gc_xor );
 }
 
 static void GXDrawPathStartNew(GWindow w) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathStartNew(w);
 }
 
 static void GXDrawPathStartSubNew(GWindow w) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathStartSubNew(w);
 }
 
 static int GXDrawFillRuleSetWinding(GWindow w) {
-    if ( !((GXWindow) w)->usecairo )
-return 0;
     return _GXCDraw_FillRuleSetWinding(w);
 }
 
 static void GXDrawPathClose(GWindow w) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathClose(w);
 }
 
 static void GXDrawPathMoveTo(GWindow w,double x, double y) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathMoveTo(w,x,y);
 }
 
 static void GXDrawPathLineTo(GWindow w,double x, double y) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathLineTo(w,x,y);
 }
 
@@ -1981,26 +1906,18 @@ static void GXDrawPathCurveTo(GWindow w,
 		    double cx1, double cy1,
 		    double cx2, double cy2,
 		    double x, double y) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathCurveTo(w,cx1,cy1,cx2,cy2,x,y);
 }
 
 static void GXDrawPathStroke(GWindow w,Color col) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathStroke(w,col);
 }
 
 static void GXDrawPathFill(GWindow w,Color col) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathFill(w,col);
 }
 
 static void GXDrawPathFillAndStroke(GWindow w,Color fillcol, Color strokecol) {
-    if ( !((GXWindow) w)->usecairo )
-return;
     _GXCDraw_PathFillAndStroke(w,fillcol,strokecol);
 }
 
@@ -2127,14 +2044,8 @@ static void _GXDraw_TilePixmap( GWindow _w, GWindow _pixmap, GRect *src, int32 x
 		XCopyPlane(gdisp->display,((GXWindow) pixmap)->w,gw->w,gdisp->gcstate[1].gc,
 			0,0,  pixmap->pos.width, pixmap->pos.height,
 			j,i,1);
-#ifndef _NO_LIBCAIRO
-	    } else if ( gw->usecairo ) {
-		_GXCDraw_CopyArea(pixmap,gw,&pixmap->pos,j,i);
-#endif
 	    } else {
-		XCopyArea(gdisp->display,((GXWindow) pixmap)->w,gw->w,gdisp->gcstate[0].gc,
-			0,0,  pixmap->pos.width, pixmap->pos.height,
-			j,i);
+		_GXCDraw_CopyArea(pixmap,gw,&pixmap->pos,j,i);
 	    }
 	}
     }
@@ -2874,7 +2785,7 @@ return;
 		gevent.u.expose.rect.y = subevent.xexpose.y;
 	    }
 	}
-	if ( ((GXWindow) gw)->usecairo )		/* X11 does this automatically. but cairo won't get the event */
+        /* X11 does this automatically. but cairo won't get the event */
 	    GXDrawClear(gw,&gevent.u.expose.rect);
       break;
       case VisibilityNotify:
@@ -2928,7 +2839,6 @@ return;
 	    gevent.u.resize.moved = true;
 	if ( gevent.u.resize.dwidth!=0 || gevent.u.resize.dheight!=0 ) {
 	    gevent.u.resize.sized = true;
-	    if ( ((GXWindow) gw)->usecairo )
 		_GXCDraw_ResizeWindow((GXWindow) gw, &gevent.u.resize.size);
 	}
 	gw->pos = gevent.u.resize.size;
