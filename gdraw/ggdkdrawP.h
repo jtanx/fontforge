@@ -15,26 +15,9 @@
 #undef GTimer
 #undef GList
 
-typedef struct ggdkwindow /* :GWindow */ {
-    // Inherit GWindow start
-    GGC *ggc;
-    GDisplay *display;
-    int (*eh)(GWindow,GEvent *);
-    GRect pos;
-    struct ggdkwindow *parent;
-    void *user_data;
-    void *widget_data;
-    GdkWindow *w;
-    unsigned int is_visible: 1;
-    unsigned int is_pixmap: 1;
-    unsigned int is_toplevel: 1;
-    unsigned int visible_request: 1;
-    unsigned int is_dying: 1;
-    unsigned int is_popup: 1;
-    unsigned int disable_expose_requests: 1;
-    unsigned int usecairo: 1;
-    // Inherit GWindow end
-} *GGDKWindow;
+#include "fontP.h"
+
+typedef struct ggdkwindow *GGDKWindow;
 
 typedef struct ggdkdisplay /* :GDisplay */ {
     // Inherit GDisplay start
@@ -43,7 +26,7 @@ typedef struct ggdkdisplay /* :GDisplay */ {
     struct font_state *fontstate;
     int16 res;
     int16 scale_screen_by;
-    GWindow groot;
+    GGDKWindow groot;
     Color def_background, def_foreground;
     uint16 mykey_state;
     uint16 mykey_keysym;
@@ -72,7 +55,35 @@ typedef struct ggdkdisplay /* :GDisplay */ {
     GdkDisplay *display;
     GdkScreen  *screen;
     GdkWindow  *root;
+
+    PangoContext *pangoc_context;
 } GGDKDisplay;
 
+struct ggdkwindow /* :GWindow */ {
+    // Inherit GWindow start
+    GGC *ggc;
+    GGDKDisplay *display;
+    int (*eh)(GWindow,GEvent *);
+    GRect pos;
+    struct ggdkwindow *parent;
+    void *user_data;
+    void *widget_data;
+    GdkWindow *w;
+    unsigned int is_visible: 1;
+    unsigned int is_pixmap: 1;
+    unsigned int is_toplevel: 1;
+    unsigned int visible_request: 1;
+    unsigned int is_dying: 1;
+    unsigned int is_popup: 1;
+    unsigned int disable_expose_requests: 1;
+    unsigned int usecairo: 1;
+    // Inherit GWindow end
+    unsigned int is_dlg: 1;
+    unsigned int not_restricted: 1;
+    unsigned int was_positioned: 1;
+    cairo_surface_t *cs;
+    cairo_t *cc;
+    PangoLayout *pango_layout;
+};
 
 #endif // _GGDKDRAWP_H

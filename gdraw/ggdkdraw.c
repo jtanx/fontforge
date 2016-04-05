@@ -7,7 +7,9 @@
 
 #include "ggdkdrawP.h"
 #include "gresource.h"
+#include "ustring.h"
 #include <assert.h>
+#include <string.h>
 
 // Private member functions (file-level)
 
@@ -24,8 +26,265 @@ static GGC *_GGDKDrawNewGGC() {
     return ggc;
 }
 
-static void GGDKDrawInit(GDisplay *gdisp) {
+static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *pos,
+    int (*eh)(GWindow, GEvent *), void *user_data, GWindowAttrs *wattrs) {
 
+    GWindowAttrs temp = GWINDOWATTRS_EMPTY;
+    GdkWindowAttr attribs = {0};
+    gint attribs_mask = 0;
+    GGDKWindow nw = (GGDKWindow)calloc(1, sizeof(struct ggdkwindow));
+
+    if (nw == NULL) {
+        fprintf(stderr, "_GFDKDraw_CreateWindow: GGDKWindow calloc failed.\n");
+        return NULL;
+    }
+    if (wattrs == NULL) {
+        wattrs = &temp;
+    }
+    if (gw == NULL) { // Creating a top-level window. Set parent as default root.
+        gw = gdisp->groot;
+        attribs.window_type = GDK_WINDOW_TOPLEVEL;
+    } else {
+        attribs.window_type = GDK_WINDOW_CHILD;
+    }
+
+    nw->ggc = _GGDKDrawNewGGC();
+    if (nw->ggc == NULL) {
+        fprintf(stderr, "_GFDKDraw_CreateWindow: _GGDKDrawNewGGC returned NULL\n");
+        free(nw);
+        return NULL;
+    }
+
+    nw->display = gdisp;
+    nw->eh = eh;
+    nw->parent = gw;
+    nw->pos = *pos;
+    nw->user_data = user_data;
+
+    // Window type
+    if ((wattrs->mask & wam_nodecor) && wattrs->nodecoration) {
+        // Is a modeless dialogue
+        nw->is_popup = true;
+        nw->is_dlg = true;
+        nw->not_restricted = true;
+    }
+    if ((wattrs->mask & wam_isdlg) && wattrs->is_dlg) {
+        nw->is_dlg = true;
+    }
+    if ((wattrs->mask & wam_notrestricted) && wattrs->not_restricted) {
+        nw->not_restricted = true;
+    }
+
+    // Window title and hints
+    if (attribs.window_type == GDK_WINDOW_TOPLEVEL) {
+        char *title = NULL;
+        // Icon titles are ignored.
+        if ((wattrs->mask & wam_utf8_wtitle) && (wattrs->utf8_window_title != NULL)) {
+            title = copy(wattrs->utf8_window_title);
+        } else if ((wattrs->mask & wam_wtitle) && (wattrs->window_title != NULL)) {
+            title = u2utf8_copy(wattrs->window_title);
+        }
+
+        attribs.title = title;
+        attribs.type_hint = nw->is_dlg ? GDK_WINDOW_TYPE_HINT_DIALOG : GDK_WINDOW_TYPE_HINT_NORMAL;
+
+        if (title != NULL) {
+            attribs_mask |= GDK_WA_TITLE;
+        }
+        attribs_mask |= GDK_WA_TYPE_HINT;
+    }
+
+    // Event mask
+    attribs.event_mask = GDK_EXPOSURE_MASK|GDK_STRUCTURE_MASK;
+    if (attribs.window_type == GDK_WINDOW_TOPLEVEL) {
+        attribs.event_mask |= GDK_FOCUS_CHANGE_MASK|GDK_ENTER_NOTIFY_MASK|GDK_LEAVE_NOTIFY_MASK;
+    }
+    if (wattrs->mask & wam_events) {
+        if (wattrs->event_masks & (1 << et_char))
+            attribs.event_mask |= GDK_KEY_PRESS_MASK;
+        if (wattrs->event_masks & (1 << et_charup))
+            attribs.event_mask |= GDK_KEY_RELEASE_MASK;
+        if (wattrs->event_masks & (1 << et_mousemove))
+            attribs.event_mask |= GDK_POINTER_MOTION_MASK;
+        if (wattrs->event_masks & (1 << et_mousedown))
+            attribs.event_mask |= GDK_BUTTON_PRESS_MASK;
+        if (wattrs->event_masks & (1 << et_mouseup))
+            attribs.event_mask |= GDK_BUTTON_RELEASE_MASK;
+        //if ((wattrs->event_masks & (1 << et_mouseup)) && (wattrs->event_masks & (1 << et_mousedown)))
+        //    attribs.event_mask |= OwnerGrabButtonMask;
+        if (wattrs->event_masks & (1 << et_visibility))
+            attribs.event_mask |= GDK_VISIBILITY_NOTIFY_MASK;
+    }
+
+    // Window position and size
+    // I hate it placing stuff under the cursor...
+    if (gw == gdisp->groot &&
+        ((((wattrs->mask&wam_centered) && wattrs->centered)) ||
+        ((wattrs->mask&wam_undercursor) && wattrs->undercursor) )) {
+        pos->x = (gdisp->groot->pos.width-pos->width)/2;
+        pos->y = (gdisp->groot->pos.height-pos->height)/2;
+        if (wattrs->centered == 2) {
+            pos->y = (gdisp->groot->pos.height-pos->height)/3;
+        }
+        nw->pos = *pos;
+    }
+
+    attribs.x = pos->x;
+    attribs.y = pos->y;
+    attribs.width = pos->width;
+    attribs.height = pos->height;
+    attribs_mask |= GDK_WA_X|GDK_WA_Y;
+
+    // Window class
+    attribs.wclass = GDK_INPUT_OUTPUT; // No hidden windows
+
+    // Just use default GDK visual
+    // attribs.visual = NULL;
+
+    // Window type already set
+    // attribs.window_type = ...;
+
+    // Window cursor
+    if ((wattrs->mask&wam_cursor) && wattrs->cursor != ct_default) {
+        //SET CURSOR (UNHANDLED)
+        //attribs_mask |= GDK_WA_CURSOR;
+    }
+
+    // Window manager name and class
+    // GDK docs say to not use this. But that's because it's done by GTK...
+    attribs.wmclass_name = GResourceProgramName;
+    attribs.wmclass_class = GResourceProgramName;
+    attribs_mask |= GDK_WA_WMCLASS;
+
+    nw->w = gdk_window_new(gw->w, &attribs, attribs_mask);
+    free(attribs.title);
+    if (nw->w == NULL) {
+        fprintf(stderr, "GGDKDraw: Failed to create window!\n");
+        free(nw->ggc);
+        free(nw);
+        return NULL;
+    }
+
+    // Set background
+    if (!(wattrs->mask&wam_backcol) || wattrs->background_color == COLOR_DEFAULT) {
+        wattrs->background_color = gdisp->def_background;
+    }
+    nw->ggc->bg = wattrs->background_color;
+
+    GdkRGBA col = {
+        .red = COLOR_RED(wattrs->background_color)/255.,
+        .green = COLOR_GREEN(wattrs->background_color)/255.,
+        .blue = COLOR_BLUE(wattrs->background_color)/255.,
+        .alpha = 1.
+    };
+    gdk_window_set_background_rgba(nw->w, &col);
+
+    //TODO: Set window sizing/transient hints
+
+    // Establish Cairo context
+    gw->cc = gdk_cairo_create(nw->w);
+    if (gw->cc == NULL) {
+        fprintf(stderr, "GGDKDRAW: Cairo context creation failed!\n");
+        gdk_window_destroy(nw->w);
+        free(nw->ggc);
+        free(nw);
+        return NULL;
+    }
+
+    // Establish Pango layout context
+    gw->pango_layout = pango_layout_new(gdisp->pangoc_context);
+    if (gw->pango_layout == NULL) {
+        fprintf(stderr, "GGDKDRAW: Pango layout creation failed!\n");
+        cairo_destroy(gw->cc);
+        gdk_window_destroy(nw->w);
+        free(nw->ggc);
+        free(nw);
+        return NULL;
+    }
+
+    // Event handler
+    if (eh != NULL) {
+        GEvent e = {0};
+        e.type = et_create;
+        e.w = (GWindow) nw;
+        e.native_window = (void *) (intpt) nw->w;
+        (eh)((GWindow) nw, &e);
+    }
+
+    // Cairo...
+    //_GXCDraw_NewWindow(nw);
+    gdk_window_show(nw->w);
+    return (GWindow)nw;
+}
+
+static void _GGDKDraw_InitFonts(GGDKDisplay *gdisp) {
+    FState *fs = calloc(1, sizeof(FState));
+    if (fs == NULL) {
+        fprintf(stderr, "GGDKDraw: FState alloc failed!\n");
+        assert(false);
+    }
+
+    /* In inches, because that's how fonts are measured */
+    gdisp->fontstate = fs;
+    fs->res = gdisp->res;
+}
+
+static GWindow _GGDKDraw_NewPixmap(GDisplay *gdisp, uint16 width, uint16 height, cairo_format_t format, unsigned char *data) {
+    GGDKWindow gw = (GGDKWindow)calloc(1,sizeof(struct ggdkwindow));
+    if (gw == NULL) {
+        fprintf(stderr, "GGDKDRAW: GGDKWindow calloc failed!\n");
+        return NULL;
+    }
+
+    gw->ggc = _GGDKDrawNewGGC();
+    if (gw->ggc == NULL) {
+        fprintf(stderr, "GGDKDRAW: GGC alloc failed!\n");
+        free(gw);
+        return NULL;
+    }
+    gw->ggc->bg = ((GGDKDisplay *) gdisp)->def_background;
+    width &= 0x7fff; // We're always using a cairo surface...
+
+    gw->display = (GGDKDisplay *) gdisp;
+    gw->is_pixmap = 1;
+    gw->parent = NULL;
+    gw->pos.x = gw->pos.y = 0;
+    gw->pos.width = width; gw->pos.height = height;
+
+    if (data == NULL) {
+        gw->cs = cairo_image_surface_create(format, width, height);
+    } else {
+        gw->cs = cairo_image_surface_create_for_data(data, format, width, height, cairo_format_stride_for_width(format, width));
+    }
+
+    if (gw->cs == NULL) {
+        fprintf(stderr, "GGDKDRAW: Cairo image surface creation failed!\n");
+        free(gw->ggc);
+        free(gw);
+        return NULL;
+    }
+    gw->cc = cairo_create(gw->cs);
+    if (gw->cc == NULL) {
+        fprintf(stderr, "GGDKDRAW: Cairo context creation failed!\n");
+        cairo_surface_destroy(gw->cs);
+        free(gw->ggc);
+        free(gw);
+        return NULL;
+    }
+    gw->pango_layout = pango_layout_new(((GGDKDisplay*)gdisp)->pangoc_context);
+    if (gw->pango_layout == NULL) {
+        fprintf(stderr, "GGDKDRAW: Pango layout context creation failed!\n");
+        cairo_destroy(gw->cc);
+        cairo_surface_destroy(gw->cs);
+        free(gw->ggc);
+        free(gw);
+        return NULL;
+    }
+    return (GWindow)gw;
+}
+
+static void GGDKDrawInit(GDisplay *gdisp) {
+    _GGDKDraw_InitFonts((GGDKDisplay *) gdisp);
 }
 
 //static void GGDKDrawTerm(GDisplay *gdisp){}
@@ -37,27 +296,69 @@ static void GGDKDrawSetDefaultIcon(GWindow icon) {
 }
 
 static GWindow GGDKDrawCreateTopWindow(GDisplay *gdisp, GRect *pos, int (*eh)(GWindow gw, GEvent *), void *user_data, GWindowAttrs *gattrs){
-    fprintf(stderr, "GDKCALL: GGDKDrawCreateTopWindow\n"); assert(false);
+    fprintf(stderr, "GDKCALL: GGDKDrawCreateTopWindow\n");
+    return _GGDKDraw_CreateWindow((GGDKDisplay *) gdisp, NULL, pos, eh, user_data, gattrs);
 }
 
 static GWindow GGDKDrawCreateSubWindow(GWindow gw, GRect *pos, int (*eh)(GWindow gw, GEvent *), void *user_data, GWindowAttrs *gattrs){
-    fprintf(stderr, "GDKCALL: GGDKDrawCreateSubWindow\n"); assert(false);
+    fprintf(stderr, "GDKCALL: GGDKDrawCreateSubWindow\n");
+    return _GGDKDraw_CreateWindow(((GGDKWindow) gw)->display, (GGDKWindow) gw, pos, eh, user_data, gattrs);
 }
 
 static GWindow GGDKDrawCreatePixmap(GDisplay *gdisp, uint16 width, uint16 height){
-    fprintf(stderr, "GDKCALL: GGDKDrawCreatePixmap\n"); assert(false);
+    fprintf(stderr, "GDKCALL: GGDKDrawCreatePixmap\n");
+
+    //TODO: Check format?
+    return _GGDKDraw_NewPixmap(gdisp, width, height, CAIRO_FORMAT_ARGB32, NULL);
 }
 
 static GWindow GGDKDrawCreateBitmap(GDisplay *gdisp, uint16 width, uint16 height, uint8 *data){
-    fprintf(stderr, "GDKCALL: GGDKDrawCreateBitmap\n"); assert(false);
+    fprintf(stderr, "GDKCALL: GGDKDrawCreateBitmap\n");
+
+    return _GGDKDraw_NewPixmap(gdisp, width, height, CAIRO_FORMAT_A1, data);
 }
 
 static GCursor GGDKDrawCreateCursor(GWindow src, GWindow mask, Color fg, Color bg, int16 x, int16 y){
-    fprintf(stderr, "GDKCALL: GGDKDrawCreateCursor\n"); assert(false);
+    fprintf(stderr, "GDKCALL: GGDKDrawCreateCursor\n");
+
+    GGDKDisplay *gdisp = (GGDKDisplay *) (src->display);
+    GdkDisplay *display = gdisp->display;
+    cairo_surface_t *cs = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, src->pos.width, src->pos.height);
+    cairo_t *cc = cairo_create(cs);
+
+    // Masking
+    cairo_mask_surface(cc, ((GGDKWindow)mask)->cs, 0, 0);
+    //Background
+    cairo_set_source_rgb(cc, COLOR_RED(bg)/255., COLOR_GREEN(bg)/255., COLOR_BLUE(bg)/255.);
+    cairo_paint(cc);
+    //Foreground
+    cairo_mask_surface(cc, ((GGDKWindow)src)->cs, 0, 0);
+    cairo_set_source_rgb(cc, COLOR_RED(fg)/255., COLOR_GREEN(bg)/255., COLOR_BLUE(bg)/255.);
+    cairo_paint(cc);
+
+    GdkCursor *cursor = gdk_cursor_new_from_surface(display, cs, x, y);
+    cairo_destroy(cc);
+    cairo_surface_destroy(cs);
 }
 
-static void GGDKDrawDestroyWindow(GWindow gw){
-    fprintf(stderr, "GDKCALL: GGDKDrawDestroyWindow\n"); assert(false);
+static void GGDKDrawDestroyWindow(GWindow w){
+    fprintf(stderr, "GDKCALL: GGDKDrawDestroyWindow\n");
+    GGDKWindow gw = (GGDKWindow) w;
+
+    g_object_unref(gw->pango_layout);
+    cairo_destroy(gw->cc);
+    gw->cc = NULL;
+    if (gw->cs != NULL) {
+        cairo_surface_destroy(gw->cs);
+    }
+
+    if (!gw->is_pixmap) {
+        gw->is_dying = true;
+        //if (gw->display->grab_window==w ) gw->display->grab_window = NULL;
+        //XDestroyWindow(gw->display->display,gw->w);
+        //Windows should be freed when we get the destroy event
+        gdk_window_destroy(gw->w);
+    }
 }
 
 static void GGDKDrawDestroyCursor(GDisplay *gdisp, GCursor gcursor){
@@ -297,7 +598,7 @@ static int GGDKDrawSelectionHasType(GWindow w, enum selnames sn, char *typename)
 }
 
 static void GGDKDrawBindSelection(GDisplay *gdisp, enum selnames sn, char *atomname){
-    fprintf(stderr, "GDKCALL: GGDKDrawBindSelection\n"); assert(false);
+    fprintf(stderr, "GDKCALL: GGDKDrawBindSelection\n"); //assert(false); //TODO: Implement selections (clipboard)
 }
 
 static int GGDKDrawSelectionHasOwner(GDisplay *gdisp, enum selnames sn){
@@ -635,16 +936,19 @@ GDisplay *_GGDKDraw_CreateDisplay(char *displayname, char *programname) {
     gdisp->res = gdk_screen_get_resolution(gdisp->screen);
     gdisp->scale_screen_by = 1;
 
+    gdisp->pangoc_context = gdk_pango_context_get_for_screen(gdisp->screen);
+
     groot = (GGDKWindow)calloc(1, sizeof(struct ggdkwindow));
     if (groot == NULL) {
+        g_object_unref(gdisp->pangoc_context);
         free(gdisp);
         gdk_display_close(display);
         return NULL;
     }
 
-    gdisp->groot = (GWindow)groot;
+    gdisp->groot = groot;
     groot->ggc = _GGDKDrawNewGGC();
-    groot->display = (GDisplay*)gdisp;
+    groot->display = gdisp;
     groot->w = gdisp->root;
     groot->pos.width = gdk_screen_get_width(gdisp->screen);
     groot->pos.height = gdk_screen_get_height(gdisp->screen);
