@@ -1425,6 +1425,7 @@ static struct displayfuncs psfuncs = {
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
 };
 

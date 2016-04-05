@@ -1321,7 +1321,6 @@ static void PrefsUI_LoadPrefs(void)
 	old_sfnt_flags |= ttf_flag_glyphmap;
     LoadNamelistDir(NULL);
     ProcessFileChooserPrefs();
-    GDrawEnableCairo( true );
 }
 
 static void PrefsUI_SavePrefs(int not_if_script) {
@@ -1962,7 +1961,6 @@ return( true );
 	}
 	if ( othersubrsfile!=NULL && ReadOtherSubrsFile(othersubrsfile)<=0 )
 	    fprintf( stderr, "Failed to read OtherSubrs from %s\n", othersubrsfile );
-	GDrawEnableCairo(true);
 
 	int force_redraw_charviews = 0;
 	if( prefs_oldval_cvEditHandleSize != prefs_cvEditHandleSize )
