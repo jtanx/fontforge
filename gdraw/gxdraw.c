@@ -1809,6 +1809,7 @@ static void GXDrawDrawLine(GWindow w, int32 x,int32 y, int32 xend,int32 yend, Co
 }
 
 static void GXDrawDrawArrow(GWindow gw, int32 x,int32 y, int32 xend,int32 yend, Color col) {
+    gw->ggc->fg = col;
     _GXCDraw_DrawArrow((GXWindow)gw, x, y, xend, yend);
 }
 
