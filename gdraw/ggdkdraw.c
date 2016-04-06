@@ -77,18 +77,17 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
 
     // Window title and hints
     if (attribs.window_type == GDK_WINDOW_TOPLEVEL) {
-        char *title = NULL;
         // Icon titles are ignored.
         if ((wattrs->mask & wam_utf8_wtitle) && (wattrs->utf8_window_title != NULL)) {
-            title = copy(wattrs->utf8_window_title);
+            nw->window_title = copy(wattrs->utf8_window_title);
         } else if ((wattrs->mask & wam_wtitle) && (wattrs->window_title != NULL)) {
-            title = u2utf8_copy(wattrs->window_title);
+            nw->window_title = u2utf8_copy(wattrs->window_title);
         }
 
-        attribs.title = title;
+        attribs.title = nw->window_title;
         attribs.type_hint = nw->is_dlg ? GDK_WINDOW_TYPE_HINT_DIALOG : GDK_WINDOW_TYPE_HINT_NORMAL;
 
-        if (title != NULL) {
+        if (attribs.title != NULL) {
             attribs_mask |= GDK_WA_TITLE;
         }
         attribs_mask |= GDK_WA_TYPE_HINT;
@@ -163,9 +162,9 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
     attribs_mask |= GDK_WA_WMCLASS;
 
     nw->w = gdk_window_new(gw->w, &attribs, attribs_mask);
-    free(attribs.title);
     if (nw->w == NULL) {
         fprintf(stderr, "GGDKDraw: Failed to create window!\n");
+        free(nw->window_title);
         free(nw->ggc);
         free(nw);
         return NULL;
@@ -190,6 +189,7 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
     // Establish Pango/Cairo context
     if (!_GGDKDraw_InitPangoCairo(gw)) {
         gdk_window_destroy(nw->w);
+        free(nw->window_title);
         free(nw->ggc);
         free(nw);
         return NULL;
@@ -383,6 +383,9 @@ static void GGDKDrawDestroyWindow(GWindow w) {
 
     g_object_unref(gw->pango_layout);
     cairo_destroy(gw->cc);
+    free(gw->window_title);
+    gw->window_title = NULL;
+
     gw->cc = NULL;
     if (gw->cs != NULL) {
         cairo_surface_destroy(gw->cs);
@@ -645,6 +648,11 @@ static void GGDKDrawBeep(GDisplay *gdisp) {
 static void GGDKDrawFlush(GDisplay *gdisp) {
     fprintf(stderr, "GDKCALL: GGDKDrawFlush\n"); //assert(false);
     gdk_display_flush(((GGDKDisplay *)gdisp)->display);
+}
+
+static void GGDKDrawScroll(GWindow gw, GRect *rect, int32 hor, int32 vert) {
+    fprintf(stderr, "GDKCALL: GGDKDrawScroll\n");
+    assert(false);
 }
 
 
