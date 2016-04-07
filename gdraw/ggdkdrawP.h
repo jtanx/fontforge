@@ -21,6 +21,21 @@
 
 typedef struct ggdkwindow *GGDKWindow;
 
+// Really GTimer should be opaque...
+typedef struct ggdktimer { // :GTimer
+    long time_sec;             // longs not int32s to match timeval
+    long time_usec;
+    int32 repeat_time;          // 0 == one shot (run once)
+    GWindow owner;
+    void *userdata;
+    struct gtimer *next;       // Unused in favour of a GLib list
+    unsigned int active: 1;
+    // Extensions below
+    unsigned int has_differing_repeat_time: 1;
+    guint glib_timeout_id;
+    
+} GGDKTimer;
+
 typedef struct ggdkdisplay { /* :GDisplay */
     // Inherit GDisplay start
     struct displayfuncs *funcs;
@@ -56,6 +71,8 @@ typedef struct ggdkdisplay { /* :GDisplay */
 
     guint32 last_event_time;
 
+    GList_Glib *timers; //List of GGDKTimer's
+    
     GGDKWindow default_icon;
     GdkWindow *last_nontransient_window;
 
@@ -99,7 +116,9 @@ struct ggdkwindow { /* :GWindow */
     GdkWindow *transient_owner;
 
     char *window_title;
-
+    
+    int autopaint_depth;
+    
     cairo_surface_t *cs;
     cairo_t *cc;
     PangoLayout *pango_layout;
