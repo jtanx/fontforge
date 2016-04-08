@@ -24,6 +24,8 @@
 
 #define GColorToGDK(col) COLOR_RED(col)/255., COLOR_GREEN(col)/255., COLOR_BLUE(col)/255.
 
+// Astyle has issues with having 'enum visibility_state' in the function definition...
+typedef enum visibility_state VisibilityState;
 typedef struct ggdkwindow *GGDKWindow;
 
 // Really GTimer should be opaque...
@@ -43,10 +45,12 @@ typedef struct ggdktimer { // :GTimer
 
 typedef struct ggdkbuttonstate {
     int32 release_time;
-    GdkWindow *release_w;
+    GGDKWindow release_w;
     int16 release_x, release_y;
     int16 release_button;
     int16 cur_click;
+    int16 double_time;		// max milliseconds between release & click
+    int16 double_wiggle;	// max pixel wiggle allowed between release&click
 } GGDKButtonState;
 
 typedef struct ggdkdisplay { /* :GDisplay */
@@ -86,6 +90,7 @@ typedef struct ggdkdisplay { /* :GDisplay */
 
     GList_Glib *timers; //List of GGDKTimer's
 
+    GGDKButtonState bs;
     GGDKWindow default_icon;
     GdkWindow *last_nontransient_window;
 
@@ -125,13 +130,11 @@ struct ggdkwindow { /* :GWindow */
     unsigned int isverytransient: 1;
 
     GWindow redirect_from;		/* only redirect input from this window and its children */
-
     GdkWindow *transient_owner;
 
     char *window_title;
 
     int autopaint_depth;
-
     cairo_surface_t *cs;
     cairo_t *cc;
     PangoLayout *pango_layout;
