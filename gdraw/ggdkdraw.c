@@ -1332,6 +1332,11 @@ static void GGDKDrawSetGIC(GWindow gw, GIC *gic, int x, int y) {
     Log(LOGDEBUG, ""); //assert(false);
 }
 
+static int GGDKDrawKeyState(int keysym) {
+    Log(LOGDEBUG, "");
+    return 0;
+}
+
 
 static void GGDKDrawGrabSelection(GWindow w, enum selnames sel) {
     Log(LOGDEBUG, ""); //assert(false);
@@ -1712,6 +1717,7 @@ static struct displayfuncs gdkfuncs = {
 
     GGDKDrawCreateInputContext,
     GGDKDrawSetGIC,
+    GGDKDrawKeyState,
 
     GGDKDrawGrabSelection,
     GGDKDrawAddSelectionType,
