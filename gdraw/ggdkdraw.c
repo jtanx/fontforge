@@ -89,7 +89,13 @@ static void _GGDKDraw_OnWindowDestroyed(gpointer data) {
         cairo_surface_destroy(gw->cs);
     }
     free(gw->ggc);
-    free(gw);
+
+    // Le sighhhhhhh
+    // Static references to windows are kept
+    // Without ensuring that the relevant places have reference counting added, we can't be free...
+    if (gw->is_pixmap) {
+        free(gw);
+    }
 }
 
 static void _GGDKDraw_OnTimerDestroyed(GGDKTimer *timer) {
