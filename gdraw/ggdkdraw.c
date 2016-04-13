@@ -1841,8 +1841,6 @@ GDisplay *_GGDKDraw_CreateDisplay(char *displayname, char *programname) {
     groot->is_visible = true;
     g_object_set_data(G_OBJECT(gdisp->root), "GGDKWindow", groot);
 
-    //GGDKResourceInit(gdisp,programname);
-
     gdisp->def_background = GResourceFindColor("Background", COLOR_CREATE(0xf5, 0xff, 0xfa));
     gdisp->def_foreground = GResourceFindColor("Foreground", COLOR_CREATE(0x00, 0x00, 0x00));
     if (GResourceFindBool("Synchronize", false)) {
@@ -1856,7 +1854,7 @@ GDisplay *_GGDKDraw_CreateDisplay(char *displayname, char *programname) {
     _GDraw_InitError((GDisplay *) gdisp);
 
     //DEBUG
-    if (!getenv("GDK_DEBUG_OFF")) {
+    if (getenv("GGDK_DEBUG")) {
         gdk_window_set_debug_updates(true);
     }
     return (GDisplay *)gdisp;

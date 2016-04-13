@@ -28,7 +28,6 @@ void LogEx(int level, const char *funct, const char *file, int line, ...) {
     char buffer[BUFSIZ];
     va_list va;
 
-    return;
     va_start(va, line);
     fmt = va_arg(va, const char *);
 
