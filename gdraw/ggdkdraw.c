@@ -1770,7 +1770,12 @@ GDisplay *_GGDKDraw_CreateDisplay(char *displayname, char *programname) {
     GdkDisplay *display;
     GGDKWindow groot;
 
-    display = gdk_display_open(displayname);
+    if (displayname == NULL) {
+        display = gdk_display_get_default();
+    } else {
+        display = gdk_display_open(displayname);
+    }
+
     if (display == NULL) {
         return NULL;
     }
@@ -1799,10 +1804,22 @@ GDisplay *_GGDKDraw_CreateDisplay(char *displayname, char *programname) {
         gdisp->res = 96;
     }
     gdisp->main_loop = g_main_loop_new(NULL, true);
-    gdisp->scale_screen_by = 1;
+    gdisp->scale_screen_by = 1; //Does nothing
     gdisp->bs.double_time = 200;
     gdisp->bs.double_wiggle = 3;
 
+    bool tbf = false, mxc = false;
+    GResStruct res[] = {
+        {.resname = "MultiClickTime", .type = rt_int, .val = &gdisp->bs.double_time},
+        {.resname = "MultiClickWiggle", .type = rt_int, .val = &gdisp->bs.double_wiggle},
+        //{.resname = "SelectionNotifyTimeout", .type = rt_int, .val = &gdisp->SelNotifyTimeout},
+        {.resname = "TwoButtonFixup", .type = rt_bool, .val = &tbf},
+        {.resname = "MacOSXCmd", .type = rt_bool, .val = &mxc},
+        NULL
+    };
+    GResourceFind(res, NULL);
+    gdisp->twobmouse_win = tbf;
+    gdisp->macosx_cmd = mxc;
     gdisp->pangoc_context = gdk_pango_context_get_for_screen(gdisp->screen);
 
     groot = (GGDKWindow)calloc(1, sizeof(struct ggdkwindow));

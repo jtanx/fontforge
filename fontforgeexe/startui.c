@@ -25,13 +25,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define GTimer GTimer_GTK
-#define GList  GList_Glib
-#include <glib.h>
-#include <glib-object.h>
-#undef GTimer
-#undef GList
-
 #include <fontforge-config.h>
 #include "fontforgeui.h"
 #ifndef _NO_LIBUNICODENAMES
@@ -56,9 +49,16 @@ extern uninm_blocks_db blocks_db;
 
 
 #define GTimer GTimer_GTK
+#define GList  GList_Glib
+#define GMenuItem GMenuItem_GDK
 #include <glib.h>
 #include <glib-object.h>
+#ifdef FONTFORGE_CAN_USE_GDK
+#  include <gdk/gdk.h>
+#endif
 #undef GTimer
+#undef GList
+#undef GMenuItem
 
 #ifdef __Mac
 extern void setup_cocoa_app();
@@ -400,7 +400,9 @@ static pascal OSErr OpenApplicationAE( const AppleEvent * theAppleEvent,
  fprintf( logfile, "OPENAPP event received.\n" ); fflush( logfile );
     if ( localsplash )
 	start_splash_screen();
+#ifndef FONTFORGE_CAN_USE_GDK
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
+#endif // FONTFORGE_CAN_USE_GDK
     if ( fv_list==NULL )
 	_FVMenuOpen(NULL);
  fprintf( logfile, " event processed %d.\n", noErr ); fflush( logfile );
@@ -412,7 +414,9 @@ static pascal OSErr ReopenApplicationAE( const AppleEvent * theAppleEvent,
  fprintf( logfile, "ReOPEN event received.\n" ); fflush( logfile );
     if ( localsplash )
 	start_splash_screen();
+#ifndef FONTFORGE_CAN_USE_GDK
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
+#endif // FONTFORGE_CAN_USE_GDK
     if ( fv_list==NULL )
 	_FVMenuOpen(NULL);
  fprintf( logfile, " event processed %d.\n", noErr ); fflush( logfile );
@@ -424,7 +428,9 @@ static pascal OSErr ShowPreferencesAE( const AppleEvent * theAppleEvent,
  fprintf( logfile, "PREFS event received.\n" ); fflush( logfile );
     if ( localsplash )
 	start_splash_screen();
+#ifndef FONTFORGE_CAN_USE_GDK
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
+#endif // FONTFORGE_CAN_USE_GDK
     DoPrefs();
  fprintf( logfile, " event processed %d.\n", noErr ); fflush( logfile );
 return( noErr );
@@ -454,7 +460,9 @@ static pascal OSErr OpenDocumentsAE( const AppleEvent * theAppleEvent,
 	ViewPostScriptFont(buffer,0);
  fprintf( logfile, " file: %s\n", buffer );
     }
+#ifndef FONTFORGE_CAN_USE_GDK
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
+#endif // FONTFORGE_CAN_USE_GDK
     AEDisposeDesc(&docList);
  fprintf( logfile, " event processed %d.\n", err ); fflush( logfile );
 
@@ -831,6 +839,9 @@ int fontforge_main( int argc, char **argv ) {
 
 #if !(GLIB_CHECK_VERSION(2, 35, 0))
     g_type_init();
+#endif
+#ifdef FONTFORGE_CAN_USE_GDK
+    gdk_init(&argc, &argv);
 #endif
 
     /* Must be done before we cache the current directory */
