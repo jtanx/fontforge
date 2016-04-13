@@ -6,8 +6,10 @@
 #ifndef _GGDKDRAWP_H
 #define _GGDKDRAWP_H
 
-#include "gdrawP.h"
+#include "fontforge-config.h"
+#ifdef FONTFORGE_CAN_USE_GDK
 
+#include "gdrawP.h"
 
 // Le sigh
 #define GTimer GTimer_GTK
@@ -16,11 +18,11 @@
 #undef GTimer
 #undef GList
 
+#include "fontP.h"
+
 #if (((GDK_MAJOR_VERSION == 3) && (GDK_MINOR_VERSION >= 20)) || (GDK_MAJOR_VERSION > 3))
 #    define GGDKDRAW_GDK_3_20
 #endif
-
-#include "fontP.h"
 
 #define GColorToGDK(col) COLOR_RED(col)/255., COLOR_GREEN(col)/255., COLOR_BLUE(col)/255.
 
@@ -228,5 +230,7 @@ int  GGDKDrawLayoutLineCount(GWindow w);
 int  GGDKDrawLayoutLineStart(GWindow w, int l);
 
 // END functions in ggdkdraw.c
+
+#endif // FONTFORGE_CAN_USE_GDK
 
 #endif // _GGDKDRAWP_H

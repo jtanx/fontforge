@@ -930,8 +930,11 @@ return;
 
 void GDrawDestroyDisplays() {
   if (screen_display != NULL) {
-    //_GXDraw_DestroyDisplay(screen_display);
+#ifndef FONTFORGE_CAN_USE_GDK
+    _GXDraw_DestroyDisplay(screen_display);
+#else
     _GGDKDraw_DestroyDisplay(screen_display);
+#endif
     screen_display = NULL;
   }
   if (printer_display != NULL) {
@@ -942,8 +945,11 @@ void GDrawDestroyDisplays() {
 
 void GDrawCreateDisplays(char *displayname,char *programname) {
     GIO_SetThreadCallback((void (*)(void *,void *,void *)) GDrawSyncThread);
-    //screen_display = _GXDraw_CreateDisplay(displayname,programname);
+#ifndef FONTFORGE_CAN_USE_GDK
+    screen_display = _GXDraw_CreateDisplay(displayname,programname);
+#else
     screen_display = _GGDKDraw_CreateDisplay(displayname, programname);
+#endif
     printer_display = _GPSDraw_CreateDisplay();
     if ( screen_display==NULL ) {
 	fprintf( stderr, "Could not open screen.\n" );

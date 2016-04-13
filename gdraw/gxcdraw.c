@@ -25,6 +25,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "fontforge-config.h"
+#ifndef FONTFORGE_CAN_USE_GDK
+
 #include "gxdrawP.h"
 #include "gxcdrawP.h"
 
@@ -1178,3 +1181,5 @@ return( -1 );
 
 return( line->start_index );
 }
+
+#endif // FONTFORGE_CAN_USE_GDK

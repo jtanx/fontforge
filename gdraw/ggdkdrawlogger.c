@@ -5,6 +5,7 @@
 
 #include "ggdkdrawP.h"
 
+#ifdef FONTFORGE_CAN_USE_GDK
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -27,6 +28,7 @@ void LogEx(int level, const char *funct, const char *file, int line, ...) {
     char buffer[BUFSIZ];
     va_list va;
 
+    return;
     va_start(va, line);
     fmt = va_arg(va, const char *);
 
@@ -210,3 +212,5 @@ const char *GdkEventName(int code) {
             return "UNKNOWN";
     }
 }
+
+#endif // FONTFORGE_CAN_USE_GDK

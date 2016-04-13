@@ -3859,7 +3859,7 @@ static void CVCharUp(CharView *cv, GEvent *event ) {
     cv->activeModifierControl &= ~( event->u.chr.keysym == GK_Control_L || event->u.chr.keysym == GK_Control_R
 				    || event->u.chr.keysym == GK_Meta_L || event->u.chr.keysym == GK_Meta_R );
     cv->activeModifierAlt     &= ~( event->u.chr.keysym == GK_Alt_L || event->u.chr.keysym == GK_Alt_R
-				    || event->u.chr.keysym == XK_Mode_switch );
+				    || event->u.chr.keysym == GK_Mode_switch );
     // helps with keys on the mac
     if( (event->u.chr.state&ksm_meta) )
         cv->activeModifierAlt = 0;
@@ -3912,7 +3912,7 @@ static void CVCharUp(CharView *cv, GEvent *event ) {
     }
 
 
-    if( event->u.chr.keysym == XK_Escape )
+    if( event->u.chr.keysym == GK_Escape )
     {
 	TRACE("escape char.......!\n");
 	GGadget *active = GWindowGetFocusGadgetOfWindow(cv->gw);
@@ -7902,7 +7902,7 @@ void CVChar(CharView *cv, GEvent *event ) {
     cv->activeModifierControl |= ( event->u.chr.keysym == GK_Control_L || event->u.chr.keysym == GK_Control_R
 				   || event->u.chr.keysym == GK_Meta_L || event->u.chr.keysym == GK_Meta_R );
     cv->activeModifierAlt     |= ( event->u.chr.keysym == GK_Alt_L || event->u.chr.keysym == GK_Alt_R
-				   || event->u.chr.keysym == XK_Mode_switch );
+				   || event->u.chr.keysym == GK_Mode_switch );
 
     if( oldactiveModifierControl != cv->activeModifierControl
 	|| oldactiveModifierAlt != cv->activeModifierAlt )

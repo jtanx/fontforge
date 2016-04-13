@@ -28,7 +28,9 @@
 
 #include "gdrawP.h"
 #include "fontP.h"
-#include "gxcdrawP.h"
+#ifndef FONTFORGE_CAN_USE_GDK
+#  include "gxcdrawP.h"
+#endif
 #include "ustring.h"
 
 FontInstance *GDrawSetFont(GWindow gw, FontInstance *fi) {
