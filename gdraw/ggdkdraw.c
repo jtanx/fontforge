@@ -1,8 +1,6 @@
 /**
 *  \file  ggdkdraw.c
 *  \brief GDK drawing backend.
-*  \author Jeremy Tan
-*  \license MIT
 */
 
 #include "ggdkdrawP.h"
@@ -170,8 +168,7 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
         nw->is_dlg = true;
         nw->not_restricted = true;
         attribs.window_type = GDK_WINDOW_TEMP;
-    }
-    if ((wattrs->mask & wam_isdlg) && wattrs->is_dlg) {
+    } else if ((wattrs->mask & wam_isdlg) && wattrs->is_dlg) {
         nw->is_dlg = true;
     }
     if ((wattrs->mask & wam_notrestricted) && wattrs->not_restricted) {
@@ -198,7 +195,7 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
 
     // Event mask
     attribs.event_mask = GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK;
-    if (attribs.window_type == GDK_WINDOW_TOPLEVEL) {
+    if (attribs.window_type != GDK_WINDOW_CHILD) {
         attribs.event_mask |= GDK_FOCUS_CHANGE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK;
     }
     if (wattrs->mask & wam_events) {
@@ -222,13 +219,25 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
         }
     }
 
+    if (wattrs->mask & wam_restrict) {
+        nw->restrict_input_to_me = wattrs->restrict_input_to_me;
+    }
+    if (wattrs->mask & wam_redirect) {
+        nw->redirect_chars_to_me = wattrs->redirect_chars_to_me;
+        nw->redirect_from = wattrs->redirect_from;
+    }
+
+    if (nw->restrict_input_to_me || nw->redirect_chars_to_me) {
+        attribs.override_redirect = true;
+        attribs_mask |= GDK_WA_NOREDIR;
+    }
+
     attribs.x = pos->x;
     attribs.y = pos->y;
     attribs.width = pos->width;
     attribs.height = pos->height;
     attribs_mask |= GDK_WA_X | GDK_WA_Y;
 
-    // Window class
     attribs.wclass = GDK_INPUT_OUTPUT;
     // GDK docs say to not use this. But that's because it's done by GTK...
     attribs.wmclass_name = GResourceProgramName;
@@ -265,14 +274,14 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
             icon = (GGDKWindow) wattrs->icon;
         }
         if (icon != NULL) {
-            GList_Glib *icon_list = NULL;
             GdkPixbuf *pb = gdk_pixbuf_get_from_surface(icon->cs, 0, 0, icon->pos.width, icon->pos.height);
             if (pb != NULL) {
-                icon_list = g_list_append(icon_list, pb);
-                gdk_window_set_icon_list(nw->w, icon_list);
-                g_list_free(icon_list);
+                GList_Glib ent = {.data = pb};
+                gdk_window_set_icon_list(nw->w, &ent);
                 g_object_unref(pb);
             }
+        } else {
+            gdk_window_set_decorations(nw->w, GDK_DECOR_ALL | GDK_DECOR_MENU);
         }
 
         GdkGeometry geom = {0};
@@ -290,15 +299,9 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
 
         gdk_window_set_geometry_hints(nw->w, &geom, hints);
 
-        if (wattrs->mask & wam_restrict) {
-            nw->restrict_input_to_me = wattrs->restrict_input_to_me;
-        }
-        if (wattrs->mask & wam_redirect) {
-            nw->redirect_chars_to_me = wattrs->redirect_chars_to_me;
-            nw->redirect_from = wattrs->redirect_from;
-        }
         if ((wattrs->mask & wam_transient) && wattrs->transient != NULL) {
             gdk_window_set_transient_for(nw->w, ((GGDKWindow)(wattrs->transient))->w);
+            gdk_window_set_modal_hint(nw->w, true);
             nw->istransient = true;
             nw->transient_owner = ((GGDKWindow)(wattrs->transient))->w;
             nw->is_dlg = true;
@@ -306,6 +309,7 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
             ++gdisp->top_window_count;
         } else if (nw->restrict_input_to_me && gdisp->last_nontransient_window != NULL) {
             gdk_window_set_transient_for(nw->w, gdisp->last_nontransient_window);
+            gdk_window_set_modal_hint(nw->w, true);
             nw->transient_owner = gdisp->last_nontransient_window;
             nw->istransient = true;
         }
@@ -348,7 +352,7 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
     // Add our reference to the window
     // This will be unreferenced when the window is destroyed.
     g_object_ref(G_OBJECT(nw->w));
-    gdk_window_move_resize(nw->w, nw->pos.x, nw->pos.y, nw->pos.width, nw->pos.height);
+    //gdk_window_move_resize(nw->w, nw->pos.x, nw->pos.y, nw->pos.width, nw->pos.height);
     Log(LOGDEBUG, "Window created: %p[%p][%s][%d]", nw, nw->w, nw->window_title, nw->is_toplevel);
     return (GWindow)nw;
 }
@@ -1180,6 +1184,7 @@ static void GGDKDrawSetTransientFor(GWindow transient, GWindow owner) {
     }
 
     gdk_window_set_transient_for(gw->w, ow);
+    gdk_window_set_modal_hint(gw->w, true);
     gw->transient_owner = ow;
     gw->istransient = (ow != NULL);
 }
