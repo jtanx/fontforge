@@ -227,11 +227,6 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
         nw->redirect_from = wattrs->redirect_from;
     }
 
-    if (nw->restrict_input_to_me || nw->redirect_chars_to_me) {
-        attribs.override_redirect = true;
-        attribs_mask |= GDK_WA_NOREDIR;
-    }
-
     attribs.x = pos->x;
     attribs.y = pos->y;
     attribs.width = pos->width;
@@ -300,18 +295,12 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
         gdk_window_set_geometry_hints(nw->w, &geom, hints);
 
         if ((wattrs->mask & wam_transient) && wattrs->transient != NULL) {
-            gdk_window_set_transient_for(nw->w, ((GGDKWindow)(wattrs->transient))->w);
-            gdk_window_set_modal_hint(nw->w, true);
-            nw->istransient = true;
-            nw->transient_owner = ((GGDKWindow)(wattrs->transient))->w;
+            GDrawSetTransientFor((GWindow)nw, wattrs->transient);
             nw->is_dlg = true;
         } else if (!nw->is_dlg) {
             ++gdisp->top_window_count;
         } else if (nw->restrict_input_to_me && gdisp->last_nontransient_window != NULL) {
-            gdk_window_set_transient_for(nw->w, gdisp->last_nontransient_window);
-            gdk_window_set_modal_hint(nw->w, true);
-            nw->transient_owner = gdisp->last_nontransient_window;
-            nw->istransient = true;
+            GDrawSetTransientFor((GWindow)nw, (GWindow)-1);
         }
         nw->isverytransient = (wattrs->mask & wam_verytransient) ? 1 : 0;
         nw->is_toplevel = true;
@@ -1437,7 +1426,7 @@ static void GGDKDrawPointerGrab(GWindow w) {
     }
 
     gdk_seat_grab(seat, gw->w,
-                  GDK_SEAT_CAPABILITY_POINTER,
+                  GDK_SEAT_CAPABILITY_ALL_POINTING,
                   false, NULL, NULL, NULL, NULL);
 #endif
 }
