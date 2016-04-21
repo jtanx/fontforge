@@ -613,6 +613,10 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
     GGDKDisplay *gdisp = (GGDKDisplay *)data;
     GdkWindow *w = gdk_event_get_window(event);
     GGDKWindow gw;
+    guint32 event_time = gdk_event_get_time(event);
+    if (event_time != GDK_CURRENT_TIME) {
+        gdisp->last_event_time = event_time;
+    }
 
     Log(LOGDEBUG, "[%d] Received event %d(%s) %x", request_id, event->type, GdkEventName(event->type), w);
     fflush(stderr);
@@ -648,7 +652,6 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
         case GDK_KEY_RELEASE:
             gdisp->last_event_time = gdk_event_get_time(event);
             gevent.type = event->type == GDK_KEY_PRESS ? et_char : et_charup;
-            gevent.u.chr.time = gdisp->last_event_time;
             gevent.u.chr.state = _GGDKDraw_GdkModifierToKsm(((GdkEventKey*)event)->state); //event->xkey.state;
             gevent.u.chr.autorepeat = 0;
             // Mumble mumble Mac
@@ -766,8 +769,6 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
         case GDK_MOTION_NOTIFY: {
             GdkEventMotion *evt = (GdkEventMotion *)event;
             gevent.type = et_mousemove;
-            gdisp->last_event_time = gdk_event_get_time(event);
-            gevent.u.mouse.time = gdisp->last_event_time;
             gevent.u.mouse.state = _GGDKDraw_GdkModifierToKsm(evt->state);
             gevent.u.mouse.x = evt->x;
             gevent.u.mouse.y = evt->y;
@@ -775,8 +776,6 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
         break;
         case GDK_SCROLL: { //Synthesize a button press
             GdkEventScroll *evt = (GdkEventScroll *)event;
-            gdisp->last_event_time = gdk_event_get_time(event);
-            gevent.u.mouse.time = gdisp->last_event_time;
             gevent.u.mouse.state = _GGDKDraw_GdkModifierToKsm(evt->state);
             gevent.u.mouse.x = evt->x;
             gevent.u.mouse.y = evt->y;
@@ -809,8 +808,6 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
         case GDK_BUTTON_PRESS:
         case GDK_BUTTON_RELEASE: {
             GdkEventButton *evt = (GdkEventButton *)event;
-            gdisp->last_event_time = gdk_event_get_time(event);
-            gevent.u.mouse.time = gdisp->last_event_time;
             /*if ((redirect = InputRedirection(gdisp->input, gw)) != NULL) {
                 if (event->type == ButtonPress) {
                     GXDrawBeep((GDisplay *) gdisp);
@@ -955,7 +952,6 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
             break;
         case GDK_SELECTION_CLEAR: /*{
         int i;
-        gdisp->last_event_time = event->xselectionclear.time;
         gevent.type = et_selclear;
         gevent.u.selclear.sel = sn_primary;
         for (i = 0; i < sn_max; ++i) {
@@ -969,13 +965,11 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
             break;
         case GDK_SELECTION_REQUEST:
             /*
-                gdisp->last_event_time = event->xselectionrequest.time;
                 GXDrawTransmitSelection(gdisp, event);*/
             break;
         case GDK_SELECTION_NOTIFY: // paste
             break;
         case GDK_PROPERTY_NOTIFY:
-            gdisp->last_event_time = gdk_event_get_time(event);
             break;
         default:
             Log(LOGDEBUG, "UNPROCESSED GDK EVENT %d", event->type);
@@ -1486,7 +1480,7 @@ static void GGDKDrawAddSelectionType(GWindow w, enum selnames sel, char *type, v
 static void *GGDKDrawRequestSelection(GWindow w, enum selnames sn, char *typename, int32 *len) {
     Log(LOGDEBUG, ""); //assert(false);
     GGDKWindow gw = (GGDKWindow)w;
-    GdkAtom sel, type = gdk_atom_intern_static_string("UTF8_STRING"), received_type = 0;
+    GdkAtom sel, type = gdk_atom_intern_static_string(typename), received_type = 0;
     guchar *data;
     gint received_format;
 
@@ -1501,10 +1495,14 @@ static void *GGDKDrawRequestSelection(GWindow w, enum selnames sn, char *typenam
             return NULL;
     }
 
-    gdk_selection_convert(gw->w, sel, type, GDK_CURRENT_TIME);
+#ifdef GDK_WINDOWING_WIN32
+    sel = GDK_SELECTION_CLIPBOARD;
+#endif
+
+    gdk_selection_convert(gw->w, sel, type, gw->display->last_event_time);
     gdk_display_sync(gw->display->display);
     // This is broken.
-    gdk_selection_property_get(gw->w, &data, &received_type, &received_format);
+    *len = gdk_selection_property_get(gw->w, &data, &received_type, &received_format);
     if (received_type == type) {
         char *ret = copy(data);
         g_free(data);
