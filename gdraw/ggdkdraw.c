@@ -973,11 +973,6 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
                 GXDrawTransmitSelection(gdisp, event);*/
             break;
         case GDK_SELECTION_NOTIFY: // paste
-            if (gw->received_selection != NULL) {
-                Log(LOGDEBUG, "WARNING: Discarding unused selection!");
-                gdk_event_free((GdkEvent *)(gw->received_selection));
-            }
-            gw->received_selection = (GdkEventSelection *)gdk_event_copy(event);
             break;
         case GDK_PROPERTY_NOTIFY:
             gdisp->last_event_time = gdk_event_get_time(event);
@@ -1489,7 +1484,7 @@ static void GGDKDrawAddSelectionType(GWindow w, enum selnames sel, char *type, v
 static void *GGDKDrawRequestSelection(GWindow w, enum selnames sn, char *typename, int32 *len) {
     Log(LOGDEBUG, ""); //assert(false);
     GGDKWindow gw = (GGDKWindow)w;
-    GdkAtom sel, received_type = 0;
+    GdkAtom sel, type = gdk_atom_intern_static_string("UTF8_STRING"), received_type = 0;
     guchar *data;
     gint received_format;
 
@@ -1504,13 +1499,11 @@ static void *GGDKDrawRequestSelection(GWindow w, enum selnames sn, char *typenam
             return NULL;
     }
 
-    gdk_selection_convert(gw->w, sel, GDK_TARGET_STRING, GDK_CURRENT_TIME);
-    while (gw->received_selection == NULL) {
-        GDrawProcessOneEvent((GDisplay *)(gw->display));
-    }
+    gdk_selection_convert(gw->w, sel, type, GDK_CURRENT_TIME);
+    gdk_display_sync(gw->display->display);
     // This is broken.
     gdk_selection_property_get(gw->w, &data, &received_type, &received_format);
-    if (received_type == GDK_SELECTION_TYPE_STRING) {
+    if (received_type == type) {
         char *ret = copy(data);
         g_free(data);
         return ret;
