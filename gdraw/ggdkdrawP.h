@@ -11,7 +11,6 @@
 
 #include "gdrawP.h"
 
-
 // Le sigh
 #define GTimer GTimer_GTK
 #define GList  GList_Glib
@@ -19,11 +18,11 @@
 #undef GTimer
 #undef GList
 
+#include "fontP.h"
+
 #if (((GDK_MAJOR_VERSION == 3) && (GDK_MINOR_VERSION >= 20)) || (GDK_MAJOR_VERSION > 3))
 #    define GGDKDRAW_GDK_3_20
 #endif
-
-#include "fontP.h"
 
 #define GColorToGDK(col) COLOR_RED(col)/255., COLOR_GREEN(col)/255., COLOR_BLUE(col)/255.
 
