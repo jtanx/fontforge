@@ -229,6 +229,7 @@ struct ggdkwindow { /* :GWindow */
     struct ggdkwindow *transient_owner;
 
     char *window_title;
+    GCursor current_cursor;
 
     cairo_surface_t *cs;
     cairo_t *cc;
