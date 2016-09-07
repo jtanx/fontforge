@@ -4,7 +4,7 @@
 platform:
   - x64
 branches:
-  only:
+  except:
   - master
 clone_depth: 10
 environment:
@@ -15,11 +15,10 @@ environment:
       MBITS: 32
       VCXSRV: VcXsrv-1.14.2-minimal.tar.xz
       BACKEND: x11
-# For speed, we disable 64-bit builds.
-#    - MSYSTEM: MINGW64
-#      MBITS: 64
-#      VCXSRV: VcXsrv-1.17.0.0-x86_64-minimal.tar.xz
-#      BACKEND: x11
+    - MSYSTEM: MINGW64
+      MBITS: 64
+      VCXSRV: VcXsrv-1.17.0.0-x86_64-minimal.tar.xz
+      BACKEND: x11
 # No GDK builds yet
 #    - MSYSTEM: MINGW32
 #      MBITS: 32
@@ -36,7 +35,7 @@ environment:
 #cache:
 #  - 'C:\msys64\var\cache\pacman\pkg'
 install:
-  - git clone --depth=1 --branch=master https://github.com/fontforge/fontforgebuilds.git
+  - git clone --depth=1 --branch=master https://github.com/jtanx/fontforgebuilds.git
   - appveyor DownloadFile "https://dl.bintray.com/jtanx/fontforgelibs/build-system-extras/potrace-1.13.win%MBITS%.tar.gz" -FileName "%APPVEYOR_BUILD_FOLDER%\fontforgebuilds\original-archives\binaries\potrace-1.13.win%MBITS%.tar.gz"
   - appveyor DownloadFile "https://dl.bintray.com/jtanx/fontforgelibs/build-system-extras/%VCXSRV%" -FileName "%APPVEYOR_BUILD_FOLDER%\fontforgebuilds\original-archives\binaries\%VCXSRV%"
   - appveyor DownloadFile "http://download.savannah.gnu.org/releases/freetype/freetype-2.6.5.tar.bz2" -FileName "%APPVEYOR_BUILD_FOLDER%\fontforgebuilds\original-archives\sources\freetype-2.6.5.tar.bz2"
