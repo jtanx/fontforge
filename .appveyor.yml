@@ -11,25 +11,25 @@ environment:
   global:
     MBASH: C:\msys64\usr\bin\sh -lc
   matrix:
-    - MSYSTEM: MINGW32
-      MBITS: 32
-      VCXSRV: VcXsrv-1.14.2-minimal.tar.xz
-      BACKEND: x11
-    - MSYSTEM: MINGW64
-      MBITS: 64
-      VCXSRV: VcXsrv-1.17.0.0-x86_64-minimal.tar.xz
-      BACKEND: x11
-# No GDK builds yet
 #    - MSYSTEM: MINGW32
 #      MBITS: 32
 #      VCXSRV: VcXsrv-1.14.2-minimal.tar.xz
-#      BACKEND: gdk
-#      GDKOPT: --enable-gdk
+#      BACKEND: x11
 #    - MSYSTEM: MINGW64
 #      MBITS: 64
 #      VCXSRV: VcXsrv-1.17.0.0-x86_64-minimal.tar.xz
-#      BACKEND: gdk
-#      GDKOPT: --enable-gdk
+#      BACKEND: x11
+# No GDK builds yet
+    - MSYSTEM: MINGW32
+      MBITS: 32
+      VCXSRV: VcXsrv-1.14.2-minimal.tar.xz
+      BACKEND: gdk
+      GDKOPT: --enable-gdk
+    - MSYSTEM: MINGW64
+      MBITS: 64
+      VCXSRV: VcXsrv-1.17.0.0-x86_64-minimal.tar.xz
+      BACKEND: gdk
+      GDKOPT: --enable-gdk
 
 #The cache is slightly slower than just downloading the files
 #cache:
