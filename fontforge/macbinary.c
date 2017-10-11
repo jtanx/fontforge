@@ -33,7 +33,6 @@
 #include "encoding.h"
 #include "fontforgevw.h"
 #include "fvfonts.h"
-#include "http.h"
 #include "lookups.h"
 #include "mem.h"
 #include "parsepfa.h"
@@ -1712,8 +1711,6 @@ return( 0 );
 	ret = DumpMacBinaryHeader(res,&header);
     }
     if ( ferror(res) ) ret = false;
-    if ( ret && strstr(filename,"://")!=NULL )
-	ret = URLFromFile(filename,res);
     if ( fclose(res)==-1 ) ret = 0;
 return( ret );
 }
