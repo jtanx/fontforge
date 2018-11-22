@@ -89,6 +89,11 @@ MIMEDIR = ${PACKAGEROOTDIR}/mime
 mimedir= ${MIMEDIR}
 mimepackagesdir = ${MIMEDIR}/packages
 
+
+# AppData files go here
+APPDATADIR = ${PACKAGEROOTDIR}/metainfo
+appdatadir = ${APPDATADIR}
+
 # Where desktop icons go.
 ICONSDIR = ${PACKAGEROOTDIR}/icons
 HICOLORDIR = ${ICONSDIR}/hicolor
