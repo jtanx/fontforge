@@ -192,12 +192,15 @@ static gboolean _GGDKDraw_OnWindowDestroyed(gpointer data) {
 
     if (!gw->is_pixmap) {
         if (gw != gw->display->groot) {
-            while (gw->transient_childs->len > 0) {
-                GGDKWindow tw = (GGDKWindow)g_ptr_array_remove_index_fast(gw->transient_childs, gw->transient_childs->len - 1);
-                gdk_window_set_transient_for(tw->w, gw->display->groot->w);
-                tw->transient_owner = NULL;
-                tw->istransient = false;
-            }
+			for (int i = ((int)gw->display->transient_stack->len) - 1; i >= 0; --i) {
+				GGDKWindow tw = (GGDKWindow)gw->display->transient_stack->pdata[i];
+				if (tw->transient_owner == gw) {
+					g_ptr_array_remove_index(gw->display->transient_stack, i);
+					gdk_window_set_transient_for(tw->w, gw->display->groot->w);
+					tw->transient_owner = NULL;
+					tw->istransient = false;
+				}
+			}
 
             if (!gdk_window_is_destroyed(gw->w)) {
                 gdk_window_destroy(gw->w);
@@ -251,7 +254,6 @@ static gboolean _GGDKDraw_OnWindowDestroyed(gpointer data) {
         Log(LOGDEBUG, "Window destroyed: %p[%p][%s][%d]", gw, gw->w, gw->window_title, gw->is_toplevel);
         free(gw->window_title);
         if (gw != gw->display->groot) {
-            g_ptr_array_free(gw->transient_childs, true);
             // Unreference our reference to the window
             g_object_unref(G_OBJECT(gw->w));
         }
@@ -612,9 +614,6 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
         GGDKDrawSetCursor((GWindow)nw, wattrs->cursor);
     }
 
-    // TODO: Add error checking?
-    nw->transient_childs = g_ptr_array_sized_new(5);
-
     // Add a reference to our own structure.
     GGDKDRAW_ADDREF(nw);
 
@@ -769,8 +768,6 @@ static int _GGDKDraw_WindowOrParentsDying(GGDKWindow gw) {
 }
 
 static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
-    GGDKWindow gww = gw;
-
     switch (event->type) {
         case GDK_KEY_PRESS:
         case GDK_KEY_RELEASE:
@@ -785,27 +782,27 @@ static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
             break;
     }
 
-    while (gww != gw->display->groot) {
-        if (gww->transient_childs->len > 0) {
-            bool has_modal = false;
-            for (guint i = 0; i < gww->transient_childs->len; i++) {
-                GGDKWindow ow = (GGDKWindow)gww->transient_childs->pdata[i];
-                if (ow->restrict_input_to_me) {
-                    has_modal = true;
-                    break;
-                }
-            }
-            if (has_modal) {
-                break;
-            }
-        }
-        gww = gww->parent;
-    }
+	GGDKWindow gww = gw;
+    GPtrArray *stack = gw->display->transient_stack;
 
-    if (gww == gw->display->groot) {
-        return false;
-    }
+    while (gww != NULL) {
+		GGDKWindow last_modal = NULL;
 
+		for (int i = ((int)stack->len)-1; i >= 0; --i) {
+			GGDKWindow ow = (GGDKWindow)stack->pdata[i];
+			if (ow == gww || ow->restrict_input_to_me) { // fudged
+				last_modal = ow;
+				break;
+			}
+		}
+		
+		if (last_modal == NULL || last_modal == gww) {
+			return false;
+		}
+		
+		gww = gww->parent;
+	}
+	
     if (event->type != GDK_MOTION_NOTIFY && event->type != GDK_BUTTON_RELEASE) {
         gdk_window_beep(gw->w);
     }
@@ -1566,20 +1563,19 @@ static void GGDKDrawSetTransientFor(GWindow transient, GWindow owner) {
         ow = (GGDKWindow)owner;
     }
 
-    if (gw->transient_owner != NULL) {
-        g_ptr_array_remove_fast(gw->transient_owner->transient_childs, gw);
-    }
-
     if (ow != NULL) {
         gdk_window_set_transient_for(gw->w, ow->w);
         gdk_window_set_modal_hint(gw->w, true);
         gw->istransient = true;
 
-        g_ptr_array_add(ow->transient_childs, gw);
+		g_ptr_array_add(gdisp->transient_stack, gw);
     } else {
         gdk_window_set_modal_hint(gw->w, false);
         gdk_window_set_transient_for(gw->w, gw->display->groot->w);
         gw->istransient = false;
+        
+        // TODO: optimise; search from the back; it is meant to be a stack...
+        g_ptr_array_remove(gdisp->transient_stack, gw);
     }
 
     gw->transient_owner = ow;
@@ -2476,6 +2472,7 @@ GDisplay *_GGDKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
         free(gdisp);
         return NULL;
     }
+    gdisp->transient_stack = g_ptr_array_sized_new(5);
 
     gdisp->funcs = &gdkfuncs;
     gdisp->display = display;
@@ -2595,6 +2592,8 @@ void _GGDKDraw_DestroyDisplay(GDisplay *disp) {
     // Finally destroy the window table
     g_hash_table_destroy(gdisp->windows);
     gdisp->windows = NULL;
+    
+    g_ptr_array_free(gdisp->transient_stack, true);
 
     // Destroy held selection types, if any
     free(gdisp->seltypes.types);
