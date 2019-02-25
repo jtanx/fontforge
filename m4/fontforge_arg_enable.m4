@@ -239,6 +239,45 @@ fi
 AM_CONDITIONAL([FONTFORGE_CAN_USE_GDK],[test x"${fontforge_can_use_gdk}" = xyes])
 ])
 
+dnl FONTFORGE_ARG_ENABLE_GTK_BRIDGE
+dnl ------------------------
+AC_DEFUN([FONTFORGE_ARG_ENABLE_GTK_BRIDGE],
+[
+fontforge_gtk_version=no
+AC_ARG_ENABLE([gtk-bridge],
+        [AS_HELP_STRING([--enable-gtk-bridge],
+                [Enable the GTK window extension.])],
+        [use_gtk_bridge=yes])
+if test x$use_gtk_bridge = xyes ; then
+    if test "x$enableval" = "xgtk2"; then
+        PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 2.10],
+        [
+            fontforge_can_use_gtk_bridge=yes
+            fontforge_gtk_version=GTK2
+            AC_DEFINE(FONTFORGE_CAN_USE_GTK_BRIDGE,[],[FontForge will enable the GTK window extension])
+            AC_MSG_NOTICE([building the GTK extension with the GTK2 backend...])
+        ],
+        [
+            AC_MSG_ERROR([Cannot build GTK extension without GTK installed. Please install the GTK+ Developer Package.])
+        ])
+    else
+        PKG_CHECK_MODULES([GTK],[gtk+-3.0 >= 3.10],
+        [
+            fontforge_can_use_gtk_bridge=yes
+            fontforge_gtk_version=GTK3
+            AC_DEFINE(FONTFORGE_CAN_USE_GTK_BRIDGE,[],[FontForge will enable the GTK3 window extension])
+            AC_MSG_NOTICE([building the GTK extension with the GDK3 backend...])
+        ],
+        [
+            AC_MSG_ERROR([Cannot build GTK backend without GTK installed. Please install the GTK+ Developer Package.])
+        ])
+    fi
+else
+    fontforge_can_use_gtk_bridge=no
+fi
+AM_CONDITIONAL([FONTFORGE_CAN_USE_GTK_BRIDGE],[test x"${fontforge_can_use_gtk_bridge}" = xyes])
+])
+
 dnl FONTFORGE_ARG_ENABLE_WOFF2
 dnl ------------------------
 AC_DEFUN([FONTFORGE_ARG_ENABLE_WOFF2],

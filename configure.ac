@@ -168,6 +168,8 @@ if test x"${i_do_have_x}" = xyes || test x"${fontforge_can_use_gdk}" = xyes; the
     i_do_have_gui=yes
 fi
 
+FONTFORGE_ARG_ENABLE_GTK_BRIDGE
+
 AC_SUBST([HOST],["$host"])
 AC_SUBST([MACAPP])
 
@@ -666,6 +668,7 @@ my_cflags="${my_cflags} ${GLIB_CFLAGS}"
 my_cflags="${my_cflags} ${CAIRO_CFLAGS}"
 my_cflags="${my_cflags} ${PANGO_CFLAGS}"
 my_cflags="${my_cflags} ${GDK_CFLAGS}"
+my_cflags="${my_cflags} ${GTK_CFLAGS}"
 my_cflags="${my_cflags} ${WOFF2_CFLAGS}"
 my_cflags="${my_cflags} ${PANGOCAIRO_CFLAGS}"
 my_cflags="${my_cflags} ${FREETYPE_CFLAGS}"
@@ -703,6 +706,10 @@ if test x"${fontforge_can_use_gdk}" = xyes; then
     my_libs="${my_libs} ${GDK_LIBS}"
 else
     test x"${i_do_have_x}" = xyes && my_libs="${my_libs} ${X_PRE_LIBS} ${X_LIBS} ${X_EXTRA_LIBS}"
+fi
+
+if test x"${fontforge_can_use_gtk_bridge}" = xyes; then
+    my_libs="${my_libs} ${GTK_LIBS}"
 fi
 
 test x"${i_do_have_libreadline}" = xyes && my_libs="${my_libs} ${LIBREADLINE_LIBS}"

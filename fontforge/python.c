@@ -128,6 +128,10 @@ extern int old_sfnt_flags;
 #include "collabclient.h"
 #include <ffglib.h>
 
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+#include "gdraw/gtkbridge.h"
+#endif
+
 extern int prefRevisionsToRetain;
 
 #include "gutils/unicodelibinfo.h"
@@ -17381,6 +17385,28 @@ return (NULL);
 Py_RETURN( self );
 }
 
+static PyObject *PyFFFont_addWindow(PyFF_Font *self, PyObject *UNUSED(args)) {
+	PyObject *w;
+
+#ifndef FONTFORGE_CAN_USE_GTK_BRIDGE
+	PyErr_Format(PyExc_EnvironmentError, "FontForge not compiled with GTK extension");
+	return( NULL );
+#else
+	if ( no_windowing_ui ) {
+		PyErr_Format(PyExc_EnvironmentError, "No user interface");
+		return( NULL );
+	}
+
+	gtkb_addWindow();
+
+/*	if ( !PyArg_ParseTuple(args,"O",&w) ) 
+		return (NULL);
+	printf("%s", Py_TYPE(w)->tp_name);
+*/
+	Py_RETURN( self );
+#endif
+}
+
 static PyObject *PyFFFont_Intersect(PyFF_Font *self, PyObject *UNUSED(args)) {
     if ( CheckIfFontClosed(self) )
 return (NULL);
@@ -17509,6 +17535,7 @@ PyMethodDef PyFF_Font_methods[] = {
 /* Selection based */
     { "clear", (PyCFunction) PyFFFont_clear, METH_NOARGS, "Clears all selected glyphs" },
     { "cut", (PyCFunction) PyFFFont_cut, METH_NOARGS, "Cuts all selected glyphs" },
+    { "addWindow", (PyCFunction) PyFFFont_addWindow, METH_VARARGS, "Adds gtk window to event loop" },
     { "copy", (PyCFunction) PyFFFont_copy, METH_NOARGS, "Copies all selected glyphs" },
     { "copyReference", (PyCFunction) PyFFFont_copyReference, METH_NOARGS, "Copies all selected glyphs as references" },
     { "paste", (PyCFunction) PyFFFont_paste, METH_NOARGS, "Pastes the clipboard into the selected glyphs (clearing them first)" },
