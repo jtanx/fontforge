@@ -53,6 +53,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include "ffpython.h"
+#include "gdraw/gtkbridge.h"
 
 #include "gnetwork.h"
 #ifdef BUILD_COLLAB
@@ -567,7 +568,7 @@ static PyObject *PyFFFont_CollabSessionSetUpdatedCallback(PyFF_Font *self, PyObj
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef FONTFORGE_CAN_USE_GTK
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
 
 #define GMenuItem GMenuItem_Glib
 #define GTimer GTimer_GTK
@@ -596,12 +597,12 @@ static PyObject *PyFFFont_addGtkWindowToMainEventLoop(PyFF_Font *self, PyObject 
     if ( !PyArg_ParseTuple( args, "i", &v ))
         return( NULL );
 
-    gpointer gdkwindow = gdk_xid_table_lookup( v );
+    gpointer gdkwindow = gdk_x11_window_lookup_for_display(gdk_display_get_default(), v );
 
     if( gdkwindow )
     {
         Display* d = GDK_WINDOW_XDISPLAY(gdkwindow);
-        int fd = XConnectionNumber(d);
+        int fd = ConnectionNumber(d);
         if( fd )
         {
             gpointer udata = 0;
@@ -624,12 +625,12 @@ static PyObject *PyFFFont_getGtkWindowMainEventLoopFD(PyFF_Font *self, PyObject 
     if ( !PyArg_ParseTuple( args, "i", &v ))
         return( NULL );
 
-    gpointer gdkwindow = gdk_xid_table_lookup( v );
+    gpointer gdkwindow = gdk_x11_window_lookup_for_display(gdk_display_get_default(), v );
 
     if( gdkwindow )
     {
         Display* d = GDK_WINDOW_XDISPLAY(gdkwindow);
-        int fd = XConnectionNumber(d);
+        int fd = ConnectionNumber(d);
         if( fd )
         {
 	    return( Py_BuildValue("i", fd ));
@@ -651,12 +652,12 @@ static PyObject *PyFFFont_removeGtkWindowToMainEventLoop(PyFF_Font *self, PyObje
     if ( !PyArg_ParseTuple( args, "i", &v ))
         return( NULL );
 
-    gpointer gdkwindow = gdk_xid_table_lookup( v );
+    gpointer gdkwindow = gdk_x11_window_lookup_for_display(gdk_display_get_default(), v );
 
     if( gdkwindow )
     {
         Display* d = GDK_WINDOW_XDISPLAY(gdkwindow);
-        int fd = XConnectionNumber(d);
+        int fd = ConnectionNumber(d);
         if( fd )
         {
             gpointer udata = 0;
@@ -689,6 +690,30 @@ static PyObject *PyFFFont_removeGtkWindowToMainEventLoopByFD(PyFF_Font *self, Py
     return result;
 }
 
+static PyObject *PyFFFont_addWindow(PyFF_Font *self, PyObject *UNUSED(args)) {
+	PyObject *w;
+
+	/*PyErr_Format(PyExc_EnvironmentError, "FontForge not compiled with GTK extension");
+	return( NULL );*/
+
+	/*if ( no_windowing_ui ) {
+		PyErr_Format(PyExc_EnvironmentError, "No user interface");
+		return( NULL );
+	}*/
+
+	gtkb_addWindow();
+	/*gboolean may_block = false;
+	GMainContext *con = g_main_context_default();
+	while (g_main_context_pending(con))
+		g_main_context_iteration( con, may_block ); */
+
+/*	if ( !PyArg_ParseTuple(args,"O",&w) ) 
+		return (NULL);
+	printf("%s", Py_TYPE(w)->tp_name);
+*/
+	Py_RETURN( self );
+}
+
 #else
 
 #define EMPTY_METHOD				\
@@ -707,6 +732,8 @@ static PyObject *PyFFFont_getGtkWindowMainEventLoopFD(PyFF_Font *self, PyObject 
 static PyObject *PyFFFont_removeGtkWindowToMainEventLoop(PyFF_Font *self, PyObject *args)
 { EMPTY_METHOD; }
 static PyObject *PyFFFont_removeGtkWindowToMainEventLoopByFD(PyFF_Font *self, PyObject *args)
+{ EMPTY_METHOD; }
+static PyObject *PyFFFont_addWindow(PyFF_Font *self, PyObject *args)
 { EMPTY_METHOD; }
 
 #endif
@@ -769,6 +796,7 @@ PyMethodDef module_fontforge_ui_methods[] = {
    { "getGtkWindowMainEventLoopFD", (PyCFunction) PyFFFont_getGtkWindowMainEventLoopFD, METH_VARARGS, "fixme." },
    { "removeGtkWindowToMainEventLoop", (PyCFunction) PyFFFont_removeGtkWindowToMainEventLoop, METH_VARARGS, "fixme." },
    { "removeGtkWindowToMainEventLoopByFD", (PyCFunction) PyFFFont_removeGtkWindowToMainEventLoopByFD, METH_VARARGS, "fixme." },
+   { "addWindow", (PyCFunction) PyFFFont_addWindow, METH_VARARGS, "Adds gtk window to event loop" },
 
    
    PYMETHODDEF_EMPTY /* Sentinel */

@@ -33,6 +33,7 @@
 #include "gresource.h"
 #include "gkeysym.h"
 #include "ustring.h"
+#include "gtkbridge.h"
 #include <assert.h>
 #include <string.h>
 #include <math.h>
@@ -862,6 +863,9 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
         return;
     } else if ((gw = g_object_get_data(G_OBJECT(w), "GGDKWindow")) == NULL) {
         //Log(LOGDEBUG, "MISSING GW!");
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+	gtkb_do_event(event);
+#endif
         return;
     } else if (_GGDKDraw_WindowOrParentsDying(gw) || gdk_window_is_destroyed(w)) {
         Log(LOGDEBUG, "DYING! %p", w);

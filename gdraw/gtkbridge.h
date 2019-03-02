@@ -25,4 +25,11 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+
+#include <ffgdk.h>
+
 extern void gtkb_addWindow();
+extern void gtkb_do_event(GdkEvent *event);
+
+#endif // FONTFORGE_CAN_USE_GTK_BRIDGE
