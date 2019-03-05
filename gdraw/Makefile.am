@@ -42,7 +42,7 @@ libgdraw_la_SOURCES = choosericons.c ctlvalues.c drawboxborder.c	\
 	gimagebmpP.h gresourceP.h gxcdrawP.h fontP.h ggadgetP.h		\
 	gpsdrawP.h gwidgetP.h gxdrawP.h hotkeys.c hotkeys.h		\
 	div_tables.c ggdkdraw.c ggdkcdraw.c ggdkdrawlogger.c            \
-	gtkbridge.c ggdkdrawP.h
+	gtkbbr.c gtkbridge.c ggdkdrawP.h
 
 libgdraw_la_LIBADD =
 

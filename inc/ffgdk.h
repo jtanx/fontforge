@@ -41,5 +41,10 @@
 #undef GList
 #undef GTimer
 
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+struct ffgtkb_state;
+typedef struct ffgtkb_state FFGtkBState;
+#endif // FONTFORGE_CAN_USE_GTK_BRIDGE
+
 #endif // FONTFORGE_CAN_USE_GDK
 #endif // _FFGDK_H

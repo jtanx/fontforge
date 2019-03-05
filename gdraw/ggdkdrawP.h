@@ -219,11 +219,16 @@ typedef struct ggdkdisplay { /* :GDisplay */
     GGDKWindow default_icon;
     GGDKWindow last_nontransient_window;
     GPtrArray *transient_stack; // When can a transient window have a transient child?
+    int restrict_count;
 
     GMainLoop  *main_loop;
     GdkDisplay *display;
     GdkScreen  *screen;
     GdkWindow  *root;
+
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+    FFGtkBState *gtkb_state;
+#endif
 
     PangoContext *pangoc_context;
 } GGDKDisplay;

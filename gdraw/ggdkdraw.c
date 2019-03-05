@@ -173,6 +173,18 @@ static bool _GGDKDraw_TransmitSelection(GGDKDisplay *gdisp, GdkEventSelection *e
     return true;
 }
 
+static void GGDK_ChangeRestrictCount(GGDKDisplay *gdisp, int c) {
+    gdisp->restrict_count += c;
+
+    printf("Restrict Count: %d\n", gdisp->restrict_count);
+    // XXX Error on negative value
+    if ( c > 0 && (gdisp->restrict_count - c) == 0 ) {
+        gtkb_Grab(gdisp->gtkb_state, true);
+    } else if ( c < 0 && gdisp->restrict_count == 0 ) {
+        gtkb_Grab(gdisp->gtkb_state, false);
+    }
+}
+
 static gboolean _GGDKDraw_OnWindowDestroyed(gpointer data) {
     GGDKWindow gw = (GGDKWindow)data;
     Log(LOGDEBUG, "Window: %p", gw);
@@ -200,6 +212,8 @@ static gboolean _GGDKDraw_OnWindowDestroyed(gpointer data) {
 					gdk_window_set_transient_for(tw->w, gw->display->groot->w);
 					tw->transient_owner = NULL;
 					tw->istransient = false;
+					if ( tw->restrict_input_to_me )
+					    GGDK_ChangeRestrictCount(gw->display, -1);
 				}
 			}
 
@@ -769,6 +783,8 @@ static int _GGDKDraw_WindowOrParentsDying(GGDKWindow gw) {
 }
 
 static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
+    bool grabbed_by_gtkb = false;
+
     switch (event->type) {
         case GDK_KEY_PRESS:
         case GDK_KEY_RELEASE:
@@ -783,8 +799,17 @@ static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
             break;
     }
 
-	GGDKWindow gww = gw;
+    GGDKWindow gww = gw;
     GPtrArray *stack = gw->display->transient_stack;
+
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+    grabbed_by_gtkb = gtkb_Grabbed(gww->display->gtkb_state);
+    if ( grabbed_by_gtkb )
+	gww = NULL;
+#endif 
+
+    if ( gww && gw->display->restrict_count == 0 )
+	return false;
 
     while (gww != NULL) {
 		GGDKWindow last_modal = NULL;
@@ -807,6 +832,7 @@ static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
     if (event->type != GDK_MOTION_NOTIFY && event->type != GDK_BUTTON_RELEASE) {
         gdk_window_beep(gw->w);
     }
+
     return true;
 }
 
@@ -855,6 +881,7 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
     if (event_time != GDK_CURRENT_TIME) {
         gdisp->last_event_time = event_time;
     }
+    GdkEventCrossing *cross;
 
     //Log(LOGDEBUG, "[%d] Received event %d(%s) %p", request_id++, event->type, GdkEventName(event->type), w);
     //fflush(stderr);
@@ -864,7 +891,9 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
     } else if ((gw = g_object_get_data(G_OBJECT(w), "GGDKWindow")) == NULL) {
         //Log(LOGDEBUG, "MISSING GW!");
 #ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
-	gtkb_do_event(event);
+	// If the target window is not GGDKDraw's, pass the event onto GTK
+	if (gdisp->gtkb_state != NULL)
+	    gtkb_ProcessEvent(gdisp->gtkb_state, event);
 #endif
         return;
     } else if (_GGDKDraw_WindowOrParentsDying(gw) || gdk_window_is_destroyed(w)) {
@@ -1443,6 +1472,8 @@ static void GGDKDrawSetVisible(GWindow w, int show) {
         // But FF expects one.
         _GGDKDraw_OnFakedConfigure(gw);
 #endif
+//	if ( gw->transient_owner != NULL || gw->restrict_input_to_me )
+//            GGDKDrawSetTransientFor((GWindow)gw, (gw->transient_owner != NULL) ? (GWindow)gw->transient_owner : (GWindow)-1 );
         gdk_window_show(gw->w);
     } else {
         GGDKDrawSetTransientFor((GWindow)gw, NULL);
@@ -1571,15 +1602,19 @@ static void GGDKDrawSetTransientFor(GWindow transient, GWindow owner) {
         gdk_window_set_transient_for(gw->w, ow->w);
         gdk_window_set_modal_hint(gw->w, true);
         gw->istransient = true;
-
-		g_ptr_array_add(gdisp->transient_stack, gw);
+	g_ptr_array_add(gdisp->transient_stack, gw);
+	if (gw->restrict_input_to_me)
+	    GGDK_ChangeRestrictCount(gdisp, 1);
     } else {
         gdk_window_set_modal_hint(gw->w, false);
         gdk_window_set_transient_for(gw->w, gw->display->groot->w);
         gw->istransient = false;
-        
+
+	// Be extra careful and ensure the window was on the list, in
+	// case there are spurious remove calls.
         // TODO: optimise; search from the back; it is meant to be a stack...
-        g_ptr_array_remove(gdisp->transient_stack, gw);
+        if ( g_ptr_array_remove(gdisp->transient_stack, gw) && gw->restrict_input_to_me )
+	    GGDK_ChangeRestrictCount(gdisp, -1);
     }
 
     gw->transient_owner = ow;
@@ -2558,6 +2593,10 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 
     _GDraw_InitError((GDisplay *) gdisp);
 
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+    gdisp->gtkb_state = gtkb_CreateState();
+#endif
+
     //DEBUG
     if (getenv("GGDK_DEBUG")) {
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -2572,6 +2611,11 @@ void _GGDKDraw_DestroyDisplay(GDisplay *disp) {
 
     // Indicate we're dying...
     gdisp->is_dying = true;
+
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+    gtkb_DestroyState(gdisp->gtkb_state);
+    gdisp->gtkb_state = NULL;
+#endif
 
     // Destroy remaining windows
     if (g_hash_table_size(gdisp->windows) > 0) {

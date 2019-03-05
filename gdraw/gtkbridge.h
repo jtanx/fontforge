@@ -29,7 +29,12 @@
 
 #include <ffgdk.h>
 
-extern void gtkb_addWindow();
-extern void gtkb_do_event(GdkEvent *event);
+extern FFGtkBState *gtkb_CreateState();
+extern void gtkb_DestroyState(FFGtkBState *state);
+extern void gtkb_ProcessEvent(FFGtkBState *state, GdkEvent *event);
+extern bool gtkb_Grabbed(FFGtkBState *state);
+extern void gtkb_Grab(FFGtkBState *state, bool grab);
+extern void gtkb_AddWindow(GWindow fv);
+extern void _gtkb_AddWindow(FFGtkBState *state, GdkWindow *gw);
 
 #endif // FONTFORGE_CAN_USE_GTK_BRIDGE

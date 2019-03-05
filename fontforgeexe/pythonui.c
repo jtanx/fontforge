@@ -691,7 +691,7 @@ static PyObject *PyFFFont_removeGtkWindowToMainEventLoopByFD(PyFF_Font *self, Py
 }
 
 static PyObject *PyFFFont_addWindow(PyFF_Font *self, PyObject *UNUSED(args)) {
-	PyObject *w;
+	FontView *fv = (FontView *) self->fv;
 
 	/*PyErr_Format(PyExc_EnvironmentError, "FontForge not compiled with GTK extension");
 	return( NULL );*/
@@ -701,7 +701,7 @@ static PyObject *PyFFFont_addWindow(PyFF_Font *self, PyObject *UNUSED(args)) {
 		return( NULL );
 	}*/
 
-	gtkb_addWindow();
+	gtkb_AddWindow(fv->gw);
 	/*gboolean may_block = false;
 	GMainContext *con = g_main_context_default();
 	while (g_main_context_pending(con))
@@ -784,6 +784,7 @@ PyMethodDef PyFF_FontUI_methods[] = {
    { "CollabLastChangedPos", (PyCFunction) PyFF_getLastChangedPos, METH_VARARGS, "" },
    { "CollabLastChangedCodePoint", (PyCFunction) PyFF_getLastChangedCodePoint, METH_VARARGS, "" },
    { "CollabLastSeq", (PyCFunction) PyFF_getLastSeq, METH_VARARGS, "" },
+   { "addWindow", (PyCFunction) PyFFFont_addWindow, METH_VARARGS, "Adds gtk window to event loop" },
 
    
    PYMETHODDEF_EMPTY /* Sentinel */
@@ -796,7 +797,6 @@ PyMethodDef module_fontforge_ui_methods[] = {
    { "getGtkWindowMainEventLoopFD", (PyCFunction) PyFFFont_getGtkWindowMainEventLoopFD, METH_VARARGS, "fixme." },
    { "removeGtkWindowToMainEventLoop", (PyCFunction) PyFFFont_removeGtkWindowToMainEventLoop, METH_VARARGS, "fixme." },
    { "removeGtkWindowToMainEventLoopByFD", (PyCFunction) PyFFFont_removeGtkWindowToMainEventLoopByFD, METH_VARARGS, "fixme." },
-   { "addWindow", (PyCFunction) PyFFFont_addWindow, METH_VARARGS, "Adds gtk window to event loop" },
 
    
    PYMETHODDEF_EMPTY /* Sentinel */
