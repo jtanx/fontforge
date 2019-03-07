@@ -810,12 +810,12 @@ static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
 #ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
     if ( gtkb_Grabbed(gww->display->gtkb_state) ) {
 	// If gtk has an active grab, push the (already filtered)
-	// event up to it. 
+	// event up to it.
 	gtkb_ProcessEvent(gww->display->gtkb_state, event);
 	// Keep the "beep" (XXX?)
 	gww = NULL;
     }
-#endif 
+#endif
 
     if ( gww && gw->display->restrict_count == 0 )
 	return false;
@@ -830,14 +830,14 @@ static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
 				break;
 			}
 		}
-		
+
 		if (last_modal == NULL || last_modal == gww) {
 			return false;
 		}
-		
+
 		gww = gww->parent;
 	}
-	
+
     if (event->type != GDK_MOTION_NOTIFY && event->type != GDK_BUTTON_RELEASE) {
         gdk_window_beep(gw->w);
     }
