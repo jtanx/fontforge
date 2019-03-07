@@ -2,6 +2,7 @@
 
 #ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
 #include <gtk/gtk.h>
+#include <gmodule.h>
 
 struct ffgtkb_state {
 	GtkWindow *event_trap_win, *the_window;
@@ -111,6 +112,7 @@ static GtkWidget *make_window(FFGtkBState *state, GdkWindow *w) {
 	gtk_window_set_title (GTK_WINDOW (window), "Window");
 	gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
 	g_signal_connect(window, "destroy", G_CALLBACK (gtkb_TheWindowDestroy), (gpointer) state);
+	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
 	button_box = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
 	gtk_container_add(GTK_CONTAINER (window), button_box);
@@ -136,6 +138,15 @@ void gtkb_ProcessEvent(FFGtkBState *state, GdkEvent *event) {
 	if (state != NULL)
 		gtk_main_do_event(event);
 }
+
+void gtkb_SetDefaultIcon(FFGtkBState *state, GdkPixbuf *pb) {
+	if (pb != NULL) {
+		GList ent = { .data = pb };
+		gtk_window_set_default_icon_list(&ent);
+		g_object_unref(pb);
+	}
+}
+
 
 #endif // FONTFORGE_CAN_USE_GTK_BRIDGE
 

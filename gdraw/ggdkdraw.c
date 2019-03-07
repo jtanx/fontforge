@@ -177,7 +177,7 @@ static void GGDK_ChangeRestrictCount(GGDKDisplay *gdisp, int c) {
     gdisp->restrict_count += c;
 
     printf("Restrict Count: %d\n", gdisp->restrict_count);
-    // XXX Error on negative value
+    // XXX Add error on negative value
     if ( c > 0 && (gdisp->restrict_count - c) == 0 ) {
         gtkb_Grab(gdisp->gtkb_state, true);
     } else if ( c < 0 && gdisp->restrict_count == 0 ) {
@@ -424,6 +424,16 @@ static void _GGDKDraw_CenterWindowOnScreen(GGDKWindow gw) {
     gdk_window_move(gw->w, gw->pos.x, gw->pos.y);
 }
 
+static GdkPixbuf *_GGDKDraw_IconToPixbuf(GGDKWindow icon) {
+    GdkPixbuf *ret;
+#ifndef GGDKDRAW_GDK_2
+    ret = gdk_pixbuf_get_from_surface(icon->cs, 0, 0, icon->pos.width, icon->pos.height);
+#else
+    ret = _GGDKDraw_Cairo2Pixbuf(icon->cs);
+#endif
+    return ret;
+}
+
 static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *pos,
                                       int (*eh)(GWindow, GEvent *), void *user_data, GWindowAttrs *wattrs) {
 
@@ -572,11 +582,7 @@ static GWindow _GGDKDraw_CreateWindow(GGDKDisplay *gdisp, GGDKWindow gw, GRect *
             icon = (GGDKWindow) wattrs->icon;
         }
         if (icon != NULL) {
-#ifndef GGDKDRAW_GDK_2
-            GdkPixbuf *pb = gdk_pixbuf_get_from_surface(icon->cs, 0, 0, icon->pos.width, icon->pos.height);
-#else
-            GdkPixbuf *pb = _GGDKDraw_Cairo2Pixbuf(icon->cs);
-#endif
+	    GdkPixbuf *pb = _GGDKDraw_IconToPixbuf(icon);
             if (pb != NULL) {
                 GList_Glib ent = {.data = pb};
                 gdk_window_set_icon_list(nw->w, &ent);
@@ -783,7 +789,6 @@ static int _GGDKDraw_WindowOrParentsDying(GGDKWindow gw) {
 }
 
 static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
-    bool grabbed_by_gtkb = false;
 
     switch (event->type) {
         case GDK_KEY_PRESS:
@@ -803,9 +808,13 @@ static bool _GGDKDraw_FilterByModal(GdkEvent *event, GGDKWindow gw) {
     GPtrArray *stack = gw->display->transient_stack;
 
 #ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
-    grabbed_by_gtkb = gtkb_Grabbed(gww->display->gtkb_state);
-    if ( grabbed_by_gtkb )
+    if ( gtkb_Grabbed(gww->display->gtkb_state) ) {
+	// If gtk has an active grab, push the (already filtered)
+	// event up to it. 
+	gtkb_ProcessEvent(gww->display->gtkb_state, event);
+	// Keep the "beep" (XXX?)
 	gww = NULL;
+    }
 #endif 
 
     if ( gww && gw->display->restrict_count == 0 )
@@ -892,8 +901,7 @@ static void _GGDKDraw_DispatchEvent(GdkEvent *event, gpointer data) {
         //Log(LOGDEBUG, "MISSING GW!");
 #ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
 	// If the target window is not GGDKDraw's, pass the event onto GTK
-	if (gdisp->gtkb_state != NULL)
-	    gtkb_ProcessEvent(gdisp->gtkb_state, event);
+	gtkb_ProcessEvent(gdisp->gtkb_state, event);
 #endif
         return;
     } else if (_GGDKDraw_WindowOrParentsDying(gw) || gdk_window_is_destroyed(w)) {
@@ -1251,6 +1259,10 @@ static void GGDKDrawSetDefaultIcon(GWindow icon) {
     GGDKWindow gicon = (GGDKWindow)icon;
     if (gicon->is_pixmap) {
         gicon->display->default_icon = gicon;
+#ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+	gtkb_SetDefaultIcon(gicon->display->gtkb_state,
+	                    _GGDKDraw_IconToPixbuf(gicon));
+#endif
     }
 }
 
@@ -2594,6 +2606,13 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     _GDraw_InitError((GDisplay *) gdisp);
 
 #ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
+    // XXX These may be preferable to the settings in
+    // _GGDKDraw_CreateWindow, but using both should be OK
+    // as long as the same strings are used
+    gdk_set_program_class(GResourceProgramName);
+    // GTK derives the WM_CLASS from this
+    g_set_prgname(GResourceProgramName);
+
     gdisp->gtkb_state = gtkb_CreateState();
 #endif
 

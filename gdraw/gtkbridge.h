@@ -28,6 +28,7 @@
 #ifdef FONTFORGE_CAN_USE_GTK_BRIDGE
 
 #include <ffgdk.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 
 extern FFGtkBState *gtkb_CreateState();
 extern void gtkb_DestroyState(FFGtkBState *state);
@@ -36,5 +37,6 @@ extern bool gtkb_Grabbed(FFGtkBState *state);
 extern void gtkb_Grab(FFGtkBState *state, bool grab);
 extern void gtkb_AddWindow(GWindow fv);
 extern void _gtkb_AddWindow(FFGtkBState *state, GdkWindow *gw);
+extern void gtkb_SetDefaultIcon(FFGtkBState *state, GdkPixbuf *pb);
 
 #endif // FONTFORGE_CAN_USE_GTK_BRIDGE
