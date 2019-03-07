@@ -104,9 +104,7 @@ static void modal_win(GtkWidget *widget, gpointer data) {
 // Test window 
 static GtkWidget *make_window(FFGtkBState *state, GdkWindow *w) {
 	GtkWidget *window;
-	GtkWidget *eb;
-	GtkWidget *button;
-	GtkWidget *button_box;
+	GtkWidget *vbox, *view, *button, *button_box;
 
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title (GTK_WINDOW (window), "Window");
@@ -114,14 +112,21 @@ static GtkWidget *make_window(FFGtkBState *state, GdkWindow *w) {
 	g_signal_connect(window, "destroy", G_CALLBACK (gtkb_TheWindowDestroy), (gpointer) state);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+	view = gtk_text_view_new();
+	gtk_box_pack_start(GTK_BOX(vbox), view, TRUE, TRUE, 0);
+
 	button_box = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
-	gtk_container_add(GTK_CONTAINER (window), button_box);
+	gtk_box_pack_start(GTK_BOX(vbox), button_box, TRUE, TRUE, 0);
+
 
 	button = gtk_button_new_with_label ("Hello World");
 	//g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
 	g_signal_connect (button, "clicked", G_CALLBACK (modal_win), NULL);
 	// g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
 	gtk_container_add (GTK_CONTAINER (button_box), button);
+
+	gtk_container_add(GTK_CONTAINER (window), vbox);
 
 	gtk_widget_show_all (window);
 	// gdk_window_set_group(gtk_widget_get_window(window), gdk_window_get_group(w));
