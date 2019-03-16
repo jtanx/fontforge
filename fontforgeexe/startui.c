@@ -114,7 +114,7 @@ static int unique = 0;
  * register for Apple events on OSX so that we can get those file
  * names as they come through.
  */
-#if defined(__Mac)
+#if defined(__Mac) && !defined(FONTFORGE_CAN_USE_GDK)
     static int listen_to_apple_events = true; // This was once true, but Apple broke it.
 #else
     static int listen_to_apple_events = false;
