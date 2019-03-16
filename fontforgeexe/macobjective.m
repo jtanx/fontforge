@@ -122,9 +122,51 @@ void setup_cocoa_app()
 
 #else
 
+#ifdef FONTFORGE_CAN_USE_GDK
+
+typedef struct fontview FontView;
+typedef struct fontviewbase FontViewBase;
+typedef struct gwindow* GWindow;
+struct gmenuitem;
+typedef struct gevent GEvent;
+
+extern FontView *fv_list;
+extern void _FVMenuOpen(FontView *fv);
+extern FontViewBase *ViewPostScriptFont(const char *filename, int openflags);
+extern void MenuExit(GWindow base,struct gmenuitem *mi,GEvent *e);
+
+@implementation MyGdkDelegate
+
+-(void) applicationDidFinishLaunching: (Notification*)sender {
+    if (fv_list == NULL)
+        _FVMenuOpen(NULL);
+}
+
+-(bool) application: (NSApplication*)theApplication openFile: (NSString*) file {
+    ViewPostScriptFont([file UTF8String],0);
+    return true;
+}
+
+-(NSApplicationTerminateReply) applicationShouldTerminate: (NSApplication *)sender {
+    MenuExit(NULL,NULL,NULL);
+    return NSTerminateCancel;
+}
+
+@end
+
+void setup_cocoa_app()
+{
+    [NSApplication sharedApplication];
+    [NSApp setDelegate: [MyGdkDelegate new]];
+}
+
+#else
+
 void setup_cocoa_app()
 {
     [NSApplication sharedApplication];
 }
+
+#endif
 
 #endif

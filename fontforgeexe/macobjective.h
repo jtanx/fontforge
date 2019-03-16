@@ -53,3 +53,13 @@
 @end
 
 #endif
+
+#ifdef FONTFORGE_CAN_USE_GDK
+@interface MyGdkDelegate : NSObject<NSApplicationDelegate> {
+}
+-(void) applicationDidFinishLaunching: (NSNotification*)sender;
+-(bool) application: (NSApplication*)theApplication openFile: (NSString*) file;
+-(NSApplicationTerminateReply) applicationShouldTerminate: (NSApplication *)sender;
+
+@end
+#endif

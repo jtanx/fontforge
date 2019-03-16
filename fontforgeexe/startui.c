@@ -396,7 +396,7 @@ static void start_splash_screen(void){
 static FILE *logfile;
 
 /* These are the four apple events to which we currently respond */
-static pascal OSErr OpenApplicationAE( const AppleEvent * theAppleEvent,
+static OSErr OpenApplicationAE( const AppleEvent * theAppleEvent,
 	AppleEvent * reply, SInt32 handlerRefcon) {
  fprintf( logfile, "OPENAPP event received.\n" ); fflush( logfile );
     if ( localsplash )
@@ -410,7 +410,7 @@ static pascal OSErr OpenApplicationAE( const AppleEvent * theAppleEvent,
 return( noErr );
 }
 
-static pascal OSErr ReopenApplicationAE( const AppleEvent * theAppleEvent,
+static OSErr ReopenApplicationAE( const AppleEvent * theAppleEvent,
 	AppleEvent * reply, SInt32 handlerRefcon) {
  fprintf( logfile, "ReOPEN event received.\n" ); fflush( logfile );
     if ( localsplash )
@@ -424,7 +424,7 @@ static pascal OSErr ReopenApplicationAE( const AppleEvent * theAppleEvent,
 return( noErr );
 }
 
-static pascal OSErr ShowPreferencesAE( const AppleEvent * theAppleEvent,
+static OSErr ShowPreferencesAE( const AppleEvent * theAppleEvent,
 	AppleEvent * reply, SInt32 handlerRefcon) {
  fprintf( logfile, "PREFS event received.\n" ); fflush( logfile );
     if ( localsplash )
@@ -437,7 +437,7 @@ static pascal OSErr ShowPreferencesAE( const AppleEvent * theAppleEvent,
 return( noErr );
 }
 
-static pascal OSErr OpenDocumentsAE( const AppleEvent * theAppleEvent,
+static OSErr OpenDocumentsAE( const AppleEvent * theAppleEvent,
 	AppleEvent * reply, SInt32 handlerRefcon) {
     AEDescList  docList;
     FSRef       theFSRef;
@@ -517,6 +517,15 @@ return(errAEEventFailed);
 static  OSErr install_apple_event_handlers(void) {
     OSErr       err;
 
+ /* some debugging code, for now */
+ if ( getenv("HOME")!=NULL ) {
+  char buffer[1024];
+  sprintf( buffer, "%s/.FontForge-LogFile.txt", getenv("HOME"));
+  logfile = fopen("/tmp/LogFile.txt","w");
+ }
+ if ( logfile==NULL )
+  logfile = stderr;
+
     err     = AEInstallEventHandler(kCoreEventClass, kAEOpenApplication,
                 NewAEEventHandlerUPP(OpenApplicationAE), 0, false);
     __Require_noErr(err, CantInstallAppleEventHandler);
@@ -537,14 +546,6 @@ static  OSErr install_apple_event_handlers(void) {
                 NewAEEventHandlerUPP(ShowPreferencesAE), 0, false);
     __Require_noErr(err, CantInstallAppleEventHandler);
 
- /* some debugging code, for now */
- if ( getenv("HOME")!=NULL ) {
-  char buffer[1024];
-  sprintf( buffer, "%s/.FontForge-LogFile.txt", getenv("HOME"));
-  logfile = fopen("/tmp/LogFile.txt","w");
- }
- if ( logfile==NULL )
-  logfile = stderr;
 
 CantInstallAppleEventHandler:
     return err;
@@ -1226,11 +1227,7 @@ int fontforge_main( int argc, char **argv ) {
     wattrs.utf8_window_title = "FontForge";
     wattrs.border_width = 2;
     wattrs.background_color = 0xffffff;
-#ifdef FONTFORGE_CAN_USE_GDK
-    wattrs.is_dlg = true;
-#else
     wattrs.is_dlg = !listen_to_apple_events;
-#endif
     pos.x = pos.y = 200;
     pos.width = splashimage.u.image->width;
     pos.height = splashimage.u.image->height-56;		/* 54 */
@@ -1377,21 +1374,17 @@ exit( 0 );
 
 #if defined(__Mac)
     if ( listen_to_apple_events ) {
-	install_apple_event_handlers();
 #ifndef FONTFORGE_CAN_USE_GDK
-	install_mac_timer();
+	install_apple_event_handlers();
 #endif
+	install_mac_timer();
 	setup_cocoa_app();
 
 	
 	// WARNING: See declaration of RunApplicationEventLoop() above as to
 	// why you might not want to call that function anymore.
 	// RunApplicationEventLoop();
-#ifdef FONTFORGE_CAN_USE_GDK
-    }
-#else
     } else
-#endif
 #endif
     if ( doopen || !any )
 	_FVMenuOpen(NULL);
