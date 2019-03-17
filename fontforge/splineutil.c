@@ -6889,7 +6889,7 @@ char **StringExplode(const char *input, char delimiter) {
     while (*pstart == delimiter) pstart++;
     pend = pstart;
     while (*pend != delimiter && *pend != '\0') pend++;
-    if (pend > pstart) output[entry_count++] = strndup(pstart, pend-pstart);
+    if (pend > pstart) output[entry_count++] = copyn(pstart, pend-pstart);
     pstart = pend;
   }
   return output;

@@ -9167,6 +9167,22 @@ static int AddScriptLine(FILE *script, const char *line)
     return getc(script);
 }
 
+#if defined(__MINGW32__)
+
+static ssize_t getline(char **lineptr, size_t *n, FILE *stream)
+{
+	if (!*lineptr || !*n) {
+		*n = 1024;
+		*lineptr = calloc(*n+1, sizeof(char));
+	}
+	if (!fgets(*lineptr, *n, stream)) {
+		return -1;
+	}
+    return 1; // good enough
+}
+
+#endif
+
 static int _buffered_cgetc(Context *c) {
     if (c->interactive) {
 	int ch;

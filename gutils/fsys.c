@@ -30,6 +30,7 @@
 #include "ustring.h"
 #include "fileutil.h"
 #include "gfile.h"
+#include "gutils.h"
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>		/* for mkdir */
@@ -128,39 +129,18 @@ return -ENOTDIR;
 	for(p = tmp + 1; *p; p++)
 	if(*p == '/') {
 		*p = 0;
-		r = mkdir(tmp, mode);
+		r = GFileMkDir(tmp, mode);
 		if (r < 0 && errno != EEXIST)
 return -errno;
 		*p = '/';
 	}
 
 	/* try to make the whole path */
-	r = mkdir(tmp, mode);
+	r = GFileMkDir(tmp, mode);
 	if(r < 0 && errno != EEXIST)
 return -errno;
 	/* creation successful or the file already exists */
 return EXIT_SUCCESS;
-}
-
-/* Wrapper for formatted variable list printing. */
-char *smprintf(const char *fmt, ...) {
-	va_list fmtargs;
-	char *ret;
-	int len;
-
-	va_start(fmtargs, fmt);
-	len = vsnprintf(NULL, 0, fmt, fmtargs);
-	va_end(fmtargs);
-	ret = malloc(++len);
-	if (ret == NULL) {
-	perror("malloc");
-exit(EXIT_FAILURE);
-	}
-
-	va_start(fmtargs, fmt);
-	vsnprintf(ret, len, fmt, fmtargs);
-	va_end(fmtargs);
-return ret;
 }
 
 char *GFileGetHomeDir(void) {
@@ -444,8 +424,12 @@ int GFileRemove(const char *path, int recursive) {
     return true;
 }
 
-int GFileMkDir(const char *name) {
-return( mkdir(name,0755));
+int GFileMkDir(const char *name, int mode) {
+#ifndef _WIN32
+	return mkdir(name, mode);
+#else
+	return mkdir(name);
+#endif
 }
 
 int GFileRmDir(const char *name) {
@@ -739,7 +723,7 @@ return( access(buffer,04)==0 );
 int u_GFileMkDir(unichar_t *name) {
     char buffer[1024];
     u2def_strncpy(buffer,name,sizeof(buffer));
-return( mkdir(buffer,0755));
+	return GFileMkDir(buffer, 0755);
 }
 
 int u_GFileRmDir(unichar_t *name) {
@@ -937,9 +921,9 @@ return NULL;
 #ifdef _WIN32
 	/* Allow for preferences to be saved locally in a 'portable' configuration. */ 
 	if (getenv("FF_PORTABLE") != NULL) {
-		buf = smprintf("%s/preferences/", getShareDir());
+		buf = GUFormat("%s/preferences/", getShareDir());
 	} else {
-		buf = smprintf("%s/FontForge/", home);
+		buf = GUFormat("%s/FontForge/", home);
 	}
 	return buf;
 #else
@@ -967,11 +951,11 @@ return NULL;
 	if(xdg != NULL)
 	/* if, for example, XDG_CACHE_HOME exists, assign the value
 	 * "$XDG_CACHE_HOME/fontforge" */
-	buf = smprintf("%s/fontforge", xdg);
+	buf = GUFormat("%s/fontforge", xdg);
 	else
 	/* if, for example, XDG_CACHE_HOME does not exist, instead assign
 	 * the value "$HOME/.cache/fontforge" */
-	buf = smprintf("%s/%s/fontforge", home, def);
+	buf = GUFormat("%s/%s/fontforge", home, def);
 	if(buf != NULL) {
 	    /* try to create buf.  If creating the directory fails, return NULL
 	     * because nothing will get saved into an inaccessible directory.  */

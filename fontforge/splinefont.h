@@ -30,23 +30,7 @@
 #include <basics.h>
 #include <dlist.h>
 #include "configure-fontforge.h"
-#ifdef HAVE_ICONV_H
-# include <iconv.h>
-/* libiconv.h defines iconv as taking a const pointer for inbuf. iconv doesn't*/
-/* OH, JOY! A new version of libiconv does not use the const! Even better, the man page says it does */
-# ifdef _LIBICONV_VERSION
-#  if _LIBICONV_VERSION >= 0x10B
-#   define ICONV_CONST
-#  else
-#   define ICONV_CONST	const
-#  endif
-# else
-#  define ICONV_CONST
-# endif
-#else
-# include <gwwiconv.h>
-#  define ICONV_CONST
-#endif
+#include <gwwiconv.h>
 #include "locale.h"
 #include <gnetwork.h>
 
@@ -1961,7 +1945,9 @@ typedef struct splinefont {
 	    /* ufo_descent is negative */
     char *styleMapFamilyName;
     struct sfundoes *undoes;
+#ifdef BUILD_COLLAB
     char collab_uuid[ FF_UUID_STRING_SIZE ];
+#endif
     int preferred_kerning; // 1 for U. F. O. native, 2 for feature file, 0 undefined. Input functions shall flag 2, I think. This is now in S. F. D. in order to round-trip U. F. O. consistently.
 } SplineFont;
 
