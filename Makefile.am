@@ -27,15 +27,20 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-# Ignore files installed by gnulib-tool
+# Ignore files installed
 GITIGNOREFILES = \
 	.gitmodules \
 	INSTALL \
 	aclocal.m4 \
 	config/ \
-	gnulib/ \
-	lib/ \
 	libltdl/ \
+	m4/libtool.m4 \
+	m4/ltargz.m4 \
+	m4/ltdl.m4 \
+	m4/ltoptions.m4 \
+	m4/ltsugar.m4 \
+	m4/ltversion.m4 \
+	m4/lt~obsolete.m4 \
 	uthash/ \
 	'**/*.gcno' \
 	'**/*.gcda'
@@ -63,7 +68,7 @@ include $(top_srcdir)/mk/layout.am
 
 #--------------------------------------------------------------------------
 
-SUBDIRS = inc lib libltdl Unicode gutils breakpad
+SUBDIRS = inc libltdl Unicode gutils breakpad
 
 if LIBZMQ
 SUBDIRS += collab
@@ -109,7 +114,6 @@ SUBDIRS += \
 nodist_pkgconfig_DATA = libfontforge.pc libfontforgeexe.pc
 
 EXTRA_DIST += \
-	m4/gnulib-cache.m4 \
 	bootstrap \
 	bootstrap.conf \
 	COPYING.gplv3 \

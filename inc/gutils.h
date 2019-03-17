@@ -27,11 +27,28 @@
 #ifndef _GUTILS_H
 #define _GUTILS_H
 
+#include <fontforge-config.h>
 #include <time.h>
 #include <sys/stat.h>
+
+#pragma push_macro("PRINTF_FORMAT_ATTRIBUTE")
+#ifdef __GNUC__
+#  if defined(__USE_MINGW_ANSI_STDIO) && __USE_MINGW_ANSI_STDIO != 0
+#    define PRINTF_FORMAT_ATTRIBUTE(x, y) __attribute__((format(gnu_printf, x, y)))
+#  else
+#    define PRINTF_FORMAT_ATTRIBUTE(x, y) __attribute__((format(printf, x, y)))
+#  endif
+#else
+#  define PRINTF_FORMAT_ATTRIBUTE(x, y)
+#endif
+
 
 extern const char *GetAuthor(void);
 extern time_t GetTime(void);
 extern time_t GetST_MTime(struct stat s);
+
+extern char *GUFormat(const char* fmt, ...) PRINTF_FORMAT_ATTRIBUTE(1, 2);
+
+#pragma pop_macro("PRINTF_FORMAT_ATTRIBUTE")
 
 #endif

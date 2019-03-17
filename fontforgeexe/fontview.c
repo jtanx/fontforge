@@ -59,6 +59,7 @@
 #include <gfile.h>
 #include <gio.h>
 #include <gresedit.h>
+#include <gutils.h>
 #include <ustring.h>
 #include <ffglib.h>
 #include <gkeysym.h>
@@ -74,9 +75,6 @@
 #if defined (__MINGW32__)
 #include <windows.h>
 #endif
-
-#include "xvasprintf.h"
-
 
 int OpenCharsInNewWindow = 0;
 char *RecentFiles[RECENT_MAX] = { NULL };
@@ -6689,14 +6687,14 @@ void SCPreparePopup(GWindow gw,SplineChar *sc,struct remap *remap, int localenc,
 #endif
 
     if ( upos == -1 ) {
-	msg = xasprintf( "%u 0x%x U+???? \"%.25s\" ",
+	msg = GUFormat( "%u 0x%x U+???? \"%.25s\" ",
 		localenc, localenc,
 		(sc->name == NULL) ? "" : sc->name );
     } else {
 	/* unicode name or range name */
 	char *uniname = unicode_name( upos );
 	if( uniname == NULL ) uniname = strdup( UnicodeRange( upos ) );
-	msg = xasprintf ( "%u 0x%x U+%04X \"%.25s\" %.100s",
+	msg = GUFormat ( "%u 0x%x U+%04X \"%.25s\" %.100s",
 		localenc, localenc, upos,
 		(sc->name == NULL) ? "" : sc->name, uniname );
 	if ( uniname != NULL ) free( uniname ); uniname = NULL;
@@ -6705,7 +6703,7 @@ void SCPreparePopup(GWindow gw,SplineChar *sc,struct remap *remap, int localenc,
         char *uniannot = unicode_annot( upos );
         if( uniannot != NULL ) {
             msg_old = msg;
-            msg = xasprintf("%s\n%s", msg_old, uniannot);
+            msg = GUFormat("%s\n%s", msg_old, uniannot);
             free(msg_old);
             free( uniannot );
         }
@@ -6714,7 +6712,7 @@ void SCPreparePopup(GWindow gw,SplineChar *sc,struct remap *remap, int localenc,
     /* user comments */
     if ( sc->comment!=NULL ) {
         msg_old = msg;
-        msg = xasprintf("%s\n%s", msg_old, sc->comment);
+        msg = GUFormat("%s\n%s", msg_old, sc->comment);
         free(msg_old);
     }
 

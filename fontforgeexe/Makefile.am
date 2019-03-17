@@ -70,8 +70,7 @@ acorn2sfd: $(ACORNOBJS)
 LIBADD = $(top_builddir)/Unicode/libgunicode.la	\
 	$(top_builddir)/gutils/libgutils.la	\
 	$(top_builddir)/gutils/libgioftp.la	\
-	$(top_builddir)/fontforge/libfontforge.la \
-	$(top_builddir)/lib/libgnu.la
+	$(top_builddir)/fontforge/libfontforge.la
 
 GUILIBADD =
 if GRAPHICAL_USER_INTERFACE

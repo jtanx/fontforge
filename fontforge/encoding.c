@@ -40,6 +40,7 @@
 #include "splinesaveafm.h"
 #include "splineutil.h"
 #include "splineutil2.h"
+#include <gutils.h>
 #include <ustring.h>
 #include <utype.h>
 #include <math.h>
@@ -52,7 +53,6 @@
 #include "psfont.h"
 #include <ffglib.h>
 #include <glib/gprintf.h>
-#include "xvasprintf.h"
 
 Encoding *default_encoding = NULL;
 
@@ -763,7 +763,7 @@ return( NULL );
 	    if ( item==head && item->next==NULL )
 		buf = strdup(_( "Please name this encoding" ));
 	    else
-		buf = xasprintf(_( "Please name encoding %d in this file" ), i );
+		buf = GUFormat(_( "Please name encoding %d in this file" ), i );
 
 	    name = ff_ask_string( buf, NULL, buf );
 
@@ -1150,7 +1150,7 @@ return( maybe );
 
     if ( file==NULL ) {
 	char *uret;
-	buf = xasprintf( "%s-%s-*.cidmap", registry, ordering );
+	buf = GUFormat( "%s-%s-*.cidmap", registry, ordering );
 	if ( maybe==NULL && maybefile==NULL ) {
 	    buts3[0] = _("_Browse"); buts3[1] = _("_Give Up"); buts3[2] = NULL;
 	    ret = ff_ask(_("No cidmap file..."),(const char **)buts3,0,1,_("FontForge was unable to find a cidmap file for this font. It is not essential to have one, but some things will work better if you do. If you have not done so you might want to download the cidmaps from:\n   http://FontForge.sourceforge.net/cidmaps.tgz\nand then gunzip and untar them and move them to:\n  %.80s\n\nWould you like to search your local disk for an appropriate file?"),

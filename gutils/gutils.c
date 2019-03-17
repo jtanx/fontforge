@@ -28,6 +28,8 @@
 #include "basics.h"
 #include "gutils.h"
 
+#include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -115,4 +117,20 @@ time_t GetST_MTime(struct stat s) {
 	}
 
 	return st_time;
+}
+
+char *GUFormat(const char* fmt, ...) {
+    va_list args;
+    char* ret = NULL;
+
+    va_start(args, fmt);
+    int rc = vasprintf(&ret, fmt, args);
+    va_end(args);
+
+    assert(rc >= 0);
+    if (rc < 0) {
+        abort();
+    }
+
+    return ret;
 }
