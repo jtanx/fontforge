@@ -43,8 +43,8 @@
 #include <utype.h>
 #include <gkeysym.h>
 #include <math.h>
-#include <ttf.h>
-#include <stemdb.h>
+#include "ttf.h"
+#include "stemdb.h"
 
 static unichar_t lc_stem_str[] = { 'l', 'l', 'l', 'm', 'f', 't', 0x438, 0x43D,
 	0x43f, 0x448, 0x3b9, 0 };

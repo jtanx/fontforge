@@ -1,5 +1,6 @@
 #ifndef _GLIF_NAME_HASH_H
 #define _GLIF_NAME_HASH_H
+#include <fontforge-config.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

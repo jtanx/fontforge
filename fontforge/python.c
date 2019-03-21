@@ -80,7 +80,6 @@ extern int old_sfnt_flags;
 #include "nonlineartrans.h"
 #include "othersubrs.h"
 #include "ttf.h"
-#include "plugins.h"
 #include "print.h"
 #include "psread.h"
 #include "savefont.h"
