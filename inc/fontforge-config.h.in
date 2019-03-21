@@ -1,0 +1,97 @@
+#ifndef _FF_CONFIG_H
+#define _FF_CONFIG_H
+
+#cmakedefine HAVE_PTHREAD_H 1
+
+// #cmakedefine FONTFORGE_CAN_USE_GDK 1 // Not yet
+
+#cmakedefine X_DISPLAY_MISSING 1
+
+#cmakedefine FONTFORGE_CONFIG_USE_DOUBLE 1
+
+//#cmakedefine _NO_LIBUNICODENAMES 1
+
+//#cmakedefine _NO_PYTHON 1
+
+/* Define if disabling feature 'native-scripting'. */
+// #define _NO_FFSCRIPT 1
+
+/* Define if not using giflib */
+#define _NO_GIFLIB 1
+
+/* Define if not using cairo */
+#define _NO_LIBCAIRO 1
+
+/* Define if not using libjpeg */
+#define _NO_LIBJPEG 1
+
+/* Define if not using libpng */
+#define _NO_LIBPNG 1
+
+/* Define if not using libreadline */
+#define _NO_LIBREADLINE 1
+
+/* Define if not using libspiro */
+#define _NO_LIBSPIRO 1
+
+/* Define if not using libtiff */
+#define _NO_LIBTIFF 1
+
+/* Define if not using giflib or libungif.) */
+#define _NO_LIBUNGIF 1
+
+/* Define if not using libunicodenames */
+#define _NO_LIBUNICODENAMES 1
+
+/* Define if not using libuninameslist */
+#define _NO_LIBUNINAMESLIST 1
+
+/* Define if not using libzmq. */
+#define _NO_LIBZMQ 1
+
+/* Define if not using mmap. */
+#define _NO_MMAP 1
+
+/* Define if not using Python. */
+#define _NO_PYTHON 1
+
+/* Define if not using tzset. */
+//#define _NO_TZSET 1
+
+/* Define if not using xinput. */
+#define _NO_XINPUT 1
+
+/* Define if not using xkb. */
+#define _NO_XKB 1
+
+// WHY IS THIS NOT REQUIRED
+#define FF_UTHASH_GLIF_NAMES 1 
+
+#define HAVE_ICONV_H 1
+#define ICONV_CONST 
+
+/* "YYYYMMDD as number when configure was run" */
+#define FONTFORGE_VERSIONDATE "20190307"
+
+/* "YYYYMMDD as number when configure was run (no quotes)" */
+#define FONTFORGE_VERSIONDATE_RAW 20190307
+
+/* FontForge Major Version */
+#define FONTFORGE_VERSION_MAJOR 2
+
+/* FontForge Minor Version */
+#define FONTFORGE_VERSION_MINOR 0
+
+/* "Epoch time that configure was run at" */
+#define FONTFORGE_MODTIME "1551951475L"
+
+/* "Epoch time that configure was run at (no quotes)" */
+#define FONTFORGE_MODTIME_RAW 1551951475L
+
+#define FONTFORGE_MODTIME_STR "09:37 UTC  7-Mar-2019"
+
+#define FONTFORGE_GIT_VERSION "bd9a9cfcfcb85e1703e5e2ecc76b91a46e71b6fc"
+
+#define SHAREDIR "share" // wtf
+
+#endif /* _FF_CONFIG_H */
