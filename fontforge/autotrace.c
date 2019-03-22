@@ -42,7 +42,7 @@
 #include "gfile.h"
 
 #include <sys/types.h>		/* for waitpid */
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 #include <sys/wait.h>		/* for waitpid */
 #endif
 #include <unistd.h>		/* for access, unlink, fork, execvp, getcwd */
@@ -190,7 +190,7 @@ static SplinePointList *localSplinesFromEntities(Entity *ent, Color bgcol, int i
 return( head );
 }
 
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 /* I think this is total paranoia. but it's annoying to have linker complaints... */
 static int mytempnam(char *buffer) {
     char *dir;
@@ -237,7 +237,7 @@ return( NULL );
 #endif
 
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 static char* add_arg(char* buffer, const char* s)
 {
     while( *s ) *buffer++ = *s++;
@@ -752,7 +752,7 @@ return( mf_args );
 }
 
 SplineFont *SFFromMF(char *filename) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 return (NULL);
 #else
     char *tempdir;

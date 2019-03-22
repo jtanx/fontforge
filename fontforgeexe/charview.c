@@ -12599,7 +12599,7 @@ static void _CharViewCreate(CharView *cv, SplineChar *sc, FontView *fv,int enc,i
     cv->showdebugchanges = CVShows.showdebugchanges;
 
     cv->infoh = 13;
-#if defined(__MINGW32__)||defined(__CYGWIN__)
+#if defined(_WIN32)||defined(__CYGWIN__)
     cv->infoh = 26;
 #endif
     cv->rulerh = 16;
@@ -12910,7 +12910,7 @@ CharView *CharViewCreateExtended(SplineChar *sc, FontView *fv,int enc, int show 
     cv->map_of_enc = fv->b.map;		/* I know this is done again in _CharViewCreate, but it needs to be done before creating the title */
 
     cv->infoh = 13;
-#if defined(__MINGW32__)||defined(__CYGWIN__)
+#if defined(_WIN32)||defined(__CYGWIN__)
     cv->infoh = 26;
 #endif
     cv->rulerh = 16;

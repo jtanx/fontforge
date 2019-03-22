@@ -48,7 +48,7 @@
 #include <ffglib.h>
 #include "utype.h"
 #include <sys/types.h>
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 #include <sys/wait.h>
 #endif
 
@@ -2834,7 +2834,7 @@ return( calloc(1,sizeof(unichar_t)));
 /* ************************************************************************** */
 
 static void QueueIt(PI *pi) {
-    #if !defined(__MINGW32__)
+    #if !defined(_WIN32)
     int pid;
     int stdinno, i, status;
     char *argv[40], buf[10];

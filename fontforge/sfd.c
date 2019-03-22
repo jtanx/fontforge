@@ -2102,7 +2102,7 @@ static void SFDFpstClassNamesOut(FILE *sfd,int class_cnt,char **classnames,const
 FILE* MakeTemporaryFile(void) {
     FILE *ret = NULL;
 
-#ifndef __MINGW32__
+#ifndef _WIN32
     gchar *loc;
     int fd = g_file_open_tmp("fontforge-XXXXXX", &loc, NULL);
 

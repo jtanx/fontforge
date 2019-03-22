@@ -72,7 +72,7 @@
 #include "gutils/unicodelibinfo.h"
 #include "sfundo.h"
 
-#if defined (__MINGW32__)
+#if defined (_WIN32)
 #include <windows.h>
 #endif
 
@@ -648,7 +648,7 @@ int _FVMenuSaveAs(FontView *fv) {
 
     GFileChooserInputFilenameFuncType FilenameFunc = GFileChooserDefInputFilenameFunc;
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     //
     // If they are "saving as" but there is no path, lets help
     // the poor user by starting someplace sane rather than in `pwd`
@@ -1052,7 +1052,7 @@ void _FVMenuOpen(FontView *fv) {
     FontView *test; int fvcnt, fvtest;
 
     char* OpenDir = NULL, *DefaultDir = NULL, *NewDir = NULL;
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     DefaultDir = copy(GFileGetHomeDocumentsDir()); //Default value
     if (fv && fv->b.sf && fv->b.sf->filename) {
         free(DefaultDir);
@@ -5812,7 +5812,7 @@ static void FVMenuCollabCloseLocalServer(GWindow gw, struct gmenuitem *UNUSED(mi
 }
 
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 //
 // This is an imperfect implemenation of kill() for windows.
 //

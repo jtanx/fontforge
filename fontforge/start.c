@@ -114,7 +114,7 @@ void doinitFontForgeMain(void) {
 
     if ( inited )
 return;
-#ifdef __MINGW32__
+#ifdef _WIN32
     FindProgDir(NULL);
 #endif
     InitSimpleStuff();

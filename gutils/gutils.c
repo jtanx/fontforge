@@ -36,9 +36,9 @@
 #include <string.h>
 #include <ustring.h>
 #include <utype.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <locale.h>
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 # include <pwd.h>
 #endif
 #include <stdarg.h>
@@ -53,7 +53,7 @@
 
 
 const char *GetAuthor(void) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     static char author[200] = { '\0' };
     if ( author[0] == '\0' ){
 	char* name = getenv("USER");

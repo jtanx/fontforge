@@ -93,7 +93,7 @@ extern void setup_cocoa_app();
 //#  endif
 #endif
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 #include <windows.h>
 #define sleep(n) Sleep(1000 * (n))
 #endif
@@ -822,7 +822,7 @@ static void DoAutoRecoveryPostRecover_PromptUserGraphically(SplineFont *sf)
     _FVMenuSaveAs( (FontView*)sf->fv );
 }
 
-#if defined(__MINGW32__) && !defined(_NO_LIBCAIRO)
+#if defined(_WIN32) && !defined(_NO_LIBCAIRO)
 /**
  * \brief Load fonts from the specified folder for the UI to use.
  * This should only be used if Cairo is used on Windows, which defaults to the
@@ -950,7 +950,7 @@ int fontforge_main( int argc, char **argv ) {
     int local_x = 1;
 #endif
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     if( getenv("DISPLAY")==NULL ) {
 	putenv("DISPLAY=127.0.0.1:0.0");
     }
@@ -981,7 +981,7 @@ int fontforge_main( int argc, char **argv ) {
     FindProgDir(argv[0]);
     InitSimpleStuff();
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     {
         char path[MAX_PATH];
         unsigned int len = GetModuleFileNameA(NULL, path, MAX_PATH);
@@ -1158,7 +1158,7 @@ int fontforge_main( int argc, char **argv ) {
     }
 
     ensureDotFontForgeIsSetup();
-#if defined(__MINGW32__) && !defined(_NO_LIBCAIRO)
+#if defined(_WIN32) && !defined(_NO_LIBCAIRO)
     //Load any custom fonts for the user interface
     if (use_cairo) {
         char *system_load = getGResourceProgramDir();

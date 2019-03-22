@@ -343,7 +343,7 @@ typedef struct gxdisplay /* : GDisplay */ {
     PangoFontMap *pangoc_fontmap;
     PangoContext *pangoc_context;
 # endif
-# if defined(__MINGW32__) || __CygWin
+# if defined(_WIN32) || __CygWin
     int32  mousemove_last_x;
     int32  mousemove_last_y;
 #endif
@@ -380,7 +380,7 @@ extern GImage *_GImageExtract(struct _GImage *base,GRect *src,GRect *size, doubl
 
 extern void _XSyncScreen(void);
 
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 extern int GDrawKeyToXK(int keysym);
 #else
 extern int GDrawKeyToVK(int keysym);

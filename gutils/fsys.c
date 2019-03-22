@@ -31,15 +31,15 @@
 #include "fileutil.h"
 #include "gfile.h"
 #include "gutils.h"
-#include <sys/param.h>
+//#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>		/* for mkdir */
-#include <unistd.h>
+//#include <unistd.h>
 #include <ffglib.h>
 #include <errno.h>			/* for mkdir_p */
 
 static char dirname_[MAXPATHLEN+1];
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
  #include <pwd.h>
 #else
  #include <windows.h>
@@ -71,7 +71,7 @@ char *GFileRemoveExtension(char *path) {
  * \return A pointer to the input path
  */
 char *GFileNormalizePath(char *path) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     char *ptr;
     for(ptr = path; *ptr; ptr++) {
         if (*ptr == '\\') {
@@ -90,7 +90,7 @@ char *GFileNormalizePath(char *path) {
  * \return A pointer to the input path
  */
 unichar_t *u_GFileNormalizePath(unichar_t *path) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     unichar_t *ptr;
     for (ptr = path; *ptr; ptr++) {
         if (*ptr == '\\') {
@@ -144,7 +144,7 @@ return EXIT_SUCCESS;
 }
 
 char *GFileGetHomeDir(void) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     char* dir = getenv("HOME");
     if(!dir)
 	dir = getenv("USERPROFILE");
@@ -209,7 +209,7 @@ char *GFileGetAbsoluteName(const char *name, char *result, size_t rsiz) {
 	if ( buffer[strlen(buffer)-1]!='/' )
 	    strcat(buffer,"/");
 	strcat(buffer,name);
-	#if defined(__MINGW32__)
+	#if defined(_WIN32)
 	GFileNormalizePath(buffer);
 	#endif
 
@@ -243,7 +243,7 @@ char *GFileGetAbsoluteName(const char *name, char *result, size_t rsiz) {
     if (result!=name) {
 	strncpy(result,name,rsiz);
 	result[rsiz-1]='\0';
-	#if defined(__MINGW32__)
+	#if defined(_WIN32)
 	GFileNormalizePath(result);
 	#endif
     }
@@ -347,7 +347,7 @@ return(ret);
 }
 
 int GFileIsAbsolute(const char *file) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     if( (file[1]==':') && (('a'<=file[0] && file[0]<='z') || ('A'<=file[0] && file[0]<='Z')) )
 return ( true );
 #else
@@ -444,7 +444,7 @@ char *_GFile_find_program_dir(char *prog) {
     char *pt, *path, *program_dir=NULL;
     char filename[2000];
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     char* pt1 = strrchr(prog, '/');
     char* pt2 = strrchr(prog, '\\');
     if(pt1<pt2) pt1=pt2;
@@ -671,7 +671,7 @@ return(ret);
 }
 
 int u_GFileIsAbsolute(const unichar_t *file) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     if( (file[1]==':') && (('a'<=file[0] && file[0]<='z') || ('A'<=file[0] && file[0]<='Z')) )
 return ( true );
 #else
@@ -750,15 +750,15 @@ char* getLibexecDir_NonWindows(void)
     // https://github.com/fontforge/fontforge/pull/1838 and is not
     // tested on Windows yet.
     //
-    static char path[PATH_MAX+4];
-    snprintf( path, PATH_MAX, "%s/../libexec/", getGResourceProgramDir());
+    static char path[MAX_PATH+4];
+    snprintf( path, MAX_PATH, "%s/../libexec/", getGResourceProgramDir());
     return path;
 }
 
 
 
 void FindProgDir(char *prog) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     char  path[MAX_PATH+4];
     char* c = path;
     char* tail = 0;
@@ -867,7 +867,7 @@ char *getHelpDir(void) {
 /* reimplementation of GFileGetHomeDir, avoiding copy().  Returns NULL if home
  * directory cannot be found */
 char *getUserHomeDir(void) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 	char* dir = getenv("APPDATA");
 	if( dir==NULL )
 	dir = getenv("USERPROFILE");
@@ -1030,7 +1030,7 @@ char *GFileGetHomeDocumentsDir(void)
     if( ret )
 	return ret;
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 
     CHAR my_documents[MAX_PATH+2];
     HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents );

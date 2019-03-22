@@ -9145,7 +9145,7 @@ static int AddScriptLine(FILE *script, const char *line)
     return getc(script);
 }
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 
 static ssize_t getline(char **lineptr, size_t *n, FILE *stream)
 {

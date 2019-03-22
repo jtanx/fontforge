@@ -33,7 +33,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 void* GIO_dispatch(GIOControl* gc) { return 0;}
 void GIO_cancel(GIOControl* gc) {}
 void GIO_init(void* handle, struct stdfuncs* _stdfuncs, int index) {}
@@ -286,7 +286,7 @@ return( last );
 
     cur->mode = 0;
     if ( *line=='d' ) { cur->mode |= S_IFDIR; cur->isdir = 1; }
-    #if !defined(__MINGW32__)
+    #if !defined(_WIN32)
     if ( *line=='l' ) {
 	cur->mode |= S_IFLNK;
 	pt = strstr(line," -> ");
@@ -713,4 +713,4 @@ void GIO_init(void *handle,struct stdfuncs *_stdfuncs,int index) {
 
 void GIO_term(void) {
 }
-#endif /* !__MINGW32__ */
+#endif /* !_WIN32 */

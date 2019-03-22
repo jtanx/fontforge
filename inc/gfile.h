@@ -33,6 +33,8 @@
 /* home directories for fontforge */
 enum { Cache, Config, Data };
 
+typedef int mode_t;
+
 int mkdir_p(const char *path, mode_t mode);
 
 extern char *GFileNormalizePath(char *path);

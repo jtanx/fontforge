@@ -144,7 +144,7 @@ return;
     if ( ftc->shared_ftc )
 return;
     if ( ftc->mappedfile )
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 		UnmapViewOfFile(ftc->mappedfile);
 #else
 		munmap(ftc->mappedfile,ftc->len);
@@ -306,7 +306,7 @@ return( NULL );
 
 	fseek(ftc->file,0,SEEK_END);
 	ftc->len = ftell(ftc->file);
-#if defined (__MINGW32__)
+#if defined (_WIN32)
         ftc->mappedfile = NULL;
         {
             int fd = _fileno(ftc->file);

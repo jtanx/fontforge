@@ -786,7 +786,7 @@ return( gwwv_save_filename(title,defaultfile,initial_filter) );
 }
 
 static void tinysleep(int microsecs) {
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
     fd_set none;
     struct timeval timeout;
 

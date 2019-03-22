@@ -38,7 +38,7 @@
 # include <internal/internal.h>
 #endif
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 # include <Winsock2.h>
 # include <Windows.h>
 #else

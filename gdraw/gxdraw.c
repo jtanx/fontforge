@@ -29,7 +29,7 @@
 
 #ifndef FONTFORGE_CAN_USE_GDK
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 #include <winsock2.h>
 #include <windows.h>
 #endif
@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 #include <unistd.h>		/* for timers & select */
 #endif
 #include <sys/types.h>		/* for timers & select */
@@ -49,7 +49,7 @@
 #include <locale.h>		/* for setting the X locale properly */
 
 #ifdef HAVE_PTHREAD_H
-# ifndef __MINGW32__
+# ifndef _WIN32
 #  include <sys/socket.h>
 #  include <sys/un.h>
 # endif
@@ -2600,7 +2600,7 @@ static void GXDrawSyncThread(GDisplay *gd, void (*func)(void *), void *data) {
 
     pthread_mutex_lock(&gdisp->xthread.sync_mutex);
     if ( gdisp->xthread.sync_sock==-1 ) {
-	#if !defined(__MINGW32__)
+	#if !defined(_WIN32)
 	int sv[2];
 	socketpair(PF_UNIX,SOCK_DGRAM,0,sv);
 	gdisp->xthread.sync_sock = sv[0];
@@ -3013,7 +3013,7 @@ return;
 	if ( (event->xbutton.state&0x40) && gdisp->twobmouse_win )
 	    gevent.u.mouse.button = 2;
 	if ( event->type == MotionNotify ) {
-#if defined (__MINGW32__) || __CygWin
+#if defined (_WIN32) || __CygWin
         //For some reason, a mouse move event is triggered even if it hasn't moved.
         if(gdisp->mousemove_last_x == event->xbutton.x &&
            gdisp->mousemove_last_y == event->xbutton.y) {

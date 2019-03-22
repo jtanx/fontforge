@@ -42,7 +42,7 @@
 #include <ustring.h>
 #include "utype.h"
 #include <sys/types.h>
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 #include <sys/wait.h>
 #endif
 #include <gkeysym.h>

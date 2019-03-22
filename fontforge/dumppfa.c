@@ -50,7 +50,7 @@
 #include <utype.h>
 #include <unistd.h>
 #include <locale.h>
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 # include <pwd.h>
 #endif
 #include <stdarg.h>

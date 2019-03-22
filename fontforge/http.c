@@ -32,7 +32,7 @@
 #include <utype.h>
 #include <gio.h>
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 FILE *URLToTempFile(char *url,void *_lock) {
     return NULL;
 }
@@ -688,4 +688,4 @@ return( false );
     }
 }
 
-#endif /* !__MINGW32__ */
+#endif /* !_WIN32 */

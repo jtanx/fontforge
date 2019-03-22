@@ -808,7 +808,7 @@ return( sharedir );
 
     set = true;
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 
     len = strlen(GResourceProgramDir) + strlen("/share/fontforge") +1;
     sharedir = malloc(len);

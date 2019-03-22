@@ -29,7 +29,7 @@
 #include "ustring.h"
 #include "utype.h"
 
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 #include <netdb.h>
 #endif
 
@@ -144,7 +144,7 @@ return( password );
 static struct hostdata *names[26], *numbers[10];
 
 struct hostdata *_GIO_LookupHost(char *host) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 return NULL;
 #else
 

@@ -30,7 +30,7 @@
 #include "gio.h"
 #include <sys/types.h>
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 #include <winsock2.h>
 #else
 #include <sys/socket.h>

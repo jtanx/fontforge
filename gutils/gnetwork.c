@@ -38,7 +38,7 @@
 #include <stdio.h>
 #include <limits.h>
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 #  include <winsock2.h>
 #else
 extern int h_errno;

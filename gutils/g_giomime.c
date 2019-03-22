@@ -126,7 +126,7 @@ char* GIOGetMimeType(const char *path) {
    the sniff buffer iff MIME detection via file extension fails, and even
    then, only for determining if it /looks like/ a text file.
 */
-#ifndef __MINGW32__
+#ifndef _WIN32
     FILE *fp;
 
     if ( (fp=fopen(path,"rb"))!=NULL ) {

@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include "intl.h"
 
-#ifdef __MINGW32__
+#ifdef _WIN32
 #define fsync _commit
 #endif
 
@@ -329,7 +329,7 @@ void hotkeysSave() {
     // Atomic rename of new over the old.
     //
     char* newpath = getHotkeyFilename(0);
-#ifdef __MINGW32__
+#ifdef _WIN32
     //Atomic rename doesn't exist on Windows.
     unlink(newpath);
 #endif

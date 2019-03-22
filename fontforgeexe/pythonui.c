@@ -794,7 +794,7 @@ copyUIMethodsToBaseTable( PyMethodDef* ui, PyMethodDef* md )
 static void python_ui_fd_callback( int fd, void* udata );
 static void python_ui_setup_callback( bool makefifo )
 {
-#ifndef __MINGW32__
+#ifndef _WIN32
     int fd = 0;
     int err = 0;
     char *userCacheDir, *sockPath;
@@ -833,7 +833,7 @@ static void python_ui_setup_callback( bool makefifo )
 
 static void python_ui_fd_callback( int fd, void* udata )
 {
-#ifndef __MINGW32__
+#ifndef _WIN32
     char data[ 1024*100 + 1 ];
     memset(data, '\0', 1024*100 );
 //    sleep( 1 );

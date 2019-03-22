@@ -31,8 +31,8 @@
 #include <ustring.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
+//#include <unistd.h>
+//#include <dirent.h>
 #include <errno.h>
 
 /* the initial space is so that these guys will come first in ordered error */
@@ -115,7 +115,7 @@ return;
 	cur->isexe   = !cur->isdir && (cur->mode & 0100);
 	temp = NULL;
 	// Things go badly if we open a pipe or a device. So we don't.
-#ifdef __MINGW32__
+#ifdef _WIN32
 	//Symlinks behave differently on Windows and are transparent, so no S_ISLNK.
 	if (S_ISREG(statb.st_mode) || S_ISDIR(statb.st_mode)) {
 #else

@@ -31,7 +31,7 @@
 #include <math.h>
 #include <time.h>
 #include <sys/types.h>
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 #include <sys/wait.h>
 #endif
 #include <unistd.h>
@@ -1037,7 +1037,7 @@ static void PSInitJob(GPSWindow ps, unichar_t *title) {
 }
 
 static int PSQueueFile(GPSWindow ps) {
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
     GPSDisplay *gdisp = ps->display;
     int pid = fork();
 

@@ -45,7 +45,7 @@
 
 int AutoSaveFrequency=5;
 
-#if !defined(__MINGW32__)
+#if !defined(_WIN32)
 # include <pwd.h>
 #endif
 

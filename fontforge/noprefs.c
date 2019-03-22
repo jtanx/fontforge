@@ -50,7 +50,7 @@
 # include <langinfo.h>
 #endif
 
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 #include <windows.h>
 #endif
 
@@ -448,7 +448,7 @@ return( prefs );
 }
 
 static char *NOUI_getFontForgeShareDir(void) {
-#if defined(__MINGW32__)
+#if defined(_WIN32)
     #ifndef MAX_PATH
     #define MAX_PATH 4096
     #endif
