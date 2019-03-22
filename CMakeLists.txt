@@ -16,7 +16,7 @@ option(_NO_PYTHON "No python" ON)
 
 # Set compiler flags
 if (CMAKE_COMPILER_IS_GNUCC OR LIBCLIPBOARD_BUILD_COCOA)
-    set(GCC_COMPILE_FLAGS "-std=gnu99 -Wall -g")
+    set(GCC_COMPILE_FLAGS "-std=gnu99 -g")
 
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                     OUTPUT_VARIABLE GCC_VERSION)
@@ -56,6 +56,12 @@ pkg_check_modules(ICONV iconv)
 include_directories(${ICONV_INCLUDE_DIRS})
 link_directories(${ICONV_LIBRARY_DIRS})
 
+pkg_check_modules(GDK gdk-3.0)
+if (GDK_FOUND)
+    include_directories(${GDK_INCLUDE_DIRS})
+    link_directories(${GDK_LIBRARY_DIRS})
+endif()
+
 include_directories("uthash/src")
 
 # Include directories
@@ -74,7 +80,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 add_subdirectory(Unicode)
 add_subdirectory(gutils)
-#add_subdirectory(gdraw)
+add_subdirectory(gdraw)
 add_subdirectory(fontforge)
 add_subdirectory(fontforgeexe)
 

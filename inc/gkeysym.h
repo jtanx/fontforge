@@ -1,7 +1,8 @@
 #ifndef _GKEYSYM_H_
 #define _GKEYSYM_H_
 
-#include "fontforge-config.h"
+#include <fontforge-config.h>
+#include <basics.h>
 
 #ifdef FONTFORGE_CAN_USE_GDK
 #include <gdk/gdkkeysyms.h>

@@ -3,7 +3,7 @@
 
 #cmakedefine HAVE_PTHREAD_H 1
 
-// #cmakedefine FONTFORGE_CAN_USE_GDK 1 // Not yet
+#cmakedefine FONTFORGE_CAN_USE_GDK 1 // Not yet
 
 #cmakedefine X_DISPLAY_MISSING 1
 
@@ -16,11 +16,13 @@
 /* Define if disabling feature 'native-scripting'. */
 // #define _NO_FFSCRIPT 1
 
+#define HAVE_LIBINTL_H 1
+
 /* Define if not using giflib */
 #define _NO_GIFLIB 1
 
 /* Define if not using cairo */
-#define _NO_LIBCAIRO 1
+//#define _NO_LIBCAIRO 1
 
 /* Define if not using libjpeg */
 #define _NO_LIBJPEG 1
