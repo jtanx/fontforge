@@ -932,7 +932,7 @@ void GDrawDestroyDisplays() {
 #ifndef FONTFORGE_CAN_USE_GDK
     _GXDraw_DestroyDisplay(screen_display);
 #else
-    _GGDKDraw_DestroyDisplay(screen_display);
+    _GGTKDraw_DestroyDisplay(screen_display);
 #endif
     screen_display = NULL;
   }
@@ -946,7 +946,7 @@ void GDrawCreateDisplays(char *displayname,char *programname) {
 #ifndef FONTFORGE_CAN_USE_GDK
     screen_display = _GXDraw_CreateDisplay(displayname,programname);
 #else
-    screen_display = _GGDKDraw_CreateDisplay(displayname, programname);
+    screen_display = _GGTKDraw_CreateDisplay(displayname, programname);
 #endif
     printer_display = _GPSDraw_CreateDisplay();
     if ( screen_display==NULL ) {
