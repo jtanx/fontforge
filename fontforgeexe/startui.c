@@ -1105,6 +1105,7 @@ int fontforge_main( int argc, char **argv ) {
 			                /*  and we will never return from the above */
 #ifdef FONTFORGE_CAN_USE_GDK
     gdk_init(&argc, &argv);
+    gtk_init(&argc, &argv);
 #endif
     if ( load_prefs==NULL ||
 	    (strcasecmp(load_prefs,"Always")!=0 &&	/* Already loaded */
