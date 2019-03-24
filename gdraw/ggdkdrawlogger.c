@@ -30,8 +30,8 @@
 #include "ggdkdrawP.h"
 
 #ifdef FONTFORGE_CAN_USE_GDK
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 static const char *unspecified_funct = "???";
@@ -52,8 +52,10 @@ void LogInit(void) {
             log_level = LOGWARN;
         } else if (!strcmp(requested, "info")) {
             log_level = LOGINFO;
-        } else if (!strcmp(requested, "debug") || !strcmp(requested, "all")) {
+        } else if (!strcmp(requested, "debug")) {
             log_level = LOGDEBUG;
+        } else if (!strcmp(requested, "all")) {
+            log_level = LOGVERBOSE;
         }
     }
 }
@@ -98,8 +100,11 @@ void LogEx(int level, const char *funct, const char *file, int line, const char 
         case LOGINFO:
             severity = "INFO";
             break;
-        default:
+        case LOGDEBUG:
             severity = "DEBUG";
+            break;
+        default:
+            severity = "VERBOSE";
             break;
     }
 

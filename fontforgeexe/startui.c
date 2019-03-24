@@ -26,7 +26,7 @@
  */
 
 #include <ffglib.h>
-#include <ffgdk.h>
+#include <ffgtk.h>
 
 #include <fontforge-config.h>
 #include "autosave.h"
