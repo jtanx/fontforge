@@ -40,6 +40,39 @@
 
 typedef struct ggtkwindow *GGTKWindow;
 
+// GGtkWindow GObject declaration
+
+#define GGTK_TYPE_WINDOW ggtk_window_get_type()
+G_DECLARE_FINAL_TYPE(GGtkWindow, ggtk_window, GGTK, WINDOW, GtkLayout)
+
+struct _GGtkWindowClass
+{
+	GtkLayoutClass parent_class;
+	
+	// virtual methods here, no pad because screw ABI compat, it's internal
+};
+
+GtkWidget* ggtk_window_new(GGTKWindow gw);
+GGTKWindow ggtk_window_get_base(GGtkWindow *ggw);
+
+// end GGtkWindow declaration
+
+typedef struct ggtkbuttonstate {
+    uint32 last_press_time;
+    GGTKWindow release_w;
+    int16 release_x, release_y;
+    int16 release_button;
+    int16 cur_click;
+    int16 double_time;		// max milliseconds between release & click
+    int16 double_wiggle;	// max pixel wiggle allowed between release&click
+} GGTKButtonState;
+
+typedef struct ggtkkeystate {
+    GdkEventType type;
+    guint state;
+    guint keyval;
+} GGTKKeyState;
+
 typedef struct ggtkdisplay { /* :GDisplay */
     // Inherit GDisplay start
     struct displayfuncs *funcs;
@@ -72,7 +105,14 @@ typedef struct ggtkdisplay { /* :GDisplay */
     int err_flag;
     char *err_report;
     // Inherit GDisplay end
+    
+    GPtrArray *cursors; // List of cursors that the user made.
+    
+    GGTKButtonState bs;
+    GGTKKeyState ks;
+    GGTKWindow default_icon;
 
+    GdkDisplay *display;
 } GGTKDisplay;
 
 struct ggtkwindow { /* :GWindow */
@@ -84,7 +124,7 @@ struct ggtkwindow { /* :GWindow */
     struct ggtkwindow *parent;
     void *user_data;
     void *widget_data;
-    GdkWindow *w;
+    GGtkWindow *w;
     unsigned int is_visible : 1;
     unsigned int is_pixmap : 1;
     unsigned int is_toplevel : 1;
@@ -96,6 +136,13 @@ struct ggtkwindow { /* :GWindow */
     char *window_type_name;
     //char pad[4];
     // Inherit GWindow end
+    unsigned int is_dlg: 1;
+    unsigned int not_restricted: 1;
+    unsigned int was_positioned: 1;
+    unsigned int restrict_input_to_me: 1;/* for dialogs, no input outside of dlg */
+    unsigned int redirect_chars_to_me: 1;/* ditto, we get any input outside of us */
+    unsigned int istransient: 1;	/* has transient for hint set */
+    unsigned int isverytransient: 1;
 };
 
 // Functions in ggtkcdraw.c

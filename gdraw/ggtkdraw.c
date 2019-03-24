@@ -22,23 +22,253 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <fontforge-config.h>
+
 /**
 *  \file  ggtkdraw.c
 *  \brief GTK drawing backend.
 */
 
-#include "ggtkdrawP.h"
-
 #ifdef FONTFORGE_CAN_USE_GTK
+#include "fontP.h"
+#include "ggtkdrawP.h"
 #include "gkeysym.h"
 #include "gresource.h"
 #include "ustring.h"
+
 #include <assert.h>
 #include <math.h>
 #include <string.h>
 
+// Forward declarations
+static void GGTKDrawSetCursor(GWindow w, GCursor gcursor);
+static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner);
+static void GGTKDrawSetWindowBackground(GWindow w, Color gcol);
+
+
+// Private member functions (file-level)
+
+static GGC *_GGTKDraw_NewGGC(void) {
+    GGC *ggc = calloc(1, sizeof(GGC));
+    if (ggc == NULL) {
+        Log(LOGDEBUG, "GGC: Memory allocation failed!");
+        return NULL;
+    }
+
+    ggc->clip.width = ggc->clip.height = 0x7fff;
+    ggc->fg = 0;
+    ggc->bg = 0xffffff;
+    return ggc;
+}
+
+
+static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *pos,
+                                      int (*eh)(GWindow, GEvent *), void *user_data, GWindowAttrs *wattrs) {
+    
+	GWindowAttrs temp = GWINDOWATTRS_EMPTY;
+	GGTKWindow nw = (GGTKWindow)calloc(1, sizeof(struct ggtkwindow));
+	GtkWindowType window_type = GTK_WINDOW_TOPLEVEL;
+	char *window_title = NULL;
+
+	if (nw == NULL) {
+        Log(LOGWARN, "_GGTKDraw_CreateWindow: GGTKWindow calloc failed.");
+        return NULL;
+    }
+	if (wattrs == NULL) {
+        wattrs = &temp;
+    }
+	if (gw == NULL) {
+		gw = gdisp->groot; // Creating a top-level window. Set parent as default root.
+	}
+	
+	// Now check window type
+    if ((wattrs->mask & wam_nodecor) && wattrs->nodecoration) {
+        // Is a modeless dialogue
+        nw->is_popup = true;
+        nw->is_dlg = true;
+        nw->not_restricted = true;
+		window_type = GTK_WINDOW_POPUP;
+    } else if ((wattrs->mask & wam_isdlg) && wattrs->is_dlg) {
+        nw->is_dlg = true;
+    }
+    if ((wattrs->mask & wam_notrestricted) && wattrs->not_restricted) {
+        nw->not_restricted = true;
+    }
+    nw->is_toplevel = (gw == gdisp->groot);
+	
+	// Drawing context
+    nw->ggc = _GGTKDraw_NewGGC();
+    if (nw->ggc == NULL) {
+        Log(LOGWARN, "_GGTKDraw_NewGGC returned NULL");
+        free(nw);
+        return NULL;
+    }
+
+    // Base fields
+    nw->display = gdisp;
+    nw->eh = eh;
+    nw->parent = gw;
+    nw->pos = *pos;
+    nw->user_data = user_data;
+	
+	// Window title, hints and event mask
+    int event_mask = GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK;
+    if (nw->is_toplevel) {
+        // Default event mask for toplevel windows
+        event_mask |= GDK_FOCUS_CHANGE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK;
+
+        // Icon titles are ignored.
+        if ((wattrs->mask & wam_utf8_wtitle) && (wattrs->utf8_window_title != NULL)) {
+            window_title = copy(wattrs->utf8_window_title);
+        } else if ((wattrs->mask & wam_wtitle) && (wattrs->window_title != NULL)) {
+            window_title = u2utf8_copy(wattrs->window_title);
+        }
+    }
+
+    // Further event mask flags
+    if (wattrs->mask & wam_events) {
+        if (wattrs->event_masks & (1 << et_char)) {
+            event_mask |= GDK_KEY_PRESS_MASK;
+        }
+        if (wattrs->event_masks & (1 << et_charup)) {
+            event_mask |= GDK_KEY_RELEASE_MASK;
+        }
+        if (wattrs->event_masks & (1 << et_mousemove)) {
+            event_mask |= GDK_POINTER_MOTION_MASK;
+        }
+        if (wattrs->event_masks & (1 << et_mousedown)) {
+            event_mask |= GDK_BUTTON_PRESS_MASK | GDK_SCROLL_MASK;
+        }
+        if (wattrs->event_masks & (1 << et_mouseup)) {
+            event_mask |= GDK_BUTTON_RELEASE_MASK | GDK_SCROLL_MASK;
+        }
+        if (wattrs->event_masks & (1 << et_visibility)) {
+            event_mask |= GDK_VISIBILITY_NOTIFY_MASK;
+        }
+    }
+
+    if (wattrs->mask & wam_restrict) {
+        nw->restrict_input_to_me = wattrs->restrict_input_to_me;
+    }
+    if (wattrs->mask & wam_redirect) {
+		// FIXME: I don't actually do anything with this...
+        nw->redirect_chars_to_me = wattrs->redirect_chars_to_me;
+    }
+	
+	// Now create stuff
+	if (nw->is_toplevel) {
+		GtkWindow *window = GTK_WINDOW(gtk_window_new(window_type));
+		if (window == NULL) {
+			Log(LOGWARN, "Failed to create a GtkWindow");
+			free(window_title);
+			free(nw->ggc);
+			free(nw);
+			return NULL;
+		}
+		
+		if (window_title) {
+			gtk_window_set_title(window, window_title);
+			free(window_title);
+		}
+		
+		gtk_window_set_default_size(window, pos->width, pos->height);
+		
+		if (!(wattrs->mask & wam_positioned) || (wattrs->mask & wam_centered)) {
+			// FIXME: This doesn't subtract off the taskbar area... oh well
+			gtk_window_set_position (window, GTK_WIN_POS_CENTER);
+		} else {
+			gtk_window_move(window, nw->pos.x, nw->pos.y);
+		}
+		
+		// Set icon
+		GdkPixbuf* pb = NULL;
+        //GGTKWindow icon = gdisp->default_icon;
+        //if (((wattrs->mask & wam_icon) && wattrs->icon != NULL) && ((GGTKWindow)wattrs->icon)->is_pixmap) {
+        //    icon = (GGTKWindow) wattrs->icon;
+        //}
+        //if (icon != NULL) {
+        //    pb = gdk_pixbuf_get_from_surface(icon->cs, 0, 0, icon->pos.width, icon->pos.height);
+        //}
+		gtk_window_set_icon(window, pb);
+		if (pb) {
+			g_object_unref(pb);
+		}
+
+        GdkGeometry geom = {0};
+        GdkWindowHints hints = 0;
+        if (wattrs->mask & wam_palette) {
+            hints |= GDK_HINT_MIN_SIZE | GDK_HINT_BASE_SIZE;
+        }
+        if ((wattrs->mask & wam_noresize) && wattrs->noresize) {
+            hints |= GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_BASE_SIZE;
+        }
+
+        // Hmm does this seem right?
+        geom.base_width = geom.min_width = geom.max_width = pos->width;
+        geom.base_height = geom.min_height = geom.max_height = pos->height;
+
+        hints |= GDK_HINT_POS;
+        nw->was_positioned = true;
+
+        gtk_window_set_geometry_hints(window, NULL, &geom, hints);
+
+        if ((wattrs->mask & wam_transient) && wattrs->transient != NULL) {
+            // GGTKDrawSetTransientFor((GWindow)nw, wattrs->transient);
+            nw->is_dlg = true;
+        } else if (nw->restrict_input_to_me) {
+			gtk_window_set_modal(window, true);
+        }
+        nw->isverytransient = (wattrs->mask & wam_verytransient) ? 1 : 0;
+		
+		// Finally make our instance...
+		nw->w = GGTK_WINDOW(ggtk_window_new(nw));
+		if (window == NULL) {
+			Log(LOGWARN, "Failed to create a GGtkWindow (topleveL)");
+			gtk_widget_destroy(GTK_WIDGET(window));
+			free(nw->ggc);
+			free(nw);
+			return NULL;
+		}
+		
+		gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(nw->w));
+		// Am I meant to keep a ref to the window around? Am I meant to free it?
+	} else {
+		nw->w = GGTK_WINDOW(ggtk_window_new(nw));
+		if (nw->w == NULL) {
+			Log(LOGWARN, "Failed to create a GGtkWindow (child)");
+			free(nw->ggc);
+			free(nw);
+			return NULL;
+		}
+		
+		gtk_layout_put(GTK_LAYOUT(gw->w), GTK_WIDGET(nw->w), nw->pos.x, nw->pos.y);
+		gtk_widget_set_size_request(GTK_WIDGET(nw->w), nw->pos.width, nw->pos.height);
+	}
+	
+	// Set background
+    if (!(wattrs->mask & wam_backcol) || wattrs->background_color == COLOR_DEFAULT) {
+        wattrs->background_color = gdisp->def_background;
+    }
+    nw->ggc->bg = wattrs->background_color;
+	
+	GGTKDrawSetWindowBackground((GWindow)nw, wattrs->background_color);
+	
+	Log(LOGDEBUG, "Window created: %p[%p][%d]", nw, nw->w, nw->is_toplevel);
+	return (GWindow)nw;
+}
+
 static void GGTKDrawInit(GDisplay *gdisp) {
     Log(LOGDEBUG, "");
+
+	FState *fs = calloc(1, sizeof(FState));
+    if (fs == NULL) {
+        Log(LOGERR, "FState alloc failed!");
+        assert(false);
+    }
+
+    // In inches, because that's how fonts are measured
+    gdisp->fontstate = fs;
+    fs->res = gdisp->res;
 }
 
 static void GGTKDrawSetDefaultIcon(GWindow icon) {
@@ -46,13 +276,12 @@ static void GGTKDrawSetDefaultIcon(GWindow icon) {
 
 static GWindow GGTKDrawCreateTopWindow(GDisplay *gdisp, GRect *pos, int (*eh)(GWindow gw, GEvent *), void *user_data, GWindowAttrs *gattrs) {
     Log(LOGVERBOSE, " ");
-	
-	return NULL;
+	return _GGTKDraw_CreateWindow((GGTKDisplay *) gdisp, NULL, pos, eh, user_data, gattrs);
 }
 
 static GWindow GGTKDrawCreateSubWindow(GWindow gw, GRect *pos, int (*eh)(GWindow gw, GEvent *), void *user_data, GWindowAttrs *gattrs) {
     Log(LOGVERBOSE, " ");
-	return NULL;
+	return _GGTKDraw_CreateWindow(((GGTKWindow) gw)->display, (GGTKWindow) gw, pos, eh, user_data, gattrs);
 }
 
 static GWindow GGTKDrawCreatePixmap(GDisplay *gdisp, GWindow similar, uint16 width, uint16 height) {
@@ -382,30 +611,30 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawBeep,
     GGTKDrawFlush,
 
-    GGTKDrawPushClip,
-    GGTKDrawPopClip,
+    NULL, // GGTKDrawPushClip TO IMPLEMENT
+    NULL, // GGTKDrawPopClip TO IMPLEMENT
 
-    GGTKDrawSetDifferenceMode,
+    NULL, // GGTKDrawSetDifferenceMode TO IMPLEMENT
 
-    GGTKDrawClear,
-    GGTKDrawDrawLine,
-    GGTKDrawDrawArrow,
-    GGTKDrawDrawRect,
-    GGTKDrawFillRect,
-    GGTKDrawFillRoundRect,
-    GGTKDrawDrawEllipse,
-    GGTKDrawFillEllipse,
-    GGTKDrawDrawArc,
-    GGTKDrawDrawPoly,
-    GGTKDrawFillPoly,
+    NULL, // GGTKDrawClear TO IMPLEMENT
+    NULL, // GGTKDrawDrawLine TO IMPLEMENT
+    NULL, // GGTKDrawDrawArrow TO IMPLEMENT
+    NULL, // GGTKDrawDrawRect TO IMPLEMENT
+    NULL, // GGTKDrawFillRect TO IMPLEMENT
+    NULL, // GGTKDrawFillRoundRect TO IMPLEMENT
+    NULL, // GGTKDrawDrawEllipse TO IMPLEMENT
+    NULL, // GGTKDrawFillEllipse TO IMPLEMENT
+    NULL, // GGTKDrawDrawArc TO IMPLEMENT
+    NULL, // GGTKDrawDrawPoly TO IMPLEMENT
+    NULL, // GGTKDrawFillPoly TO IMPLEMENT
     GGTKDrawScroll,
 
-    GGTKDrawDrawImage,
+    NULL, // GGTKDrawDrawImage TO IMPLEMENT
     NULL, // GGTKDrawTileImage - Unused function
-    GGTKDrawDrawGlyph,
-    GGTKDrawDrawImageMagnified,
+    NULL, // GGTKDrawDrawGlyph TO IMPLEMENT
+    NULL, // GGTKDrawDrawImageMagnified TO IMPLEMENT
     NULL, // GGTKDrawCopyScreenToImage - Unused function
-    GGTKDrawDrawPixmap,
+    NULL, // GGTKDrawDrawPixmap TO IMPLEMENT
     NULL, // GGTKDrawTilePixmap - Unused function
 
     GGTKDrawCreateInputContext,
@@ -442,44 +671,193 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawPrinterNextPage,
     GGTKDrawPrinterEndJob,
 
-    GGTKDrawGetFontMetrics,
+    NULL, // GGTKDrawGetFontMetrics TO IMPLEMENT
 
-    GGTKDrawHasCairo,
-    GGTKDrawPathStartNew,
-    GGTKDrawPathClose,
-    GGTKDrawPathMoveTo,
-    GGTKDrawPathLineTo,
-    GGTKDrawPathCurveTo,
-    GGTKDrawPathStroke,
-    GGTKDrawPathFill,
-    GGTKDrawPathFillAndStroke,
+    NULL, // GGTKDrawHasCairo TO IMPLEMENT
+    NULL, // GGTKDrawPathStartNew TO IMPLEMENT
+    NULL, // GGTKDrawPathClose TO IMPLEMENT
+    NULL, // GGTKDrawPathMoveTo TO IMPLEMENT
+    NULL, // GGTKDrawPathLineTo TO IMPLEMENT
+    NULL, // GGTKDrawPathCurveTo TO IMPLEMENT
+    NULL, // GGTKDrawPathStroke TO IMPLEMENT
+    NULL, // GGTKDrawPathFill TO IMPLEMENT
+    NULL, // GGTKDrawPathFillAndStroke TO IMPLEMENT
 
-    GGTKDrawLayoutInit,
-    GGTKDrawLayoutDraw,
-    GGTKDrawLayoutIndexToPos,
-    GGTKDrawLayoutXYToIndex,
-    GGTKDrawLayoutExtents,
-    GGTKDrawLayoutSetWidth,
-    GGTKDrawLayoutLineCount,
-    GGTKDrawLayoutLineStart,
-    GGTKDrawStartNewSubPath,
-    GGTKDrawFillRuleSetWinding,
+    NULL, // GGTKDrawLayoutInit TO IMPLEMENT
+    NULL, // GGTKDrawLayoutDraw TO IMPLEMENT
+    NULL, // GGTKDrawLayoutIndexToPos TO IMPLEMENT
+    NULL, // GGTKDrawLayoutXYToIndex TO IMPLEMENT
+    NULL, // GGTKDrawLayoutExtents TO IMPLEMENT
+    NULL, // GGTKDrawLayoutSetWidth TO IMPLEMENT
+    NULL, // GGTKDrawLayoutLineCount TO IMPLEMENT
+    NULL, // GGTKDrawLayoutLineStart TO IMPLEMENT
+    NULL, // GGTKDrawStartNewSubPath TO IMPLEMENT
+    NULL, // GGTKDrawFillRuleSetWinding TO IMPLEMENT
 
-    GGTKDrawDoText8,
+    NULL, // GGTKDrawDoText8 TO IMPLEMENT
 
-    GGTKDrawPushClipOnly,
-    GGTKDrawClipPreserve
+    NULL, // GGTKDrawPushClipOnly TO IMPLEMENT
+    NULL, // GGTKDrawClipPreserve TO IMPLEMENT
 };
 
 // Protected member functions (package-level)
 
 GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) {
-    return NULL;
+	GGTKDisplay *gdisp;
+    GdkDisplay *display;
+    GGTKWindow groot;
+
+    LogInit();
+
+    if (displayname == NULL) {
+        display = gdk_display_get_default();
+    } else {
+        display = gdk_display_open(displayname);
+    }
+
+    if (display == NULL) {
+		Log(LOGERR, "Could not get display");
+        return NULL;
+    }
+	
+	// Yuck...
+	GdkMonitor *monitor = gdk_display_get_primary_monitor(display);
+	if (monitor == NULL) {
+		monitor = gdk_display_get_monitor_at_window(display, gdk_display_get_default_group(display));
+		if (monitor == NULL) {
+			monitor = gdk_display_get_monitor(display, 0);
+			if (monitor == NULL) {
+				Log(LOGERR, "Could not get any monitor");
+				return NULL;
+			}
+		}
+	}
+
+    gdisp = (GGTKDisplay *)calloc(1, sizeof(GGTKDisplay));
+    if (gdisp == NULL) {
+		Log(LOGERR, "Failed to alloc GGTKDisplay");
+        return NULL;
+    }
+
+    // cursors.c creates ~41.
+    gdisp->cursors = g_ptr_array_sized_new(50);
+
+    gdisp->funcs = &gtkfuncs;
+    gdisp->display = display;
+	
+	// sigh, this is terrible, really it should get this wrt. each window
+	PangoContext* ctx = gdk_pango_context_get_for_display(display);
+	gdisp->res = pango_cairo_context_get_resolution(ctx);
+	if (gdisp->res <= 0) {
+		Log(LOGWARN, "Failed to get default DPI, assuming 96");
+		gdisp->res = 96;
+	}
+	g_object_unref(ctx);
+
+    gdisp->scale_screen_by = 1; //Does nothing
+    gdisp->bs.double_time = 200;
+    gdisp->bs.double_wiggle = 3;
+
+    bool tbf = false, mxc = false;
+    GResStruct res[] = {
+        {.resname = "MultiClickTime", .type = rt_int, .val = &gdisp->bs.double_time},
+        {.resname = "MultiClickWiggle", .type = rt_int, .val = &gdisp->bs.double_wiggle},
+        {.resname = "TwoButtonFixup", .type = rt_bool, .val = &tbf},
+        {.resname = "MacOSXCmd", .type = rt_bool, .val = &mxc},
+        {.resname = NULL},
+    };
+    GResourceFind(res, NULL);
+    gdisp->twobmouse_win = tbf;
+    gdisp->macosx_cmd = mxc;
+
+    groot = (GGTKWindow)calloc(1, sizeof(struct ggtkwindow));
+    if (groot == NULL) {
+		Log(LOGERR, "Failedto alloc root GGTKWindow");
+        free(gdisp);
+        return NULL;
+    }
+
+    gdisp->groot = groot;
+    groot->ggc = _GGTKDraw_NewGGC();
+    groot->display = gdisp;
+    groot->w = NULL; // Can't set this to anything meaningful...
+	
+	// More yuck...
+	GdkRectangle geom;
+	gdk_monitor_get_geometry(monitor, &geom);
+    groot->pos.width = geom.width;
+    groot->pos.height = geom.height;
+    groot->is_toplevel = true;
+    groot->is_visible = true;
+
+    gdisp->def_background = GResourceFindColor("Background", COLOR_CREATE(0xf5, 0xff, 0xfa));
+    gdisp->def_foreground = GResourceFindColor("Foreground", COLOR_CREATE(0x00, 0x00, 0x00));
+    if (GResourceFindBool("Synchronize", false)) {
+        gdk_display_sync(gdisp->display);
+    }
+
+    (gdisp->funcs->init)((GDisplay *) gdisp);
+
+	// event handling?
+
+    _GDraw_InitError((GDisplay *) gdisp);
+
+    //DEBUG
+    if (getenv("GGTK_DEBUG")) {
+		G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+			gdk_window_set_debug_updates(true);
+		G_GNUC_END_IGNORE_DEPRECATIONS
+    }
+    return (GDisplay *)gdisp;
 }
 
 void _GGTKDraw_DestroyDisplay(GDisplay *disp) {
     Log(LOGDEBUG, "");
     return;
 }
+
+// GGtkWindow definition
+struct _GGtkWindow
+{
+	GtkLayout parent_instance;
+	
+	// private data
+	GGTKWindow gw;
+};
+
+static void ggtk_window_class_init(GGtkWindowClass *ggwc)
+{
+	// Used to initialise property getters/setters and virtual functions
+	// https://developer.gnome.org/gobject/stable/howto-gobject-methods.html#virtual-public-methods
+	(void)ggwc;
+}
+
+static void ggtk_window_init(GGtkWindow *ggw)
+{
+	// Used to perform initialisation of an instance of this object
+	(void)ggw;
+}
+
+GtkWidget* ggtk_window_new(GGTKWindow gw)
+{
+	GGtkWindow *ggw = GGTK_WINDOW(g_object_new(GGTK_TYPE_WINDOW, NULL));
+	g_return_val_if_fail(ggw != NULL, NULL);
+	
+	// I don't know if this is the correct thing to do, how is this meant to
+	// get initialised in the _init method?!
+	ggw->gw = gw;
+	
+	return GTK_WIDGET(ggw);
+}
+
+GGTKWindow ggtk_window_get_base(GGtkWindow *ggw)
+{
+	g_return_val_if_fail(ggw != NULL, NULL);
+	return ggw->gw;
+}
+
+G_DEFINE_TYPE(GGtkWindow, ggtk_window, GTK_TYPE_LAYOUT)
+
+// End GGtkWindow definition
 
 #endif // FONTFORGE_CAN_USE_GTK

@@ -32,6 +32,7 @@ add_library(gdraw STATIC
   ggdkdrawlogger.c
   ggdkdrawP.h
   ggroupbox.c
+  ggtkcdraw.c
   ggtkdraw.c
   ggtkdrawP.h
   ghvbox.c
