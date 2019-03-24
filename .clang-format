@@ -1,0 +1,29 @@
+BasedOnStyle: LLVM
+UseTab: Never
+AccessModifierOffset: -4
+IndentWidth: 4
+CompactNamespaces: true
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: true
+ColumnLimit: 0
+TabWidth: 4
+PointerAlignment: Right
+AlignAfterOpenBracket: DontAlign
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterClass: true
+    AfterControlStatement: false
+    AfterEnum: false
+    AfterFunction: false
+    AfterNamespace: false
+    AfterObjCDeclaration: true
+    AfterStruct: false
+    AfterUnion: false
+    BeforeCatch: false
+    BeforeElse: false
+    IndentBraces: false
+BreakConstructorInitializers: BeforeComma
+MacroBlockBegin: "^G_GNUC_BEGIN_IGNORE_DEPRECATIONS$"
+MacroBlockEnd: "^G_GNUC_END_IGNORE_DEPRECATIONS$"
+SpaceAfterCStyleCast: true
+AlignAfterOpenBracket: true

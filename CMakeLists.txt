@@ -58,8 +58,11 @@ link_directories(${ICONV_LIBRARY_DIRS})
 
 pkg_check_modules(GDK gdk-3.0)
 if (GDK_FOUND)
+    pkg_check_modules(GTK gtk+-3.0)
     include_directories(${GDK_INCLUDE_DIRS})
     link_directories(${GDK_LIBRARY_DIRS})
+    include_directories(${GTK_INCLUDE_DIRS})
+    link_directories(${GTK_LIBRARY_DIRS})
 endif()
 
 include_directories("uthash/src")
