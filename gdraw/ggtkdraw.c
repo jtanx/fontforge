@@ -41,9 +41,11 @@
 #include <string.h>
 
 // Forward declarations
+static void GGTKDrawDestroyWindow(GWindow w);
 static void GGTKDrawSetCursor(GWindow w, GCursor gcursor);
 static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner);
 static void GGTKDrawSetWindowBackground(GWindow w, Color gcol);
+static void GGTKDrawPostEvent(GEvent *e);
 
 
 // Private member functions (file-level)
@@ -61,6 +63,315 @@ static GGC *_GGTKDraw_NewGGC(void) {
     return ggc;
 }
 
+static int16 _GGTKDraw_GdkModifierToKsm(GdkModifierType mask) {
+    int16 state = 0;
+    //Translate from mask to X11 state
+    if (mask & GDK_SHIFT_MASK) {
+        state |= ksm_shift;
+    }
+    if (mask & GDK_LOCK_MASK) {
+        state |= ksm_capslock;
+    }
+    if (mask & GDK_CONTROL_MASK) {
+        state |= ksm_control;
+    }
+    if (mask & GDK_MOD1_MASK) { //Guess
+        state |= ksm_meta;
+    }
+    if (mask & GDK_MOD2_MASK) { //Guess
+        state |= ksm_cmdmacosx;
+    }
+    if (mask & GDK_SUPER_MASK) {
+        state |= ksm_super;
+    }
+    if (mask & GDK_HYPER_MASK) {
+        state |= ksm_hyper;
+    }
+    //ksm_option?
+    if (mask & GDK_BUTTON1_MASK) {
+        state |= ksm_button1;
+    }
+    if (mask & GDK_BUTTON2_MASK) {
+        state |= ksm_button2;
+    }
+    if (mask & GDK_BUTTON3_MASK) {
+        state |= ksm_button3;
+    }
+    if (mask & GDK_BUTTON4_MASK) {
+        state |= ksm_button4;
+    }
+    if (mask & GDK_BUTTON5_MASK) {
+        state |= ksm_button5;
+    }
+
+    return state;
+}
+
+static VisibilityState _GGTKDraw_GdkVisibilityStateToVS(GdkVisibilityState state) {
+    switch (state) {
+        case GDK_VISIBILITY_FULLY_OBSCURED:
+            return vs_obscured;
+            break;
+        case GDK_VISIBILITY_PARTIAL:
+            return vs_partially;
+            break;
+        case GDK_VISIBILITY_UNOBSCURED:
+        default:
+            return vs_unobscured;
+            break;
+    }
+}
+
+static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWindow gw, GEvent *)) {
+    if (eh) {
+		(void)gw;
+        (eh)((GWindow)gw, event);
+    }
+}
+
+
+static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_UNUSED gpointer data) {
+    //static int request_id = 0;
+    struct gevent gevent = {0};
+	GGtkWindow *ggw = GGTK_WINDOW(widget);
+	if (!ggw) {
+		return;
+	}
+	
+	GGTKWindow gw = ggtk_window_get_base(ggw);
+	GGTKDisplay *gdisp = gw->display;
+	assert(gw->w == ggw);
+
+    //Log(LOGDEBUG, "[%d] Received event %d(%s) %p", request_id++, event->type, GdkEventName(event->type), w);
+    //fflush(stderr);
+
+    gevent.w = (GWindow)gw;
+    gevent.native_window = (void *)gw->w;
+    gevent.type = et_noevent;
+
+    switch (event->type) {
+        case GDK_KEY_PRESS:
+        case GDK_KEY_RELEASE: {
+            GdkEventKey *key = (GdkEventKey *)event;
+            gevent.type = event->type == GDK_KEY_PRESS ? et_char : et_charup;
+            gevent.u.chr.state = _GGTKDraw_GdkModifierToKsm(((GdkEventKey *)event)->state);
+            gevent.u.chr.autorepeat =
+                event->type    == GDK_KEY_PRESS &&
+                gdisp->ks.type == GDK_KEY_PRESS &&
+                key->keyval    == gdisp->ks.keyval &&
+                key->state     == gdisp->ks.state;
+            // Mumble mumble Mac
+            //if ((event->xkey.state & ksm_option) && gdisp->macosx_cmd) {
+            //    gevent.u.chr.state |= ksm_meta;
+            //}
+
+            if (gevent.u.chr.autorepeat && GKeysymIsModifier(key->keyval)) {
+                gevent.type = et_noevent;
+            } else {
+                if (key->keyval == GDK_KEY_space) {
+                    gw->display->is_space_pressed = event->type == GDK_KEY_PRESS;
+                }
+
+                gevent.u.chr.keysym = key->keyval;
+                gevent.u.chr.chars[0] = gdk_keyval_to_unicode(key->keyval);
+            }
+
+            gdisp->ks.type   = key->type;
+            gdisp->ks.keyval = key->keyval;
+            gdisp->ks.state  = key->state;
+        }
+        break;
+        case GDK_MOTION_NOTIFY: {
+            GdkEventMotion *evt = (GdkEventMotion *)event;
+            gevent.type = et_mousemove;
+            gevent.u.mouse.state = _GGTKDraw_GdkModifierToKsm(evt->state);
+            gevent.u.mouse.x = evt->x;
+            gevent.u.mouse.y = evt->y;
+            //Log(LOGDEBUG, "Motion: [%f %f]", evt->x, evt->y);
+        }
+        break;
+        case GDK_SCROLL: { //Synthesize a button press
+            GdkEventScroll *evt = (GdkEventScroll *)event;
+            gevent.u.mouse.state = _GGTKDraw_GdkModifierToKsm(evt->state);
+            gevent.u.mouse.x = evt->x;
+            gevent.u.mouse.y = evt->y;
+            gevent.u.mouse.clicks = gdisp->bs.cur_click = 1;
+            gevent.type = et_mousedown;
+
+            switch (evt->direction) {
+                case GDK_SCROLL_UP:
+                    gevent.u.mouse.button = 4;
+                    break;
+                case GDK_SCROLL_DOWN:
+                    gevent.u.mouse.button = 5;
+                    break;
+                case GDK_SCROLL_LEFT:
+                    gevent.u.mouse.button = 6;
+                    break;
+                case GDK_SCROLL_RIGHT:
+                    gevent.u.mouse.button = 7;
+                    break;
+                default: // Ignore GDK_SCROLL_SMOOTH
+                    gevent.type = et_noevent;
+            }
+            // We need to simulate two events... I think.
+            if (gevent.type != et_noevent) {
+                GGTKDrawPostEvent(&gevent);
+                gevent.type = et_mouseup;
+            }
+        }
+        break;
+        case GDK_BUTTON_PRESS:
+        case GDK_BUTTON_RELEASE: {
+            GdkEventButton *evt = (GdkEventButton *)event;
+            gevent.u.mouse.state = _GGTKDraw_GdkModifierToKsm(evt->state);
+            gevent.u.mouse.x = evt->x;
+            gevent.u.mouse.y = evt->y;
+            gevent.u.mouse.button = evt->button;
+            gevent.u.mouse.time = evt->time;
+
+            Log(LOGDEBUG, "Button %7s: [%f %f]", evt->type == GDK_BUTTON_PRESS ? "press" : "release", evt->x, evt->y);
+
+#ifdef GDK_WINDOWING_QUARTZ
+            // Quartz backend fails to give a button press event
+            // https://bugzilla.gnome.org/show_bug.cgi?id=769961
+            if (!evt->send_event && evt->type == GDK_BUTTON_RELEASE &&
+                    gdisp->bs.release_w == gw &&
+                    (evt->x < 0 || evt->x > gw->pos.width ||
+                     evt->y < 0 || evt->y > gw->pos.height)) {
+                evt->send_event = true;
+                gdk_event_put(event);
+                event->type = GDK_BUTTON_PRESS;
+            }
+#endif
+
+            if (event->type == GDK_BUTTON_PRESS) {
+                int xdiff, ydiff;
+                gevent.type = et_mousedown;
+
+                xdiff = abs(((int)evt->x) - gdisp->bs.release_x);
+                ydiff = abs(((int)evt->y) - gdisp->bs.release_y);
+
+                if (xdiff + ydiff < gdisp->bs.double_wiggle &&
+                        gw == gdisp->bs.release_w &&
+                        gevent.u.mouse.button == gdisp->bs.release_button &&
+                        (int32_t)(gevent.u.mouse.time - gdisp->bs.last_press_time) < gdisp->bs.double_time &&
+                        gevent.u.mouse.time >= gdisp->bs.last_press_time) {  // Time can wrap
+
+                    gdisp->bs.cur_click++;
+                } else {
+                    gdisp->bs.cur_click = 1;
+                }
+                gdisp->bs.last_press_time = gevent.u.mouse.time;
+            } else {
+                gevent.type = et_mouseup;
+                gdisp->bs.release_w = gw;
+                gdisp->bs.release_x = evt->x;
+                gdisp->bs.release_y = evt->y;
+                gdisp->bs.release_button = evt->button;
+            }
+            gevent.u.mouse.clicks = gdisp->bs.cur_click;
+        }
+        break;
+        // HANDLE EXPOSE
+        case GDK_VISIBILITY_NOTIFY:
+            gevent.type = et_visibility;
+            gevent.u.visibility.state = _GGTKDraw_GdkVisibilityStateToVS(((GdkEventVisibility *)event)->state);
+            break;
+        case GDK_FOCUS_CHANGE:
+            gevent.type = et_focus;
+            gevent.u.focus.gained_focus = ((GdkEventFocus *)event)->in;
+            gevent.u.focus.mnemonic_focus = false;
+            break;
+        case GDK_ENTER_NOTIFY:
+        case GDK_LEAVE_NOTIFY: { // Should only get this on top level
+            GdkEventCrossing *crossing = (GdkEventCrossing *)event;
+            if (crossing->focus) { //Focus or inferior
+                break;
+            }
+            if (gdisp->focusfollowsmouse && gw != NULL && gw->eh != NULL) {
+                gevent.type = et_focus;
+                gevent.u.focus.gained_focus = crossing->type == GDK_ENTER_NOTIFY;
+                gevent.u.focus.mnemonic_focus = false;
+                _GGTKDraw_CallEHChecked(gw, &gevent, gw->eh);
+            }
+            gevent.type = et_crossing;
+            gevent.u.crossing.x = crossing->x;
+            gevent.u.crossing.y = crossing->y;
+            gevent.u.crossing.state = _GGTKDraw_GdkModifierToKsm(crossing->state);
+            gevent.u.crossing.entered = crossing->type == GDK_ENTER_NOTIFY;
+            gevent.u.crossing.device = NULL;
+            gevent.u.crossing.time = crossing->time;
+
+            // Always set to false when crossing boundary...
+            gw->display->is_space_pressed = false;
+        }
+        break;
+        case GDK_CONFIGURE: {
+            GdkEventConfigure *configure = (GdkEventConfigure *)event;
+            gevent.type = et_resize;
+            gevent.u.resize.size.x      = configure->x;
+            gevent.u.resize.size.y      = configure->y;
+            gevent.u.resize.size.width  = configure->width;
+            gevent.u.resize.size.height = configure->height;
+            gevent.u.resize.dx          = configure->x - gw->pos.x;
+            gevent.u.resize.dy          = configure->y - gw->pos.y;
+            gevent.u.resize.dwidth      = configure->width - gw->pos.width;
+            gevent.u.resize.dheight     = configure->height - gw->pos.height;
+            gevent.u.resize.moved       = gevent.u.resize.sized = false;
+            if (gevent.u.resize.dx != 0 || gevent.u.resize.dy != 0) {
+                gevent.u.resize.moved = true;
+            }
+            if (gevent.u.resize.dwidth != 0 || gevent.u.resize.dheight != 0) {
+                gevent.u.resize.sized = true;
+            }
+
+            // I could make this Windows specific... But it doesn't seem necessary on other platforms too.
+            // On Windows, repeated configure messages are sent if we move the window around.
+            // This causes CPU usage to go up because mouse handlers of this message just redraw the whole window.
+            if (gw->is_toplevel && !gevent.u.resize.sized && gevent.u.resize.moved) {
+                gevent.type = et_noevent;
+                Log(LOGDEBUG, "Configure DISCARDED: %p:%s, %d %d %d %d", gw, ggtk_window_get_title(gw->w), gw->pos.x, gw->pos.y, gw->pos.width, gw->pos.height);
+            } else {
+                Log(LOGDEBUG, "CONFIGURED: %p:%s, %d %d %d %d", gw, ggtk_window_get_title(gw->w), gw->pos.x, gw->pos.y, gw->pos.width, gw->pos.height);
+            }
+            gw->pos = gevent.u.resize.size;
+        }
+        break;
+        case GDK_MAP:
+            gevent.type = et_map;
+            gevent.u.map.is_visible = true;
+            gw->is_visible = true;
+            break;
+        case GDK_UNMAP:
+            gevent.type = et_map;
+            gevent.u.map.is_visible = false;
+            gw->is_visible = false;
+            break;
+        case GDK_DESTROY:
+            GGTKDrawDestroyWindow((GWindow)gw); //Note: If we get here, something's probably wrong.
+            break;
+        case GDK_DELETE:
+            gevent.type = et_close;
+            break;
+        case GDK_SELECTION_CLEAR:
+        break;
+        case GDK_SELECTION_REQUEST:
+        break;
+        case GDK_SELECTION_NOTIFY: // paste
+            break;
+        case GDK_PROPERTY_NOTIFY:
+            break;
+        default:
+            Log(LOGDEBUG, "UNPROCESSED GDK EVENT %d %s", event->type, GdkEventName(event->type));
+            break;
+    }
+
+    if (gevent.type != et_noevent && gw != NULL && gw->eh != NULL) {
+        _GGTKDraw_CallEHChecked(gw, &gevent, gw->eh);
+    }
+    //Log(LOGDEBUG, "[%d] Finished processing %d(%s)", request_id++, event->type, GdkEventName(event->type));
+}
 
 static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *pos,
                                       int (*eh)(GWindow, GEvent *), void *user_data, GWindowAttrs *wattrs) {
@@ -151,8 +462,7 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         nw->restrict_input_to_me = wattrs->restrict_input_to_me;
     }
     if (wattrs->mask & wam_redirect) {
-        // FIXME: I don't actually do anything with this...
-        nw->redirect_chars_to_me = wattrs->redirect_chars_to_me;
+        nw->restrict_input_to_me = nw->restrict_input_to_me || wattrs->redirect_chars_to_me;
     }
 
     // Now create stuff
@@ -208,7 +518,6 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         geom.base_height = geom.min_height = geom.max_height = pos->height;
 
         hints |= GDK_HINT_POS;
-        nw->was_positioned = true;
 
         gtk_window_set_geometry_hints(window, NULL, &geom, hints);
 
@@ -244,17 +553,81 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         gtk_layout_put(GTK_LAYOUT(gw->w), GTK_WIDGET(nw->w), nw->pos.x, nw->pos.y);
         gtk_widget_set_size_request(GTK_WIDGET(nw->w), nw->pos.width, nw->pos.height);
     }
-
-    // Set background
+	
+	// Set background
     if (!(wattrs->mask & wam_backcol) || wattrs->background_color == COLOR_DEFAULT) {
         wattrs->background_color = gdisp->def_background;
     }
     nw->ggc->bg = wattrs->background_color;
 
     GGTKDrawSetWindowBackground((GWindow)nw, wattrs->background_color);
+	
+	// Set event mask, connect to the right signals
+	gtk_widget_set_events(GTK_WIDGET(nw->w), event_mask);
+	g_signal_connect(GTK_WIDGET(nw->w), "event", G_CALLBACK(_GGTKDraw_DispatchEvent), NULL);
 
     Log(LOGDEBUG, "Window created: %p[%p][%d]", nw, nw->w, nw->is_toplevel);
     return (GWindow)nw;
+}
+
+static GWindow _GGTKDraw_NewPixmap(GDisplay *disp, GWindow similar, uint16 width, uint16 height, bool is_bitmap, unsigned char *data) {
+    GGTKDisplay *gdisp = (GGTKDisplay *)disp;
+    GGTKWindow gw = (GGTKWindow)calloc(1, sizeof(struct ggdkwindow));
+    if (gw == NULL) {
+        Log(LOGERR, "GGTKDRAW: GGTKWindow calloc failed!");
+        return NULL;
+    }
+
+    gw->ggc = _GGTKDraw_NewGGC();
+    if (gw->ggc == NULL) {
+        Log(LOGERR, "GGTKDRAW: GGC alloc failed!");
+        free(gw);
+        return NULL;
+    }
+    gw->ggc->bg = gdisp->def_background;
+    width &= 0x7fff; // We're always using a cairo surface...
+
+    gw->display = gdisp;
+    gw->is_pixmap = 1;
+    gw->parent = NULL;
+    gw->pos.x = gw->pos.y = 0;
+    gw->pos.width = width;
+    gw->pos.height = height;
+
+    if (data == NULL) {
+        if (similar == NULL) {
+            gw->pixmap_surface = cairo_image_surface_create(is_bitmap ? CAIRO_FORMAT_A1 : CAIRO_FORMAT_ARGB32, width, height);
+        } else {
+			GdkWindow* window = gtk_widget_get_window(GTK_WIDGET(((GGTKWindow)similar)->w));
+            gw->pixmap_surface = gdk_window_create_similar_surface(window, CAIRO_CONTENT_COLOR, width, height);
+        }
+    } else {
+        cairo_format_t format = is_bitmap ? CAIRO_FORMAT_A1 : CAIRO_FORMAT_ARGB32;
+        gw->pixmap_surface = cairo_image_surface_create_for_data(data, format, width, height, cairo_format_stride_for_width(format, width));
+    }
+	
+	if (gw->pixmap_surface != NULL) {
+		gw->pixmap_context = cairo_create(gw->pixmap_surface);
+		if (gw->pixmap_context != NULL) {
+			PangoContext *context = similar == NULL ? gdisp->default_pango_context :
+									gtk_widget_get_pango_context(GTK_WIDGET(((GGTKWindow)similar)->w));
+			gw->pixmap_layout = pango_layout_new(context);
+			if (gw->pixmap_layout != NULL) {
+				return (GWindow)gw;
+			}
+			Log(LOGWARN, "Failed to create pixmap layout, context=%p", context);
+			cairo_destroy(gw->pixmap_context);
+		} else {
+			Log(LOGWARN, "Failed to create pixmap context, surface=%p", gw->pixmap_surface);
+		}
+		cairo_surface_destroy(gw->pixmap_surface);
+	} else {
+		Log(LOGWARN, "Failed to crate pixmap surface");
+	}
+	
+	free(gw->ggc);
+	free(gw);
+	return NULL;
 }
 
 static void GGTKDrawInit(GDisplay *gdisp) {
@@ -286,21 +659,72 @@ static GWindow GGTKDrawCreateSubWindow(GWindow gw, GRect *pos, int (*eh)(GWindow
 
 static GWindow GGTKDrawCreatePixmap(GDisplay *gdisp, GWindow similar, uint16 width, uint16 height) {
     Log(LOGVERBOSE, " ");
-    return NULL;
+    //TODO: Check format?
+    return _GGTKDraw_NewPixmap(gdisp, similar, width, height, false, NULL);
 }
 
 static GWindow GGTKDrawCreateBitmap(GDisplay *gdisp, uint16 width, uint16 height, uint8 *data) {
     Log(LOGVERBOSE, " ");
-    return NULL;
+    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_A1, width);
+    int actual = (width & 0x7fff) / 8;
+
+    if (actual != stride) {
+        GWindow ret = _GGTKDraw_NewPixmap(gdisp, NULL, width, height, true, NULL);
+        if (ret == NULL) {
+            return NULL;
+        }
+
+        cairo_surface_flush(((GGTKWindow)ret)->pixmap_surface);
+        uint8 *buf = cairo_image_surface_get_data(((GGTKWindow)ret)->pixmap_surface);
+        for (int j = 0; j < height; j++) {
+            memcpy(buf + stride * j, data + actual * j, actual);
+        }
+        cairo_surface_mark_dirty(((GGTKWindow)ret)->pixmap_surface);
+        return ret;
+    }
+
+    return _GGTKDraw_NewPixmap(gdisp, NULL, width, height, true, data);
 }
 
 static GCursor GGTKDrawCreateCursor(GWindow src, GWindow mask, Color fg, Color bg, int16 x, int16 y) {
     Log(LOGVERBOSE, " ");
-    return 0;
+
+	GGTKDisplay *gdisp = (GGTKDisplay *)(src->display);
+    GdkCursor *cursor = NULL;
+    if (mask == NULL) { // Use src directly
+        assert(src != NULL);
+        assert(src->is_pixmap);
+        cursor = gdk_cursor_new_from_surface(gdisp->display, ((GGTKWindow)src)->pixmap_surface, x, y);
+    } else { // Assume it's an X11-style cursor
+        cairo_surface_t *cs = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, src->pos.width, src->pos.height);
+        cairo_t *cc = cairo_create(cs);
+
+        // Masking
+        //Background
+        cairo_set_source_rgb(cc, COLOR_RED(bg) / 255., COLOR_GREEN(bg) / 255., COLOR_BLUE(bg) / 255.);
+        cairo_mask_surface(cc, ((GGTKWindow)mask)->pixmap_surface, 0, 0);
+        //Foreground
+        cairo_set_source_rgb(cc, COLOR_RED(fg) / 255., COLOR_GREEN(fg) / 255., COLOR_BLUE(fg) / 255.);
+        cairo_mask_surface(cc, ((GGTKWindow)src)->pixmap_surface, 0, 0);
+
+        cursor = gdk_cursor_new_from_surface(gdisp->display, cs, x, y);
+        cairo_destroy(cc);
+        cairo_surface_destroy(cs);
+    }
+
+    g_ptr_array_add(gdisp->cursors, cursor);
+    return ct_user + (gdisp->cursors->len - 1);
 }
 
 static void GGTKDrawDestroyCursor(GDisplay *disp, GCursor gcursor) {
     Log(LOGVERBOSE, " ");
+	
+	GGTKDisplay *gdisp = (GGTKDisplay *)disp;
+    gcursor -= ct_user;
+    if ((int)gcursor >= 0 && gcursor < gdisp->cursors->len) {
+        g_object_unref(gdisp->cursors->pdata[gcursor]);
+        gdisp->cursors->pdata[gcursor] = NULL;
+    }
 }
 
 static void GGTKDrawDestroyWindow(GWindow w) {
@@ -324,6 +748,14 @@ static void GGTKDrawSetWindowBorder(GWindow UNUSED(gw), int UNUSED(width), Color
 
 static void GGTKDrawSetWindowBackground(GWindow w, Color gcol) {
     Log(LOGVERBOSE, " ");
+	GGTKWindow gw = (GGTKWindow)w;
+	GdkRGBA col = {
+        .red = COLOR_RED(gcol) / 255.,
+        .green = COLOR_GREEN(gcol) / 255.,
+        .blue = COLOR_BLUE(gcol) / 255.,
+        .alpha = 1.
+    };
+	ggtk_window_set_background(gw->w, &col);
 }
 
 static int GGTKDrawSetDither(GDisplay *UNUSED(gdisp), int UNUSED(set)) {
@@ -522,6 +954,9 @@ static void GGTKDrawEventLoop(GDisplay *gdisp) {
 
 static void GGTKDrawPostEvent(GEvent *e) {
     //Log(LOGVERBOSE, " ");
+	GGTKWindow gw = (GGTKWindow)(e->w);
+    e->native_window = gw->w;
+    _GGTKDraw_CallEHChecked(gw, e, gw->eh);
 }
 
 static void GGTKDrawPostDragEvent(GWindow w, GEvent *mouse, enum event_type et) {
@@ -611,30 +1046,30 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawBeep,
     GGTKDrawFlush,
 
-    NULL, // GGTKDrawPushClip TO IMPLEMENT
-    NULL, // GGTKDrawPopClip TO IMPLEMENT
+	GGTKDrawPushClip,
+	GGTKDrawPopClip,
 
-    NULL, // GGTKDrawSetDifferenceMode TO IMPLEMENT
+	GGTKDrawSetDifferenceMode,
 
-    NULL, // GGTKDrawClear TO IMPLEMENT
-    NULL, // GGTKDrawDrawLine TO IMPLEMENT
-    NULL, // GGTKDrawDrawArrow TO IMPLEMENT
-    NULL, // GGTKDrawDrawRect TO IMPLEMENT
-    NULL, // GGTKDrawFillRect TO IMPLEMENT
-    NULL, // GGTKDrawFillRoundRect TO IMPLEMENT
-    NULL, // GGTKDrawDrawEllipse TO IMPLEMENT
-    NULL, // GGTKDrawFillEllipse TO IMPLEMENT
-    NULL, // GGTKDrawDrawArc TO IMPLEMENT
-    NULL, // GGTKDrawDrawPoly TO IMPLEMENT
-    NULL, // GGTKDrawFillPoly TO IMPLEMENT
+	GGTKDrawClear,
+	GGTKDrawDrawLine,
+	GGTKDrawDrawArrow,
+	GGTKDrawDrawRect,
+	GGTKDrawFillRect,
+	GGTKDrawFillRoundRect,
+	GGTKDrawDrawEllipse,
+	GGTKDrawFillEllipse,
+	GGTKDrawDrawArc,
+	GGTKDrawDrawPoly,
+	GGTKDrawFillPoly,
     GGTKDrawScroll,
 
-    NULL, // GGTKDrawDrawImage TO IMPLEMENT
+	GGTKDrawDrawImage,
     NULL, // GGTKDrawTileImage - Unused function
-    NULL, // GGTKDrawDrawGlyph TO IMPLEMENT
-    NULL, // GGTKDrawDrawImageMagnified TO IMPLEMENT
+	GGTKDrawDrawGlyph,
+	GGTKDrawDrawImageMagnified,
     NULL, // GGTKDrawCopyScreenToImage - Unused function
-    NULL, // GGTKDrawDrawPixmap TO IMPLEMENT
+	GGTKDrawDrawPixmap,
     NULL, // GGTKDrawTilePixmap - Unused function
 
     GGTKDrawCreateInputContext,
@@ -671,33 +1106,33 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawPrinterNextPage,
     GGTKDrawPrinterEndJob,
 
-    NULL, // GGTKDrawGetFontMetrics TO IMPLEMENT
+	GGTKDrawGetFontMetrics,
 
-    NULL, // GGTKDrawHasCairo TO IMPLEMENT
-    NULL, // GGTKDrawPathStartNew TO IMPLEMENT
-    NULL, // GGTKDrawPathClose TO IMPLEMENT
-    NULL, // GGTKDrawPathMoveTo TO IMPLEMENT
-    NULL, // GGTKDrawPathLineTo TO IMPLEMENT
-    NULL, // GGTKDrawPathCurveTo TO IMPLEMENT
-    NULL, // GGTKDrawPathStroke TO IMPLEMENT
-    NULL, // GGTKDrawPathFill TO IMPLEMENT
-    NULL, // GGTKDrawPathFillAndStroke TO IMPLEMENT
+	GGTKDrawHasCairo,
+	GGTKDrawPathStartNew,
+	GGTKDrawPathClose,
+	GGTKDrawPathMoveTo,
+	GGTKDrawPathLineTo,
+	GGTKDrawPathCurveTo,
+	GGTKDrawPathStroke,
+	GGTKDrawPathFill,
+	GGTKDrawPathFillAndStroke,
 
-    NULL, // GGTKDrawLayoutInit TO IMPLEMENT
-    NULL, // GGTKDrawLayoutDraw TO IMPLEMENT
-    NULL, // GGTKDrawLayoutIndexToPos TO IMPLEMENT
-    NULL, // GGTKDrawLayoutXYToIndex TO IMPLEMENT
-    NULL, // GGTKDrawLayoutExtents TO IMPLEMENT
-    NULL, // GGTKDrawLayoutSetWidth TO IMPLEMENT
-    NULL, // GGTKDrawLayoutLineCount TO IMPLEMENT
-    NULL, // GGTKDrawLayoutLineStart TO IMPLEMENT
-    NULL, // GGTKDrawStartNewSubPath TO IMPLEMENT
-    NULL, // GGTKDrawFillRuleSetWinding TO IMPLEMENT
+	GGTKDrawLayoutInit,
+	GGTKDrawLayoutDraw,
+	GGTKDrawLayoutIndexToPos,
+	GGTKDrawLayoutXYToIndex,
+	GGTKDrawLayoutExtents,
+	GGTKDrawLayoutSetWidth,
+	GGTKDrawLayoutLineCount,
+	GGTKDrawLayoutLineStart,
+	GGTKDrawStartNewSubPath,
+	GGTKDrawFillRuleSetWinding,
 
-    NULL, // GGTKDrawDoText8 TO IMPLEMENT
+	GGTKDrawDoText8,
 
-    NULL, // GGTKDrawPushClipOnly TO IMPLEMENT
-    NULL, // GGTKDrawClipPreserve TO IMPLEMENT
+	GGTKDrawPushClipOnly,
+	GGTKDrawClipPreserve,
 };
 
 // Protected member functions (package-level)
@@ -746,13 +1181,12 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
     gdisp->display = display;
 
     // sigh, this is terrible, really it should get this wrt. each window
-    PangoContext* ctx = gdk_pango_context_get_for_display(display);
-    gdisp->res = pango_cairo_context_get_resolution(ctx);
+    gdisp->default_pango_context = gdk_pango_context_get_for_display(display);
+    gdisp->res = pango_cairo_context_get_resolution(gdisp->default_pango_context);
     if (gdisp->res <= 0) {
         Log(LOGWARN, "Failed to get default DPI, assuming 96");
         gdisp->res = 96;
     }
-    g_object_unref(ctx);
 
     gdisp->scale_screen_by = 1; //Does nothing
     gdisp->bs.double_time = 200;
@@ -824,6 +1258,7 @@ struct _GGtkWindow
     // private data
     GGTKWindow gw;
     GdkRGBA background_color;
+	PangoLayout *pango_layout;
 
     cairo_surface_t *offscreen_surface;
     cairo_t* offscreen_context;
@@ -839,6 +1274,10 @@ static void ggtk_window_dispose(GObject *gobject)
     GGtkWindow *ggw = GGTK_WINDOW(gobject);
     ggw->disposed = true;
 
+	if (ggw->pango_layout) {
+		g_object_unref(ggw->pango_layout);
+		ggw->pango_layout = NULL;
+	}
     if (ggw->offscreen_context) {
         cairo_destroy(ggw->offscreen_context);
         ggw->offscreen_context = NULL;
@@ -868,7 +1307,16 @@ static void ggtk_window_init(GGtkWindow *ggw)
     (void)ggw;
 }
 
-static gboolean ggtk_window_draw_callback(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED gpointer data)
+static void ggtk_window_screen_changed(GtkWidget *widget, G_GNUC_UNUSED GdkScreen *previous_screen, G_GNUC_UNUSED gpointer user_data)
+{
+	GGtkWindow *ggw = GGTK_WINDOW(widget);
+	if (ggw->pango_layout) {
+		g_object_unref(ggw->pango_layout);
+		ggw->pango_layout = NULL;
+	}
+}
+
+static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED gpointer data)
 {
     GGtkWindow *ggw = GGTK_WINDOW(widget);
 
@@ -910,10 +1358,11 @@ static gboolean ggtk_window_draw_callback(GtkWidget* widget, cairo_t* cr, G_GNUC
             ggw->dirty_regions = NULL;
         }
 
+		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
         cairo_set_source_rgba(ggw->offscreen_context,
             ggw->background_color.red, ggw->background_color.green, ggw->background_color.red, ggw->background_color.alpha);
-        cairo_rectangle(ggw->offscreen_context, 0, 0, width, height);
-        cairo_fill(ggw->offscreen_context);
+        cairo_paint(ggw->offscreen_context);
+		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
 
         // Now call the GDraw expose event handler here
 
@@ -922,8 +1371,8 @@ static gboolean ggtk_window_draw_callback(GtkWidget* widget, cairo_t* cr, G_GNUC
     }
 
     // Now paint the offscreen surface
+	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE); // can't do this if it's not opaque
     cairo_set_source_surface(cr, ggw->offscreen_surface, 0, 0);
-    cairo_rectangle(cr, 0, 0, width, height);
     cairo_paint(cr);
 
     return false;
@@ -938,7 +1387,8 @@ GtkWidget* ggtk_window_new(GGTKWindow gw)
     // get initialised in the _init method?!
     ggw->gw = gw;
 
-    g_signal_connect(ggw, "draw", G_CALLBACK(ggtk_window_draw_callback), NULL);
+	g_signal_connect(ggw, "screen-changed", G_CALLBACK(ggtk_window_screen_changed), NULL);
+    g_signal_connect(ggw, "draw", G_CALLBACK(ggtk_window_draw), NULL);
 
     return GTK_WIDGET(ggw);
 }
@@ -949,9 +1399,9 @@ GGTKWindow ggtk_window_get_base(GGtkWindow *ggw)
     return ggw->gw;
 }
 
-void ggtk_window_set_background(GGtkWindow *ggw, GdkRGBA col)
+void ggtk_window_set_background(GGtkWindow *ggw, GdkRGBA *col)
 {
-    ggw->background_color = col;
+    ggw->background_color = *col;
     gtk_widget_queue_draw(GTK_WIDGET(ggw));
 }
 
@@ -960,7 +1410,10 @@ cairo_t* ggtk_window_get_cairo_context(GGtkWindow *ggw)
     if (ggw->offscreen_context) {
         return ggw->offscreen_context;
     } else if (!ggw->offscreen_surface) {
-        return NULL;
+		// This should be rare - trying to draw before an initial expose event
+		// Just return this, cairo_create never returns NULL, it just won't do anything
+		Log(LOGWARN, "Tried to draw before any expose");
+        return cairo_create(NULL);
     }
 
     ggw->offscreen_context = cairo_create(ggw->offscreen_surface);
@@ -983,6 +1436,25 @@ void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area)
     gtk_widget_queue_draw(GTK_WIDGET(ggw));
 }
 
+const char *ggtk_window_get_title(GGtkWindow *ggw)
+{
+	if (ggw->gw->is_toplevel) {
+		GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(ggw));
+		if (GTK_IS_WINDOW(toplevel)) {
+			return gtk_window_get_title(GTK_WINDOW(toplevel));
+		}
+	}
+	return NULL;
+}
+
+PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw)
+{
+	if (ggw->pango_layout) {
+		return ggw->pango_layout;
+	}
+	ggw->pango_layout = pango_layout_new(gtk_widget_get_pango_context(GTK_WIDGET(ggw)));
+	return ggw->pango_layout;
+}
 
 G_DEFINE_TYPE(GGtkWindow, ggtk_window, GTK_TYPE_LAYOUT)
 

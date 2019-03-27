@@ -34,7 +34,7 @@
 
 #ifdef FONTFORGE_CAN_USE_GTK
 
-#include "ggdkdrawP.h"
+#include "ggtkdrawP.h"
 #include "ustring.h"
 
 #include <assert.h>
@@ -43,7 +43,28 @@
 
 // Private member functions
 
-static void GGTKDraw_StippleMePink(GGTKWindow gw, int ts, Color fg) {
+static cairo_t* _GGTKDraw_GetCairoContext(GGTKWindow gw) {
+	if (gw->is_pixmap) {
+		return gw->pixmap_context;
+	}
+	return ggtk_window_get_cairo_context(gw->w);
+}
+
+static PangoContext* _GGTKDraw_GetPangoContext(GGTKWindow gw) {
+	if (gw->is_pixmap) {
+		return gw->display->default_pango_context;
+	}
+	return gtk_widget_get_pango_context(GTK_WIDGET(gw->w));
+}
+
+static PangoLayout* _GGTKDraw_GetPangoLayout(GGTKWindow gw) {
+	if (gw->is_pixmap) {
+		return gw->pixmap_layout;
+	}
+	return ggtk_window_get_pango_layout(gw->w);
+}
+
+static void _GGTKDraw_StippleMePink(cairo_t *cr, int ts, Color fg) {
     static unsigned char grey_init[8] = {0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa};
     static unsigned char fence_init[8] = {0x55, 0x22, 0x55, 0x88, 0x55, 0x22, 0x55, 0x88};
     uint8 *spt;
@@ -78,10 +99,10 @@ static void GGTKDraw_StippleMePink(GGTKWindow gw, int ts, Color fg) {
         cairo_surface_destroy(is);
         cairo_pattern_set_extend(pat, CAIRO_EXTEND_REPEAT);
     }
-    cairo_set_source(gw->cc, pat);
+    cairo_set_source(cr, pat);
 }
 
-static int GGTKDrawSetcolfunc(GGTKWindow gw, GGC *mine) {
+static void _GGTKDraw_SetColFunc(cairo_t *cr, GGC *mine) {
     Color fg = mine->fg;
 
     if ((fg >> 24) == 0) {
@@ -89,15 +110,14 @@ static int GGTKDrawSetcolfunc(GGTKWindow gw, GGC *mine) {
     }
 
     if (mine->ts != 0) {
-        GGTKDraw_StippleMePink(gw, mine->ts, fg);
+        _GGTKDraw_StippleMePink(cr, mine->ts, fg);
     } else {
-        cairo_set_source_rgba(gw->cc, COLOR_RED(fg) / 255.0,
+        cairo_set_source_rgba(cr, COLOR_RED(fg) / 255.0,
                               COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, (fg >> 24) / 255.);
     }
-    return true;
 }
 
-static int GGTKDrawSetline(GGTKWindow gw, GGC *mine) {
+static int _GGTKDraw_SetLine(cairo_t *cr, GGC *mine) {
     Color fg = mine->fg;
     double dashes[2] = {mine->dash_len, mine->skip_len};
 
@@ -108,29 +128,29 @@ static int GGTKDrawSetline(GGTKWindow gw, GGC *mine) {
     if (mine->line_width <= 0) {
         mine->line_width = 1;
     }
-    cairo_set_line_width(gw->cc, mine->line_width);
-    cairo_set_dash(gw->cc, dashes, (mine->dash_len == 0) ? 0 : 2, mine->dash_offset);
+    cairo_set_line_width(cr, mine->line_width);
+    cairo_set_dash(cr, dashes, (mine->dash_len == 0) ? 0 : 2, mine->dash_offset);
 
     // I don't use line join/cap. On a screen with small line_width they are irrelevant
 
     if (mine->ts != 0) {
-        GGTKDraw_StippleMePink(gw, mine->ts, fg);
+        _GGTKDraw_StippleMePink(cr, mine->ts, fg);
     } else {
-        cairo_set_source_rgba(gw->cc, COLOR_RED(fg) / 255.0, COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0,
+        cairo_set_source_rgba(cr, COLOR_RED(fg) / 255.0, COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0,
                               (fg >> 24) / 255.0);
     }
     return mine->line_width;
 }
 
 // Pango text
-static PangoFontDescription *_GGTKDraw_configfont(GWindow w, GFont *font) {
+static PangoFontDescription *_GGTKDraw_ConfigFont(GWindow w, GFont *font) {
     GGTKWindow gw = (GGTKWindow) w;
     PangoFontDescription *fd;
 
-    // Initialize Cairo and Pango if not initialized, e.g. root window
-    if (gw->pango_layout == NULL && !_GGTKDraw_InitPangoCairo(gw)) {
-        return NULL;
-    }
+	if (!gw->is_pixmap && !gw->w) {
+		Log(LOGWARN, "Tried to config font on the root window!");
+		return NULL;
+	}
 
     PangoFontDescription **fdbase = &font->pangoc_fd;
     if (*fdbase != NULL) {
@@ -180,7 +200,7 @@ static PangoFontDescription *_GGTKDraw_configfont(GWindow w, GFont *font) {
 // Strangely the equivalent routine was not part of the pangocairo library
 // Oh there's pango_cairo_layout_path but that's more restrictive and probably
 // less efficient
-static void _GGTKDraw_MyCairoRenderLayout(cairo_t *cc, Color fg, PangoLayout *layout, int x, int y) {
+static void _GGTKDraw_MyCairoRenderLayout(cairo_t *cr, Color fg, PangoLayout *layout, int x, int y) {
     PangoRectangle rect, r2;
     PangoLayoutIter *iter;
 
@@ -189,40 +209,40 @@ static void _GGTKDraw_MyCairoRenderLayout(cairo_t *cc, Color fg, PangoLayout *la
         PangoLayoutRun *run = pango_layout_iter_get_run(iter);
         if (run != NULL) { // NULL runs mark end of line
             pango_layout_iter_get_run_extents(iter, &r2, &rect);
-            cairo_move_to(cc, x + (rect.x + PANGO_SCALE / 2) / PANGO_SCALE, y + (rect.y + PANGO_SCALE / 2) / PANGO_SCALE);
+            cairo_move_to(cr, x + (rect.x + PANGO_SCALE / 2) / PANGO_SCALE, y + (rect.y + PANGO_SCALE / 2) / PANGO_SCALE);
             if (COLOR_ALPHA(fg) == 0) {
-                cairo_set_source_rgba(cc, COLOR_RED(fg) / 255.0,
+                cairo_set_source_rgba(cr, COLOR_RED(fg) / 255.0,
                                       COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, 1.0);
             } else {
-                cairo_set_source_rgba(cc, COLOR_RED(fg) / 255.0,
+                cairo_set_source_rgba(cr, COLOR_RED(fg) / 255.0,
                                       COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, COLOR_ALPHA(fg) / 255.);
             }
-            pango_cairo_show_glyph_string(cc, run->item->analysis.font, run->glyphs);
+            pango_cairo_show_glyph_string(cr, run->item->analysis.font, run->glyphs);
         }
     } while (pango_layout_iter_next_run(iter));
     pango_layout_iter_free(iter);
 }
 
-static void _GGTKDraw_EllipsePath(cairo_t *cc, double cx, double cy, double width, double height) {
-    cairo_new_path(cc);
-    cairo_move_to(cc, cx, cy + height);
-    cairo_curve_to(cc,
+static void _GGTKDraw_EllipsePath(cairo_t *cr, double cx, double cy, double width, double height) {
+    cairo_new_path(cr);
+    cairo_move_to(cr, cx, cy + height);
+    cairo_curve_to(cr,
                    cx + .552 * width, cy + height,
                    cx + width, cy + .552 * height,
                    cx + width, cy);
-    cairo_curve_to(cc,
+    cairo_curve_to(cr,
                    cx + width, cy - .552 * height,
                    cx + .552 * width, cy - height,
                    cx, cy - height);
-    cairo_curve_to(cc,
+    cairo_curve_to(cr,
                    cx - .552 * width, cy - height,
                    cx - width, cy - .552 * height,
                    cx - width, cy);
-    cairo_curve_to(cc,
+    cairo_curve_to(cr,
                    cx - width, cy + .552 * height,
                    cx - .552 * width, cy + height,
                    cx, cy + height);
-    cairo_close_path(cc);
+    cairo_close_path(cr);
 }
 
 static cairo_surface_t *_GGTKDraw_GImage2Surface(GImage *image, GRect *src) {
@@ -529,174 +549,11 @@ static GImage *_GGTKDraw_GImageExtract(struct _GImage *base, GRect *src, GRect *
 
 // Protected member functions
 
-bool _GGTKDraw_InitPangoCairo(GGTKWindow gw) {
-    if (gw->is_pixmap) {
-        gw->cc = cairo_create(gw->cs);
-        if (gw->cc == NULL) {
-            Log(LOGDEBUG, "GGTKDRAW: Cairo context creation failed!");
-            return false;
-        }
-    }
-
-    // Establish Pango layout context
-    gw->pango_layout = pango_layout_new(gw->display->pangoc_context);
-    if (gw->pango_layout == NULL) {
-        Log(LOGDEBUG, "GGTKDRAW: Pango layout creation failed!");
-        if (gw->cc != NULL) {
-            cairo_destroy(gw->cc);
-            gw->cc = NULL;
-        }
-        return false;
-    }
-
-    return true;
-}
-
-#ifdef GGTKDRAW_GDK_2
-/**
- *  \brief Destructor for GdkPixbuf created by _GGTKDraw_Cairo2Pixbuf
- *
- *  \param [in] pixels Not used
- *  \param [in] data The cairo surface that we made
- */
-static void _GGTKDraw_OnPixbufDestroy(guchar *pixels, gpointer data) {
-    cairo_surface_destroy((cairo_surface_t *)data);
-}
-
-/**
- *  \brief A poor man's version of gdk_pixbuf_get_from_surface
- *
- *  \param [in] cs The Cairo surface to convert to a GdkPixbuf
- *  \return The Cairo surface converted into a GdkPixbuf
- */
-GdkPixbuf *_GGTKDraw_Cairo2Pixbuf(cairo_surface_t *cs) {
-    g_return_val_if_fail(cairo_surface_get_type(cs) == CAIRO_SURFACE_TYPE_IMAGE, NULL);
-    int width = cairo_image_surface_get_width(cs), height = cairo_image_surface_get_height(cs);
-    cairo_surface_t *csp = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
-    int stride = cairo_image_surface_get_stride(csp);
-    cairo_t *cc = cairo_create(csp);
-    cairo_set_source_surface(cc, cs, 0, 0);
-    cairo_paint(cc);
-    cairo_destroy(cc);
-    cairo_surface_flush(csp);
-
-    if (cairo_surface_status(csp) != CAIRO_STATUS_SUCCESS) {
-        return NULL;
-    }
-
-    // Must convert to GdkPixbuf format from CAIRO_FORMAT_ARGB32
-    unsigned char *data = cairo_image_surface_get_data(csp);
-    for (int i = 0; i < stride * height; i += 4) {
-        uint32_t p = *((uint32_t *)(data + i));
-        uint8_t alpha = p >> 24;
-        if (p == 0) {
-            *((uint32_t *)(data + i)) = 0;
-        } else {
-            // GdkPixbuf does not premultiply alpha
-            data[i] = (((p & 0xff0000) >> 16) *  255 + alpha / 2) / alpha;
-            data[i + 1] = (((p & 0xff00) >> 8) *  255 + alpha / 2) / alpha;
-            data[i + 2] = ((p & 0xff) *  255 + alpha / 2) / alpha;
-            data[i + 3] = alpha;
-        }
-    }
-    cairo_surface_mark_dirty(csp);
-
-    return gdk_pixbuf_new_from_data(data,
-                                    GDK_COLORSPACE_RGB, true, 8, width, height, stride,
-                                    _GGTKDraw_OnPixbufDestroy, csp);
-}
-
-#else // GDK3
-
-cairo_region_t *_GGTKDraw_ExcludeChildRegions(GGTKWindow gw, cairo_region_t *r, bool force) {
-    GList_Glib *children = gdk_window_peek_children(gw->w);
-    cairo_region_t *reg = NULL;
-
-    if (children) {
-        if (r == NULL) {
-            reg = gdk_window_get_clip_region(gw->w);
-        } else {
-            reg = cairo_region_copy(r);
-        }
-
-        while (children != NULL) {
-            cairo_region_t *chr = gdk_window_get_clip_region((GdkWindow *)children->data);
-            int dx, dy;
-
-            gdk_window_get_position((GdkWindow *)children->data, &dx, &dy);
-            cairo_region_translate(chr, dx, dy);
-            cairo_region_subtract(reg, chr);
-            cairo_region_destroy(chr);
-            children = children->next;
-        }
-    } else if (force) {
-        reg = gdk_window_get_clip_region(gw->w);
-    }
-
-    return reg;
-}
-
-#endif // GGTKDRAW_GDK_2
-
-void _GGTKDraw_CleanupAutoPaint(GGTKDisplay *gdisp) {
-    if (gdisp->dirty_window != NULL) {
-        GGTKWindow gw = gdisp->dirty_window;
-
-        if (gw->cc != NULL) {
-            cairo_destroy(gw->cc);
-            gw->cc = NULL;
-        }
-        if (gw->is_in_paint) {
-            //Log(LOGDEBUG, "ENDED PAINT %p", gw);
-#if !defined(GGTKDRAW_GDK_2)
-            if (gw->cs != NULL) {
-                assert(gw->expose_region != NULL);
-#ifdef GGTKDRAW_GDK_3_22
-                cairo_t *cc = cairo_reference(gdk_drawing_context_get_cairo_context(gw->drawing_ctx));
-#else
-                cairo_t *cc = gdk_cairo_create(gw->w);
-#endif
-
-                gdk_cairo_region(cc, gw->expose_region);
-                cairo_clip(cc);
-
-                cairo_set_source_surface(cc, gw->cs, 0, 0);
-                cairo_set_operator(cc, CAIRO_OPERATOR_SOURCE);
-                cairo_paint(cc);
-
-                cairo_destroy(cc);
-                cairo_region_destroy(gw->expose_region);
-                gw->expose_region = NULL;
-                cairo_surface_destroy(gw->cs);
-                gw->cs = NULL;
-            }
-#endif
-#ifdef GGTKDRAW_GDK_3_22
-            gdk_window_end_draw_frame(gw->w, gw->drawing_ctx);
-#else
-            gdk_window_end_paint(gw->w);
-#endif
-            gw->is_in_paint = false;
-        } else {
-#ifdef GGTKDRAW_GDK_2
-            // GDK2 likes to bunch up screen refreshes when an expose
-            // event hasn't been explicitly created. But this affects
-            // drawing, especially in the charview, which makes it look
-            // laggy. So force it to process window updates if we drew stuff.
-            gdk_window_process_updates(gw->w, false);
-#endif
-        }
-        gdisp->dirty_window = NULL;
-    }
-}
-
 void GGTKDrawPushClip(GWindow w, GRect *rct, GRect *old) {
     //Log(LOGDEBUG, " ");
 
     // Return the current clip, and intersect the current clip with the desired
     // clip to get the new clip.
-    _GGTKDraw_CheckAutoPaint((GGTKWindow)w);
-
     *old = w->ggc->clip;
     w->ggc->clip = *rct;
     if (w->ggc->clip.x + w->ggc->clip.width > old->x + old->width) {
@@ -727,83 +584,72 @@ void GGTKDrawPushClip(GWindow w, GRect *rct, GRect *old) {
         w->ggc->clip.x = w->ggc->clip.y = -100;
         w->ggc->clip.height = w->ggc->clip.width = 1;
     }
-
-    GGTKWindow gw = (GGTKWindow)w;
-
-    cairo_save(gw->cc);
-    cairo_new_path(gw->cc);
-    cairo_rectangle(gw->cc, gw->ggc->clip.x, gw->ggc->clip.y,
-                    gw->ggc->clip.width, gw->ggc->clip.height);
-    cairo_clip(gw->cc);
+	
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    cairo_save(cr);
+    cairo_new_path(cr);
+    cairo_rectangle(cr, w->ggc->clip.x, w->ggc->clip.y,
+                    w->ggc->clip.width, w->ggc->clip.height);
+    cairo_clip(cr);
 }
 
 void GGTKDrawPopClip(GWindow w, GRect *old) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    gw->ggc->clip = *old;
-    // cc can be NULL if the autopaint cleanup had to run because
-    // a raise/lower/move/resize function was called.
-    if (gw->cc != NULL) {
-        cairo_restore(gw->cc);
-    }
+    w->ggc->clip = *old;
+	cairo_restore(_GGTKDraw_GetCairoContext((GGTKWindow)w));
 }
 
 
 void GGTKDrawSetDifferenceMode(GWindow w) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
-    cairo_set_operator(gw->cc, CAIRO_OPERATOR_DIFFERENCE);
-    cairo_set_antialias(gw->cc, CAIRO_ANTIALIAS_NONE);
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    cairo_set_operator(cr, CAIRO_OPERATOR_DIFFERENCE);
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
 }
 
 
 void GGTKDrawClear(GWindow w, GRect *rect) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+
     GRect temp, *r = rect, old;
     if (r == NULL) {
-        temp = gw->pos;
+        temp = w->pos;
         temp.x = temp.y = 0;
         r = &temp;
     }
-    GGTKDrawPushClip((GWindow)gw, r, &old);
-    cairo_set_source_rgba(gw->cc, COLOR_RED(gw->ggc->bg) / 255.,
-                          COLOR_GREEN(gw->ggc->bg) / 255.,
-                          COLOR_BLUE(gw->ggc->bg) / 255., 1.0);
-    cairo_paint(gw->cc);
-    GGTKDrawPopClip((GWindow)gw, &old);
+    GGTKDrawPushClip(w, r, &old);
+    cairo_set_source_rgba(cr, COLOR_RED(w->ggc->bg) / 255.,
+                          COLOR_GREEN(w->ggc->bg) / 255.,
+                          COLOR_BLUE(w->ggc->bg) / 255., 1.0);
+    cairo_paint(cr);
+    GGTKDrawPopClip(w, &old);
 }
 
 void GGTKDrawDrawLine(GWindow w, int32 x, int32 y, int32 xend, int32 yend, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
-
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
     w->ggc->fg = col;
 
-    int width = GGTKDrawSetline(gw, gw->ggc);
-    cairo_new_path(gw->cc);
+    int width = _GGTKDraw_SetLine(cr, w->ggc);
+    cairo_new_path(cr);
     if (width & 1) {
-        cairo_move_to(gw->cc, x + .5, y + .5);
-        cairo_line_to(gw->cc, xend + .5, yend + .5);
+        cairo_move_to(cr, x + .5, y + .5);
+        cairo_line_to(cr, xend + .5, yend + .5);
     } else {
-        cairo_move_to(gw->cc, x, y);
-        cairo_line_to(gw->cc, xend, yend);
+        cairo_move_to(cr, x, y);
+        cairo_line_to(cr, xend, yend);
     }
-    cairo_stroke(gw->cc);
+    cairo_stroke(cr);
 
 }
 
 void GGTKDrawDrawArrow(GWindow w, int32 x, int32 y, int32 xend, int32 yend, int16 arrows, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
-    gw->ggc->fg = col;
-
-    int width = GGTKDrawSetline(gw, gw->ggc);
+    int width = _GGTKDraw_SetLine(cr, w->ggc);
     if (width & 1) {
         x += .5;
         y += .5;
@@ -815,10 +661,10 @@ void GGTKDrawDrawArrow(GWindow w, int32 x, int32 y, int32 xend, int32 yend, int1
     double angle = atan2(yend - y, xend - x) + M_PI;
     double length = sqrt((x - xend) * (x - xend) + (y - yend) * (y - yend));
 
-    cairo_new_path(gw->cc);
-    cairo_move_to(gw->cc, x, y);
-    cairo_line_to(gw->cc, xend, yend);
-    cairo_stroke(gw->cc);
+    cairo_new_path(cr);
+    cairo_move_to(cr, x, y);
+    cairo_line_to(cr, xend, yend);
+    cairo_stroke(cr);
 
     if (length < 2) { //No point arrowing something so small
 
@@ -828,79 +674,71 @@ void GGTKDrawDrawArrow(GWindow w, int32 x, int32 y, int32 xend, int32 yend, int1
     } else {
         length *= 2. / 3.;
     }
-    cairo_new_path(gw->cc);
-    cairo_move_to(gw->cc, xend, yend);
-    cairo_line_to(gw->cc, xend + length * cos(angle - head_angle), yend + length * sin(angle - head_angle));
-    cairo_line_to(gw->cc, xend + length * cos(angle + head_angle), yend + length * sin(angle + head_angle));
-    cairo_close_path(gw->cc);
-    cairo_fill(gw->cc);
+    cairo_new_path(cr);
+    cairo_move_to(cr, xend, yend);
+    cairo_line_to(cr, xend + length * cos(angle - head_angle), yend + length * sin(angle - head_angle));
+    cairo_line_to(cr, xend + length * cos(angle + head_angle), yend + length * sin(angle + head_angle));
+    cairo_close_path(cr);
+    cairo_fill(cr);
 
 }
 
 void GGTKDrawDrawRect(GWindow w, GRect *rect, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
-    gw->ggc->fg = col;
-
-    int width = GGTKDrawSetline(gw, gw->ggc);
-    cairo_new_path(gw->cc);
+    int width = _GGTKDraw_SetLine(cr, w->ggc);
+    cairo_new_path(cr);
     if (width & 1) {
-        cairo_rectangle(gw->cc, rect->x + .5, rect->y + .5, rect->width, rect->height);
+        cairo_rectangle(cr, rect->x + .5, rect->y + .5, rect->width, rect->height);
     } else {
-        cairo_rectangle(gw->cc, rect->x, rect->y, rect->width, rect->height);
+        cairo_rectangle(cr, rect->x, rect->y, rect->width, rect->height);
     }
-    cairo_stroke(gw->cc);
+    cairo_stroke(cr);
 
 }
 
 void GGTKDrawFillRect(GWindow w, GRect *rect, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
-    gw->ggc->fg = col;
+    _GGTKDraw_SetColFunc(cr, w->ggc);
 
-    GGTKDrawSetcolfunc(gw, gw->ggc);
-
-    cairo_new_path(gw->cc);
-    cairo_rectangle(gw->cc, rect->x, rect->y, rect->width, rect->height);
-    cairo_fill(gw->cc);
+    cairo_new_path(cr);
+    cairo_rectangle(cr, rect->x, rect->y, rect->width, rect->height);
+    cairo_fill(cr);
 
 }
 
 void GGTKDrawFillRoundRect(GWindow w, GRect *rect, int radius, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
-    gw->ggc->fg = col;
-
-    GGTKDrawSetcolfunc(gw, gw->ggc);
+    _GGTKDraw_SetColFunc(cr, w->ggc);
 
     double degrees = M_PI / 180.0;
     int rr = (radius <= (rect->height + 1) / 2) ? (radius > 0 ? radius : 0) : (rect->height + 1) / 2;
-    cairo_new_path(gw->cc);
-    cairo_arc(gw->cc, rect->x + rect->width - rr, rect->y + rr, rr, -90 * degrees, 0 * degrees);
-    cairo_arc(gw->cc, rect->x + rect->width - rr, rect->y + rect->height - rr, rr, 0 * degrees, 90 * degrees);
-    cairo_arc(gw->cc, rect->x + rr, rect->y + rect->height - rr, rr, 90 * degrees, 180 * degrees);
-    cairo_arc(gw->cc, rect->x + rr, rect->y + rr, rr, 180 * degrees, 270 * degrees);
-    cairo_close_path(gw->cc);
-    cairo_fill(gw->cc);
+    cairo_new_path(cr);
+    cairo_arc(cr, rect->x + rect->width - rr, rect->y + rr, rr, -90 * degrees, 0 * degrees);
+    cairo_arc(cr, rect->x + rect->width - rr, rect->y + rect->height - rr, rr, 0 * degrees, 90 * degrees);
+    cairo_arc(cr, rect->x + rr, rect->y + rect->height - rr, rr, 90 * degrees, 180 * degrees);
+    cairo_arc(cr, rect->x + rr, rect->y + rr, rr, 180 * degrees, 270 * degrees);
+    cairo_close_path(cr);
+    cairo_fill(cr);
 
 }
 
 void GGTKDrawDrawEllipse(GWindow w, GRect *rect, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
-
-    gw->ggc->fg = col;
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
     // It is tempting to use the cairo arc command and scale the
     //  coordinates to get an ellipse, but that distorts the stroke width.
-    int lwidth = GGTKDrawSetline(gw, gw->ggc);
+    int lwidth = _GGTKDraw_SetLine(cr, w->ggc);
     double cx, cy, width, height;
 
     width = rect->width / 2.0;
@@ -915,19 +753,16 @@ void GGTKDrawDrawEllipse(GWindow w, GRect *rect, Color col) {
             cy += .5;
         }
     }
-    _GGTKDraw_EllipsePath(gw->cc, cx, cy, width, height);
-    cairo_stroke(gw->cc);
-
+    _GGTKDraw_EllipsePath(cr, cx, cy, width, height);
+    cairo_stroke(cr);
 }
 
 void GGTKDrawFillEllipse(GWindow w, GRect *rect, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
-
-    gw->ggc->fg = col;
-    GGTKDrawSetcolfunc(gw, gw->ggc);
+    _GGTKDraw_SetColFunc(cr, w->ggc);
 
     // It is tempting to use the cairo arc command and scale the
     //  coordinates to get an ellipse, but that distorts the stroke width.
@@ -936,9 +771,8 @@ void GGTKDrawFillEllipse(GWindow w, GRect *rect, Color col) {
     height = rect->height / 2.0;
     cx = rect->x + width;
     cy = rect->y + height;
-    _GGTKDraw_EllipsePath(gw->cc, cx, cy, width, height);
-    cairo_fill(gw->cc);
-
+    _GGTKDraw_EllipsePath(cr, cx, cy, width, height);
+    cairo_fill(cr);
 }
 
 /**
@@ -952,80 +786,72 @@ void GGTKDrawFillEllipse(GWindow w, GRect *rect, Color col) {
  */
 void GGTKDrawDrawArc(GWindow w, GRect *rect, int32 sangle, int32 eangle, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
-
-    gw->ggc->fg = col;
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
     // Leftover from XDrawArc: sangle/eangle in degrees*64.
     double start = -(sangle + eangle) * M_PI / 11520., end = -sangle * M_PI / 11520.;
-    int width = GGTKDrawSetline(gw, gw->ggc);
+    int width = _GGTKDraw_SetLine(cr, w->ggc);
 
-    cairo_new_path(gw->cc);
-    cairo_save(gw->cc);
+    cairo_new_path(cr);
+    cairo_save(cr);
     if (width & 1) {
-        cairo_translate(gw->cc, rect->x + .5 + rect->width / 2., rect->y + .5 + rect->height / 2.);
+        cairo_translate(cr, rect->x + .5 + rect->width / 2., rect->y + .5 + rect->height / 2.);
     } else {
-        cairo_translate(gw->cc, rect->x + rect->width / 2., rect->y + rect->height / 2.);
+        cairo_translate(cr, rect->x + rect->width / 2., rect->y + rect->height / 2.);
     }
-    cairo_scale(gw->cc, rect->width / 2., rect->height / 2.);
-    cairo_arc(gw->cc, 0., 0., 1., start, end);
-    cairo_restore(gw->cc);
-    cairo_stroke(gw->cc);
+    cairo_scale(cr, rect->width / 2., rect->height / 2.);
+    cairo_arc(cr, 0., 0., 1., start, end);
+    cairo_restore(cr);
+    cairo_stroke(cr);
 
 }
 
 void GGTKDrawDrawPoly(GWindow w, GPoint *pts, int16 cnt, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
-    gw->ggc->fg = col;
-
-    int width = GGTKDrawSetline(gw, gw->ggc);
+    int width = _GGTKDraw_SetLine(cr, w->ggc);
     double off = (width & 1) ? .5 : 0;
 
-    cairo_new_path(gw->cc);
-    cairo_move_to(gw->cc, pts[0].x + off, pts[0].y + off);
+    cairo_new_path(cr);
+    cairo_move_to(cr, pts[0].x + off, pts[0].y + off);
     for (int i = 1; i < cnt; ++i) {
-        cairo_line_to(gw->cc, pts[i].x + off, pts[i].y + off);
+        cairo_line_to(cr, pts[i].x + off, pts[i].y + off);
     }
-    cairo_stroke(gw->cc);
-
+    cairo_stroke(cr);
 }
 
 void GGTKDrawFillPoly(GWindow w, GPoint *pts, int16 cnt, Color col) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    w->ggc->fg = col;
 
-    gw->ggc->fg = col;
+    _GGTKDraw_SetColFunc(cr, w->ggc);
 
-    GGTKDrawSetcolfunc(gw, gw->ggc);
-
-    cairo_new_path(gw->cc);
-    cairo_move_to(gw->cc, pts[0].x, pts[0].y);
+    cairo_new_path(cr);
+    cairo_move_to(cr, pts[0].x, pts[0].y);
     for (int i = 1; i < cnt; ++i) {
-        cairo_line_to(gw->cc, pts[i].x, pts[i].y);
+        cairo_line_to(cr, pts[i].x, pts[i].y);
     }
-    cairo_close_path(gw->cc);
-    cairo_fill(gw->cc);
+    cairo_close_path(cr);
+    cairo_fill(cr);
 
-    cairo_set_line_width(gw->cc, 1);
-    cairo_new_path(gw->cc);
-    cairo_move_to(gw->cc, pts[0].x + .5, pts[0].y + .5);
+    cairo_set_line_width(cr, 1);
+    cairo_new_path(cr);
+    cairo_move_to(cr, pts[0].x + .5, pts[0].y + .5);
     for (int i = 1; i < cnt; ++i) {
-        cairo_line_to(gw->cc, pts[i].x + .5, pts[i].y + .5);
+        cairo_line_to(cr, pts[i].x + .5, pts[i].y + .5);
     }
-    cairo_close_path(gw->cc);
-    cairo_stroke(gw->cc);
+    cairo_close_path(cr);
+    cairo_stroke(cr);
 
 }
 
 void GGTKDrawDrawImage(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
 
     cairo_surface_t *is = _GGTKDraw_GImage2Surface(image, src), *cs = is;
     struct _GImage *base = (image->list_len == 0) ? image->u.image : image->u.images[0];
@@ -1042,24 +868,24 @@ void GGTKDrawDrawImage(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
         cairo_mask_surface(cc, is, 0, 0);
         cairo_destroy(cc);
 #else
-        cairo_set_source_rgba(gw->cc, COLOR_RED(fg) / 255.0, COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, 1.0);
-        cairo_mask_surface(gw->cc, cs, x, y);
+        cairo_set_source_rgba(cr, COLOR_RED(fg) / 255.0, COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, 1.0);
+        cairo_mask_surface(cr, cs, x, y);
         cs = NULL;
 #endif
     }
 
     if (cs != NULL) {
-        cairo_set_source_surface(gw->cc, cs, x, y);
-        cairo_rectangle(gw->cc, x, y, src->width, src->height);
-        cairo_fill(gw->cc);
+        cairo_set_source_surface(cr, cs, x, y);
+        cairo_rectangle(cr, x, y, src->width, src->height);
+        cairo_fill(cr);
 
         if (cs != is) {
             cairo_surface_destroy(cs);
         }
     }
     /* Clear source and mask, in case we need to */
-    cairo_new_path(gw->cc);
-    cairo_set_source_rgba(gw->cc, 0, 0, 0, 0);
+    cairo_new_path(cr);
+    cairo_set_source_rgba(cr, 0, 0, 0, 0);
 
     cairo_surface_destroy(is);
 }
@@ -1067,8 +893,7 @@ void GGTKDrawDrawImage(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
 // What we really want to do is use the grey levels as an alpha channel
 void GGTKDrawDrawGlyph(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
 
     struct _GImage *base = (image->list_len) == 0 ? image->u.image : image->u.images[0];
     cairo_surface_t *is;
@@ -1095,13 +920,13 @@ void GGTKDrawDrawGlyph(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
         }
         is = cairo_image_surface_create_for_data(basedata, CAIRO_FORMAT_A8,
                 src->width, src->height, stride);
-        cairo_set_source_rgba(gw->cc, COLOR_RED(fg) / 255.0, COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, 1.0);
-        cairo_mask_surface(gw->cc, is, x, y);
+        cairo_set_source_rgba(cr, COLOR_RED(fg) / 255.0, COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, 1.0);
+        cairo_mask_surface(cr, is, x, y);
         /* I think the mask is sufficient, setting a rectangle would provide */
         /*  a new mask? */
-        /*cairo_rectangle(gw->cc,x,y,src->width,src->height);*/
+        /*cairo_rectangle(cr,x,y,src->width,src->height);*/
         /* I think setting the mask also draws... at least so the tutorial implies */
-        /* cairo_fill(gw->cc);*/
+        /* cairo_fill(cr);*/
         /* Presumably that doesn't leave the mask surface pattern lying around */
         /* but dereferences it so we can free it */
         cairo_surface_destroy(is);
@@ -1112,20 +937,19 @@ void GGTKDrawDrawGlyph(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
 
 void GGTKDrawDrawImageMagnified(GWindow w, GImage *image, GRect *src, int32 x, int32 y, int32 width, int32 height) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w;
-    _GGTKDraw_CheckAutoPaint(gw);
+    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
 
     struct _GImage *base = (image->list_len == 0) ? image->u.image : image->u.images[0];
     GRect full;
     double xscale, yscale;
     GRect viewable;
 
-    viewable = gw->ggc->clip;
-    if (viewable.width > gw->pos.width - viewable.x) {
-        viewable.width = gw->pos.width - viewable.x;
+    viewable = w->ggc->clip;
+    if (viewable.width > w->pos.width - viewable.x) {
+        viewable.width = w->pos.width - viewable.x;
     }
-    if (viewable.height > gw->pos.height - viewable.y) {
-        viewable.height = gw->pos.height - viewable.y;
+    if (viewable.height > w->pos.height - viewable.y) {
+        viewable.height = w->pos.height - viewable.y;
     }
 
     xscale = (base->width >= 1) ? ((double)(width)) / (base->width) : 1;
@@ -1179,16 +1003,15 @@ void GGTKDrawDrawImageMagnified(GWindow w, GImage *image, GRect *src, int32 x, i
 
 void GGTKDrawDrawPixmap(GWindow w, GWindow pixmap, GRect *src, int32 x, int32 y) {
     //Log(LOGDEBUG, " ");
-    GGTKWindow gw = (GGTKWindow)w, gpixmap = (GGTKWindow)pixmap;
-    _GGTKDraw_CheckAutoPaint(gw);
-
+    GGTKWindow gpixmap = (GGTKWindow)pixmap;
     if (!gpixmap->is_pixmap) {
         return;
     }
 
-    cairo_set_source_surface(gw->cc, gpixmap->cs, x - src->x, y - src->y);
-    cairo_rectangle(gw->cc, x, y, src->width, src->height);
-    cairo_fill(gw->cc);
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+    cairo_set_source_surface(cr, gpixmap->pixmap_surface, x - src->x, y - src->y);
+    cairo_rectangle(cr, x, y, src->width, src->height);
+    cairo_fill(cr);
 }
 
 enum gcairo_flags GGTKDrawHasCairo(GWindow UNUSED(w)) {
@@ -1198,71 +1021,69 @@ enum gcairo_flags GGTKDrawHasCairo(GWindow UNUSED(w)) {
 
 void GGTKDrawPathStartNew(GWindow w) {
     //Log(LOGDEBUG, " ");
-    _GGTKDraw_CheckAutoPaint((GGTKWindow)w);
-    cairo_new_path(((GGTKWindow)w)->cc);
+	cairo_new_path(_GGTKDraw_GetCairoContext((GGTKWindow)w));
 }
 
 void GGTKDrawPathClose(GWindow w) {
     //Log(LOGDEBUG, " ");
-    cairo_close_path(((GGTKWindow)w)->cc);
+	cairo_close_path(_GGTKDraw_GetCairoContext((GGTKWindow)w));
 }
 
 void GGTKDrawPathMoveTo(GWindow w, double x, double y) {
     //Log(LOGDEBUG, " ");
-    _GGTKDraw_CheckAutoPaint((GGTKWindow)w);
-    cairo_move_to(((GGTKWindow)w)->cc, x, y);
+	cairo_move_to(_GGTKDraw_GetCairoContext((GGTKWindow)w), x, y);
 }
 
 void GGTKDrawPathLineTo(GWindow w, double x, double y) {
     //Log(LOGDEBUG, " ");
-    cairo_line_to(((GGTKWindow)w)->cc, x, y);
+	cairo_line_to(_GGTKDraw_GetCairoContext((GGTKWindow)w), x, y);
 }
 
 void GGTKDrawPathCurveTo(GWindow w, double cx1, double cy1, double cx2, double cy2, double x, double y) {
     //Log(LOGDEBUG, " ");
-    cairo_curve_to(((GGTKWindow)w)->cc, cx1, cy1, cx2, cy2, x, y);
+	cairo_curve_to(_GGTKDraw_GetCairoContext((GGTKWindow)w), cx1, cy1, cx2, cy2, x, y);
 }
 
 void GGTKDrawPathStroke(GWindow w, Color col) {
     //Log(LOGDEBUG, " ");
-    w->ggc->fg = col;
-    GGTKDrawSetline((GGTKWindow) w, w->ggc);
-    cairo_stroke(((GGTKWindow)w)->cc);
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+	w->ggc->fg = col;
+	_GGTKDraw_SetLine(cr, w->ggc);
+	cairo_stroke(cr);
 }
 
 void GGTKDrawPathFill(GWindow w, Color col) {
     //Log(LOGDEBUG, " ");
-    cairo_set_source_rgba(((GGTKWindow) w)->cc, COLOR_RED(col) / 255.0, COLOR_GREEN(col) / 255.0, COLOR_BLUE(col) / 255.0,
-                          (col >> 24) / 255.0);
-    cairo_fill(((GGTKWindow) w)->cc);
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
+	cairo_set_source_rgba(cr, COLOR_RED(col) / 255.0, COLOR_GREEN(col) / 255.0, COLOR_BLUE(col) / 255.0,
+					  (col >> 24) / 255.0);
+	cairo_fill(cr);
 }
 
 void GGTKDrawPathFillAndStroke(GWindow w, Color fillcol, Color strokecol) {
     //Log(LOGDEBUG, " ");
     // This function is unused, so it's unclear if it's implemented correctly.
-    GGTKWindow gw = (GGTKWindow) w;
+	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
 
-    cairo_save(gw->cc);
-    cairo_set_source_rgba(gw->cc, COLOR_RED(fillcol) / 255.0, COLOR_GREEN(fillcol) / 255.0, COLOR_BLUE(fillcol) / 255.0,
+    cairo_save(cr);
+    cairo_set_source_rgba(cr, COLOR_RED(fillcol) / 255.0, COLOR_GREEN(fillcol) / 255.0, COLOR_BLUE(fillcol) / 255.0,
                           (fillcol >> 24) / 255.0);
-    cairo_fill(gw->cc);
-    cairo_restore(gw->cc);
+    cairo_fill(cr);
+    cairo_restore(cr);
     w->ggc->fg = strokecol;
-    GGTKDrawSetline(gw, gw->ggc);
-    cairo_fill_preserve(gw->cc);
-    cairo_stroke(gw->cc);
+    _GGTKDraw_SetLine(cr, w->ggc);
+    cairo_fill_preserve(cr);
+    cairo_stroke(cr);
 }
 
 void GGTKDrawStartNewSubPath(GWindow w) {
     //Log(LOGDEBUG, " ");
-    _GGTKDraw_CheckAutoPaint((GGTKWindow)w);
-    cairo_new_sub_path(((GGTKWindow)w)->cc);
+	cairo_new_sub_path(_GGTKDraw_GetCairoContext((GGTKWindow)w));
 }
 
 int GGTKDrawFillRuleSetWinding(GWindow w) {
     //Log(LOGDEBUG, " ");
-    _GGTKDraw_CheckAutoPaint((GGTKWindow)w);
-    cairo_set_fill_rule(((GGTKWindow)w)->cc, CAIRO_FILL_RULE_WINDING);
+	cairo_set_fill_rule(_GGTKDraw_GetCairoContext((GGTKWindow)w), CAIRO_FILL_RULE_WINDING);
     return 1;
 }
 
@@ -1279,18 +1100,19 @@ int GGTKDrawDoText8(GWindow w, int32 x, int32 y, const char *text, int32 cnt, Co
         return 0;
     }
 
-    fd = _GGTKDraw_configfont(w, fi);
+    fd = _GGTKDraw_ConfigFont(w, fi);
     if (fd == NULL) {
         return 0;
     }
 
-    pango_layout_set_font_description(gw->pango_layout, fd);
-    pango_layout_set_text(gw->pango_layout, (char *)text, cnt);
-    pango_layout_get_pixel_extents(gw->pango_layout, &ink, &rect);
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
+    pango_layout_set_font_description(layout, fd);
+    pango_layout_set_text(layout, (char *)text, cnt);
+    pango_layout_get_pixel_extents(layout, &ink, &rect);
 
     if (drawit == tf_drawit) {
-        _GGTKDraw_CheckAutoPaint(gw);
-        _GGTKDraw_MyCairoRenderLayout(gw->cc, col, gw->pango_layout, x, y);
+		cairo_t *cr = _GGTKDraw_GetCairoContext(gw);
+        _GGTKDraw_MyCairoRenderLayout(cr, col, layout, x, y);
     } else if (drawit == tf_rect) {
         PangoLayoutIter *iter;
         PangoLayoutRun *run;
@@ -1303,7 +1125,7 @@ int GGTKDrawDoText8(GWindow w, int32 x, int32 y, const char *text, int32 cnt, Co
             // There are no runs if there are no characters
             memset(&arg->size, 0, sizeof(arg->size));
         } else {
-            iter = pango_layout_get_iter(gw->pango_layout);
+            iter = pango_layout_get_iter(layout);
             run = pango_layout_iter_get_run(iter);
             if (run == NULL) {
                 // Pango doesn't give us runs in a couple of other places
@@ -1331,29 +1153,27 @@ int GGTKDrawDoText8(GWindow w, int32 x, int32 y, const char *text, int32 cnt, Co
 
 void GGTKDrawPushClipOnly(GWindow w) {
     //Log(LOGDEBUG, " ");
-    _GGTKDraw_CheckAutoPaint((GGTKWindow)w);
-    cairo_save(((GGTKWindow)w)->cc);
+    cairo_save(_GGTKDraw_GetCairoContext((GGTKWindow)w));;
 }
 
 void GGTKDrawClipPreserve(GWindow w) {
     //Log(LOGDEBUG, " ");
-    _GGTKDraw_CheckAutoPaint((GGTKWindow)w);
-    cairo_clip_preserve(((GGTKWindow)w)->cc);
+    cairo_clip_preserve(_GGTKDraw_GetCairoContext((GGTKWindow)w));
 }
 
 // PANGO LAYOUT
 
-void GGTKDrawGetFontMetrics(GWindow gw, GFont *fi, int *as, int *ds, int *ld) {
+void GGTKDrawGetFontMetrics(GWindow w, GFont *fi, int *as, int *ds, int *ld) {
     //Log(LOGDEBUG, " ");
 
-    GGTKDisplay *gdisp = ((GGTKWindow) gw)->display;
+	PangoContext *context = _GGTKDraw_GetPangoContext((GGTKWindow)w);
     PangoFont *pfont;
     PangoFontMetrics *fm;
     PangoFontMap *pfm;
 
-    _GGTKDraw_configfont(gw, fi);
-    pfm = pango_context_get_font_map(gdisp->pangoc_context);
-    pfont = pango_font_map_load_font(pfm, gdisp->pangoc_context, fi->pangoc_fd);
+    _GGTKDraw_ConfigFont(w, fi);
+    pfm = pango_context_get_font_map(context);
+    pfont = pango_font_map_load_font(pfm, context, fi->pangoc_fd);
     fm = pango_font_get_metrics(pfont, NULL);
     *as = pango_font_metrics_get_ascent(fm) / PANGO_SCALE;
     *ds = pango_font_metrics_get_descent(fm) / PANGO_SCALE;
@@ -1367,30 +1187,34 @@ void GGTKDrawGetFontMetrics(GWindow gw, GFont *fi, int *as, int *ds, int *ld) {
 void GGTKDrawLayoutInit(GWindow w, char *text, int cnt, GFont *fi) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow) w;
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
     PangoFontDescription *fd;
 
     if (fi == NULL) {
         fi = gw->ggc->fi;
     }
 
-    fd = _GGTKDraw_configfont(w, fi);
-    pango_layout_set_font_description(gw->pango_layout, fd);
-    pango_layout_set_text(gw->pango_layout, text, cnt);
+    fd = _GGTKDraw_ConfigFont(w, fi);
+    pango_layout_set_font_description(layout, fd);
+    pango_layout_set_text(layout, text, cnt);
 }
 
 void GGTKDrawLayoutDraw(GWindow w, int32 x, int32 y, Color fg) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow)w;
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
+	cairo_t *cr = _GGTKDraw_GetCairoContext(gw);
 
-    _GGTKDraw_MyCairoRenderLayout(gw->cc, fg, gw->pango_layout, x, y);
+    _GGTKDraw_MyCairoRenderLayout(cr, fg, layout, x, y);
 }
 
 void GGTKDrawLayoutIndexToPos(GWindow w, int index, GRect *pos) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow)w;
     PangoRectangle rect;
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
 
-    pango_layout_index_to_pos(gw->pango_layout, index, &rect);
+    pango_layout_index_to_pos(layout, index, &rect);
     pos->x = rect.x / PANGO_SCALE;
     pos->y = rect.y / PANGO_SCALE;
     pos->width  = rect.width / PANGO_SCALE;
@@ -1400,13 +1224,14 @@ void GGTKDrawLayoutIndexToPos(GWindow w, int index, GRect *pos) {
 int GGTKDrawLayoutXYToIndex(GWindow w, int x, int y) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow)w;
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
     int trailing, index;
 
     // Pango retuns the last character if x is negative, not the first.
     if (x < 0) {
         x = 0;
     }
-    pango_layout_xy_to_index(gw->pango_layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+    pango_layout_xy_to_index(layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
 
     // If I give Pango a position after the last character on a line, it
     // returns to me the first character. Strange. And annoying -- you click
@@ -1414,10 +1239,10 @@ int GGTKDrawLayoutXYToIndex(GWindow w, int x, int y) {
     // Of course in right to left text an initial position is correct...
     if ((index + trailing) == 0 && x > 0) {
         PangoRectangle rect;
-        pango_layout_get_pixel_extents(gw->pango_layout, &rect, NULL);
+        pango_layout_get_pixel_extents(layout, &rect, NULL);
         if (x >= rect.width) {
             x = rect.width - 1;
-            pango_layout_xy_to_index(gw->pango_layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+            pango_layout_xy_to_index(layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
         }
     }
     return index + trailing;
@@ -1426,9 +1251,10 @@ int GGTKDrawLayoutXYToIndex(GWindow w, int x, int y) {
 void GGTKDrawLayoutExtents(GWindow w, GRect *size) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow)w;
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
     PangoRectangle rect;
 
-    pango_layout_get_pixel_extents(gw->pango_layout, NULL, &rect);
+    pango_layout_get_pixel_extents(layout, NULL, &rect);
     size->x = rect.x;
     size->y = rect.y;
     size->width  = rect.width;
@@ -1438,21 +1264,24 @@ void GGTKDrawLayoutExtents(GWindow w, GRect *size) {
 void GGTKDrawLayoutSetWidth(GWindow w, int width) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow)w;
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
 
-    pango_layout_set_width(gw->pango_layout, (width == -1) ? -1 : width * PANGO_SCALE);
+    pango_layout_set_width(layout, (width == -1) ? -1 : width * PANGO_SCALE);
 }
 
 int GGTKDrawLayoutLineCount(GWindow w) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow)w;
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
 
-    return pango_layout_get_line_count(gw->pango_layout);
+    return pango_layout_get_line_count(layout);
 }
 
 int GGTKDrawLayoutLineStart(GWindow w, int l) {
     //Log(LOGDEBUG, " ");
     GGTKWindow gw = (GGTKWindow)w;
-    PangoLayoutLine *line = pango_layout_get_line(gw->pango_layout, l);
+	PangoLayout *layout = _GGTKDraw_GetPangoLayout(gw);
+    PangoLayoutLine *line = pango_layout_get_line(layout, l);
 
     if (line == NULL) {
         return -1;

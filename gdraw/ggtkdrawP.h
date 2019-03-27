@@ -54,9 +54,11 @@ struct _GGtkWindowClass
 
 GtkWidget* ggtk_window_new(GGTKWindow gw);
 GGTKWindow ggtk_window_get_base(GGtkWindow *ggw);
-void ggtk_window_set_background(GGtkWindow *ggw, GdkRGBA col);
+void ggtk_window_set_background(GGtkWindow *ggw, GdkRGBA *col);
 cairo_t* ggtk_window_get_cairo_context(GGtkWindow *ggw);
 void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area);
+const char *ggtk_window_get_title(GGtkWindow *ggw);
+PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw);
 
 // end GGtkWindow declaration
 
@@ -109,6 +111,9 @@ typedef struct ggtkdisplay { /* :GDisplay */
     char *err_report;
     // Inherit GDisplay end
     
+    unsigned int is_space_pressed: 1; // Used for GGDKDrawKeyState. We cheat!
+    unsigned int is_dying: 1; // Flag to indicate if we're cleaning up the display.
+    
     GPtrArray *cursors; // List of cursors that the user made.
     
     GGTKButtonState bs;
@@ -116,6 +121,7 @@ typedef struct ggtkdisplay { /* :GDisplay */
     GGTKWindow default_icon;
 
     GdkDisplay *display;
+    PangoContext *default_pango_context;
 } GGTKDisplay;
 
 struct ggtkwindow { /* :GWindow */
@@ -137,15 +143,15 @@ struct ggtkwindow { /* :GWindow */
     unsigned int disable_expose_requests : 1;
     unsigned int usecairo : 1;
     char *window_type_name;
-    //char pad[4];
     // Inherit GWindow end
     unsigned int is_dlg: 1;
     unsigned int not_restricted: 1;
-    unsigned int was_positioned: 1;
     unsigned int restrict_input_to_me: 1;/* for dialogs, no input outside of dlg */
-    unsigned int redirect_chars_to_me: 1;/* ditto, we get any input outside of us */
     unsigned int istransient: 1;	/* has transient for hint set */
     unsigned int isverytransient: 1;
+    cairo_surface_t *pixmap_surface;
+    cairo_t *pixmap_context;
+    PangoLayout *pixmap_layout;
 };
 
 // Functions in ggtkcdraw.c
