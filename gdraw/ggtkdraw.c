@@ -130,7 +130,6 @@ static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWin
     }
 }
 
-
 static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_UNUSED gpointer data) {
     static int request_id = 0;
     struct gevent gevent = {0};
@@ -375,6 +374,55 @@ static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_U
     Log(LOGVERBOSE, "[%d] Finished processing %d(%s)", request_id++, event->type, GdkEventName(event->type));
 }
 
+static void _GGTKDraw_ReceiveSizeAllocate(GtkWidget *widget, GdkRectangle *alloc, G_GNUC_UNUSED gpointer user_data) {
+    Log(LOGINFO, "Received size allocate on %p(%s) [%d, %d, %d, %d]", widget, ggtk_window_get_title(GGTK_WINDOW(widget)),
+        alloc->x, alloc->y, alloc->width, alloc->height);
+    GGTKWindow gw = ggtk_window_get_base(GGTK_WINDOW(widget));
+    if (!gw) {
+        Log(LOGWARN, "No gw on %p?", widget);
+        return;
+    }
+    
+    if (gw->is_toplevel) {
+        // dodgy mcdodge
+        gtk_window_get_position(GTK_WINDOW(gtk_widget_get_toplevel(widget)), &alloc->x, &alloc->y);
+    }
+    
+    struct gevent gevent = {0};
+    gevent.w = (GWindow)gw;
+    gevent.native_window = (void *)gw->w;
+    gevent.type = et_resize;
+    gevent.u.resize.size.x      = alloc->x;
+    gevent.u.resize.size.y      = alloc->y;
+    gevent.u.resize.size.width  = alloc->width;
+    gevent.u.resize.size.height = alloc->height;
+    gevent.u.resize.dx          = alloc->x - gw->pos.x;
+    gevent.u.resize.dy          = alloc->y - gw->pos.y;
+    gevent.u.resize.dwidth      = alloc->width - gw->pos.width;
+    gevent.u.resize.dheight     = alloc->height - gw->pos.height;
+    gevent.u.resize.moved       = gevent.u.resize.sized = false;
+    if (gevent.u.resize.dx != 0 || gevent.u.resize.dy != 0) {
+        gevent.u.resize.moved = true;
+    }
+    if (gevent.u.resize.dwidth != 0 || gevent.u.resize.dheight != 0) {
+        gevent.u.resize.sized = true;
+    }
+    
+    gw->pos = gevent.u.resize.size;
+
+    // I could make this Windows specific... But it doesn't seem necessary on other platforms too.
+    // On Windows, repeated configure messages are sent if we move the window around.
+    // This causes CPU usage to go up because mouse handlers of this message just redraw the whole window.
+    if (gw->is_toplevel && !gevent.u.resize.sized && gevent.u.resize.moved) {
+        Log(LOGDEBUG, "Configure DISCARDED: %p:%s, %d %d %d %d", gw, ggtk_window_get_title(gw->w), gw->pos.x, gw->pos.y, gw->pos.width, gw->pos.height);
+        return;
+    } else {
+        Log(LOGINFO, "CONFIGURED: %p:%s, %d %d %d %d", gw, ggtk_window_get_title(gw->w), gw->pos.x, gw->pos.y, gw->pos.width, gw->pos.height);
+    }
+    
+    _GGTKDraw_CallEHChecked(gw, &gevent, gw->eh);
+}
+
 static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *pos,
                                       int (*eh)(GWindow, GEvent *), void *user_data, GWindowAttrs *wattrs) {
 
@@ -573,6 +621,7 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
 	// Set event mask, connect to the right signals
 	gtk_widget_set_events(GTK_WIDGET(nw->w), event_mask);
 	g_signal_connect(GTK_WIDGET(nw->w), "event", G_CALLBACK(_GGTKDraw_DispatchEvent), NULL);
+	g_signal_connect(GTK_WIDGET(nw->w), "size-allocate", G_CALLBACK(_GGTKDraw_ReceiveSizeAllocate), NULL);
 
     Log(LOGWARN, "Window created: %p[%p][%d] has window: %d %d", nw, nw->w, nw->is_toplevel,
 	gtk_widget_get_has_window(GTK_WIDGET(nw->w)),
@@ -926,6 +975,18 @@ static void GGTKDrawFlush(GDisplay *gdisp) {
 
 static void GGTKDrawScroll(GWindow w, GRect *rect, int32 hor, int32 vert) {
     //Log(LOGVERBOSE, " ");
+    GGTKWindow gw = (GGTKWindow) w;
+    GRect temp;
+
+    vert = -vert;
+    if (rect == NULL) {
+        temp.x = temp.y = 0;
+        temp.width = gw->pos.width;
+        temp.height = gw->pos.height;
+        rect = &temp;
+    }
+
+    GDrawRequestExpose(w, rect, false);
 }
 
 static GIC *GGTKDrawCreateInputContext(GWindow UNUSED(gw), enum gic_style UNUSED(style)) {
