@@ -125,13 +125,14 @@ static VisibilityState _GGTKDraw_GdkVisibilityStateToVS(GdkVisibilityState state
 static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWindow gw, GEvent *)) {
     if (eh) {
 		(void)gw;
+		Log(LOGVERBOSE, "Sending %d", event->type);
         (eh)((GWindow)gw, event);
     }
 }
 
 
 static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_UNUSED gpointer data) {
-    //static int request_id = 0;
+    static int request_id = 0;
     struct gevent gevent = {0};
 	GGtkWindow *ggw = GGTK_WINDOW(widget);
 	if (!ggw) {
@@ -142,7 +143,7 @@ static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_U
 	GGTKDisplay *gdisp = gw->display;
 	assert(gw->w == ggw);
 
-    //Log(LOGDEBUG, "[%d] Received event %d(%s) %p", request_id++, event->type, GdkEventName(event->type), w);
+    Log(LOGVERBOSE, "[%d] Received event %d(%s) %p", request_id++, event->type, GdkEventName(event->type), widget);
     //fflush(stderr);
 
     gevent.w = (GWindow)gw;
@@ -263,6 +264,7 @@ static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_U
                     gdisp->bs.cur_click = 1;
                 }
                 gdisp->bs.last_press_time = gevent.u.mouse.time;
+				Log(LOGDEBUG, "LAST TIME %d click %d", gevent.u.mouse.time, gdisp->bs.cur_click);
             } else {
                 gevent.type = et_mouseup;
                 gdisp->bs.release_w = gw;
@@ -370,7 +372,7 @@ static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_U
     if (gevent.type != et_noevent && gw != NULL && gw->eh != NULL) {
         _GGTKDraw_CallEHChecked(gw, &gevent, gw->eh);
     }
-    //Log(LOGDEBUG, "[%d] Finished processing %d(%s)", request_id++, event->type, GdkEventName(event->type));
+    Log(LOGVERBOSE, "[%d] Finished processing %d(%s)", request_id++, event->type, GdkEventName(event->type));
 }
 
 static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *pos,
@@ -539,7 +541,13 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
             return NULL;
         }
 
+		// Set event mask on toplevel window too...
+		gtk_widget_set_events(GTK_WIDGET(window), event_mask);
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(nw->w));
+		
+		gtk_widget_set_can_focus(GTK_WIDGET(nw->w), true);
+		gtk_widget_set_can_default(GTK_WIDGET(nw->w), true);
+		gtk_window_set_default(window, GTK_WIDGET(nw->w));
         // Am I meant to keep a ref to the window around? Am I meant to free it?
     } else {
         nw->w = GGTK_WINDOW(ggtk_window_new(nw));
@@ -566,7 +574,10 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
 	gtk_widget_set_events(GTK_WIDGET(nw->w), event_mask);
 	g_signal_connect(GTK_WIDGET(nw->w), "event", G_CALLBACK(_GGTKDraw_DispatchEvent), NULL);
 
-    Log(LOGDEBUG, "Window created: %p[%p][%d]", nw, nw->w, nw->is_toplevel);
+    Log(LOGWARN, "Window created: %p[%p][%d] has window: %d %d", nw, nw->w, nw->is_toplevel,
+	gtk_widget_get_has_window(GTK_WIDGET(nw->w)),
+	gtk_widget_has_focus(GTK_WIDGET(nw->w))
+	);
     return (GWindow)nw;
 }
 
@@ -842,20 +853,35 @@ static void GGTKDrawLower(GWindow gw) {
 // Icon title is ignored.
 static void GGTKDrawSetWindowTitles8(GWindow w, const char *title, const char *UNUSED(icontitle)) {
     Log(LOGVERBOSE, " "); // assert(false);
+	GGTKWindow gw = (GGTKWindow)w;
+	if (gw->is_toplevel) {
+		GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
+		gtk_window_set_title(window, title);
+	}
 }
 
-static void GGTKDrawSetWindowTitles(GWindow gw, const unichar_t *title, const unichar_t *UNUSED(icontitle)) {
+static void GGTKDrawSetWindowTitles(GWindow w, const unichar_t *title, const unichar_t *UNUSED(icontitle)) {
     Log(LOGVERBOSE, " ");
+	char *str = u2utf8_copy(title);
+	GGTKDrawSetWindowTitles8(w, str, NULL);
+	free(str);
 }
 
-static unichar_t *GGTKDrawGetWindowTitle(GWindow gw) {
+static char *GGTKDrawGetWindowTitle8(GWindow w) {
+    Log(LOGVERBOSE, " ");
+	if (w->is_toplevel) {
+		GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(w->native_window)));
+		return copy(gtk_window_get_title(window)); // FIXME: Copy?
+	}
+    return NULL;
+}
+
+static unichar_t *GGTKDrawGetWindowTitle(GWindow w) {
     Log(LOGVERBOSE, " "); // assert(false);
-    return NULL;
-}
-
-static char *GGTKDrawGetWindowTitle8(GWindow gw) {
-    Log(LOGVERBOSE, " ");
-    return NULL;
+	char *title = GGTKDrawGetWindowTitle8(w);
+	unichar_t *ret = utf82u_copy(title);
+	free(title);
+	return ret;
 }
 
 static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner) {
@@ -1325,6 +1351,8 @@ struct _GGtkWindow
     bool disposed;
 };
 
+G_DEFINE_TYPE(GGtkWindow, ggtk_window, GTK_TYPE_LAYOUT)
+
 static void ggtk_window_dispose(GObject *gobject)
 {
     GGtkWindow *ggw = GGTK_WINDOW(gobject);
@@ -1350,6 +1378,8 @@ static void ggtk_window_dispose(GObject *gobject)
     ggw->offscreen_height = 0;
 
     // Invoke close event on window?
+	
+	G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
 }
 
 static void ggtk_window_class_init(GGtkWindowClass *ggwc)
@@ -1431,6 +1461,8 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED g
 		gevent.u.expose.rect.y = extents.y;
 		gevent.u.expose.rect.width = extents.width;
 		gevent.u.expose.rect.height = extents.height;
+		
+		Log(LOGDEBUG, "REFRESH ON [%d,%d,%d,%d]", extents.x, extents.y, extents.width, extents.height);
 		_GGTKDraw_CallEHChecked(ggw->gw, &gevent, ggw->gw->eh);
 
         cairo_destroy(ggw->offscreen_context);
@@ -1523,7 +1555,7 @@ PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw)
 	return ggw->pango_layout;
 }
 
-G_DEFINE_TYPE(GGtkWindow, ggtk_window, GTK_TYPE_LAYOUT)
+
 
 // End GGtkWindow definition
 

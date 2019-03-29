@@ -700,7 +700,7 @@ void GGTKDrawDrawRect(GWindow w, GRect *rect, Color col) {
 }
 
 void GGTKDrawFillRect(GWindow w, GRect *rect, Color col) {
-    //Log(LOGDEBUG, " ");
+    Log(LOGDEBUG, " ");
     cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
     w->ggc->fg = col;
 
