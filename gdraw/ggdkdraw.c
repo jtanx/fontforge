@@ -727,7 +727,7 @@ static int16 _GGDKDraw_GdkModifierToKsm(GdkModifierType mask) {
     if (mask & GDK_SUPER_MASK) {
         state |= ksm_super;
     }
-    if (mask * GDK_HYPER_MASK) {
+    if (mask & GDK_HYPER_MASK) {
         state |= ksm_hyper;
     }
     //ksm_option?
