@@ -375,7 +375,7 @@ static void _GGTKDraw_DispatchEvent(GtkWidget *widget, GdkEvent *event, G_GNUC_U
 }
 
 static void _GGTKDraw_ReceiveSizeAllocate(GtkWidget *widget, GdkRectangle *alloc, G_GNUC_UNUSED gpointer user_data) {
-    Log(LOGINFO, "Received size allocate on %p(%s) [%d, %d, %d, %d]", widget, ggtk_window_get_title(GGTK_WINDOW(widget)),
+    Log(LOGWARN, "Received size allocate on %p(%s) [%d, %d, %d, %d]", widget, ggtk_window_get_title(GGTK_WINDOW(widget)),
         alloc->x, alloc->y, alloc->width, alloc->height);
     GGTKWindow gw = ggtk_window_get_base(GGTK_WINDOW(widget));
     if (!gw) {
@@ -542,13 +542,13 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
 
         // Set icon
         GdkPixbuf* pb = NULL;
-        //GGTKWindow icon = gdisp->default_icon;
-        //if (((wattrs->mask & wam_icon) && wattrs->icon != NULL) && ((GGTKWindow)wattrs->icon)->is_pixmap) {
-        //    icon = (GGTKWindow) wattrs->icon;
-        //}
-        //if (icon != NULL) {
-        //    pb = gdk_pixbuf_get_from_surface(icon->cs, 0, 0, icon->pos.width, icon->pos.height);
-        //}
+        GGTKWindow icon = gdisp->default_icon;
+        if (((wattrs->mask & wam_icon) && wattrs->icon != NULL) && ((GGTKWindow)wattrs->icon)->is_pixmap) {
+            icon = (GGTKWindow) wattrs->icon;
+        }
+        if (icon != NULL) {
+            pb = gdk_pixbuf_get_from_surface(icon->pixmap_surface, 0, 0, icon->pos.width, icon->pos.height);
+        }
         gtk_window_set_icon(window, pb);
         if (pb) {
             g_object_unref(pb);
@@ -590,11 +590,8 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         }
 
 		// Set event mask on toplevel window too...
-		gtk_widget_set_events(GTK_WIDGET(window), event_mask);
+		gtk_widget_add_events(GTK_WIDGET(window), event_mask);
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(nw->w));
-		
-		gtk_widget_set_can_focus(GTK_WIDGET(nw->w), true);
-		gtk_widget_set_can_default(GTK_WIDGET(nw->w), true);
 		gtk_window_set_default(window, GTK_WIDGET(nw->w));
         // Am I meant to keep a ref to the window around? Am I meant to free it?
     } else {
@@ -621,7 +618,7 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
 	// Set event mask, connect to the right signals
 	gtk_widget_set_events(GTK_WIDGET(nw->w), event_mask);
 	g_signal_connect(GTK_WIDGET(nw->w), "event", G_CALLBACK(_GGTKDraw_DispatchEvent), NULL);
-	g_signal_connect(GTK_WIDGET(nw->w), "size-allocate", G_CALLBACK(_GGTKDraw_ReceiveSizeAllocate), NULL);
+	//g_signal_connect(GTK_WIDGET(nw->w), "size-allocate", G_CALLBACK(_GGTKDraw_ReceiveSizeAllocate), NULL);
 
     Log(LOGWARN, "Window created: %p[%p][%d] has window: %d %d", nw, nw->w, nw->is_toplevel,
 	gtk_widget_get_has_window(GTK_WIDGET(nw->w)),
@@ -1443,18 +1440,13 @@ static void ggtk_window_dispose(GObject *gobject)
 	G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
 }
 
-static void ggtk_window_class_init(GGtkWindowClass *ggwc)
+static void ggtk_window_size_allocate(GtkWidget* widget, GtkAllocation *alloc)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS(ggwc);
-    object_class->dispose = ggtk_window_dispose;
+    Log(LOGINFO, "SIZE ALLOCATE: %d %d %d %d", alloc->x, alloc->y, alloc->width, alloc->height);
+    GTK_WIDGET_CLASS(ggtk_window_parent_class)->size_allocate(widget, alloc);
 }
 
-static void ggtk_window_init(GGtkWindow *ggw)
-{
-    (void)ggw;
-}
-
-static void ggtk_window_screen_changed(GtkWidget *widget, G_GNUC_UNUSED GdkScreen *previous_screen, G_GNUC_UNUSED gpointer user_data)
+static void ggtk_window_screen_changed(GtkWidget *widget, G_GNUC_UNUSED GdkScreen *previous_screen)
 {
 	GGtkWindow *ggw = GGTK_WINDOW(widget);
 	if (ggw->pango_layout) {
@@ -1463,7 +1455,7 @@ static void ggtk_window_screen_changed(GtkWidget *widget, G_GNUC_UNUSED GdkScree
 	}
 }
 
-static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED gpointer data)
+static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
 {
     GGtkWindow *ggw = GGTK_WINDOW(widget);
 
@@ -1471,13 +1463,13 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED g
     int width = gtk_widget_get_allocated_width(widget);
     int height = gtk_widget_get_allocated_height(widget);
 
-    if (ggw->offscreen_context) {
-        cairo_destroy(ggw->offscreen_context);
-        ggw->offscreen_context = NULL;
-    }
-
     if (!ggw->offscreen_surface || ggw->offscreen_width != width || ggw->offscreen_height != height) {
         GdkWindow* window = gtk_widget_get_window(widget);
+        
+        if (ggw->offscreen_context) {
+            cairo_destroy(ggw->offscreen_context);
+            ggw->offscreen_context = NULL;
+        }
 
         cairo_surface_destroy(ggw->offscreen_surface);
         if (ggw->dirty_regions) {
@@ -1500,8 +1492,8 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED g
             for (int i = 0; i < num_rectangles; ++i) {
                 cairo_region_get_rectangle(ggw->dirty_regions, i, &area);
                 cairo_rectangle(ggw->offscreen_context, area.x, area.y, area.width, area.height);
-                cairo_clip(ggw->offscreen_context);
             }
+            cairo_clip(ggw->offscreen_context);
 			cairo_region_get_extents(ggw->dirty_regions, &extents);
             cairo_region_destroy(ggw->dirty_regions);
             ggw->dirty_regions = NULL;
@@ -1509,22 +1501,27 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED g
 
 		cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_SOURCE);
         cairo_set_source_rgba(ggw->offscreen_context,
-            ggw->background_color.red, ggw->background_color.green, ggw->background_color.red, ggw->background_color.alpha);
+            ggw->background_color.red, ggw->background_color.green, ggw->background_color.blue, ggw->background_color.alpha);
         cairo_paint(ggw->offscreen_context);
 		cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_OVER);
+        
+        if (repaint_all) {
+            GtkAllocation alloc = {.width = width, .height = height};
+            _GGTKDraw_ReceiveSizeAllocate(widget, &alloc, NULL);
+        }
 
         // Now call the GDraw expose event handler here
-		GEvent gevent = {0};
-		gevent.w = (GWindow)ggw->gw;
-		gevent.native_window = (void*) ggw;
-		gevent.type = et_expose;
-		gevent.u.expose.rect.x = extents.x;
-		gevent.u.expose.rect.y = extents.y;
-		gevent.u.expose.rect.width = extents.width;
-		gevent.u.expose.rect.height = extents.height;
-		
-		Log(LOGDEBUG, "REFRESH ON [%d,%d,%d,%d]", extents.x, extents.y, extents.width, extents.height);
-		_GGTKDraw_CallEHChecked(ggw->gw, &gevent, ggw->gw->eh);
+        GEvent gevent = {0};
+        gevent.w = (GWindow)ggw->gw;
+        gevent.native_window = (void*) ggw;
+        gevent.type = et_expose;
+        gevent.u.expose.rect.x = extents.x;
+        gevent.u.expose.rect.y = extents.y;
+        gevent.u.expose.rect.width = extents.width;
+        gevent.u.expose.rect.height = extents.height;
+
+        Log(LOGDEBUG, "REFRESH ON [%d,%d,%d,%d]", extents.x, extents.y, extents.width, extents.height);
+        _GGTKDraw_CallEHChecked(ggw->gw, &gevent, ggw->gw->eh);
 
         cairo_destroy(ggw->offscreen_context);
         ggw->offscreen_context = NULL;
@@ -1535,22 +1532,14 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr, G_GNUC_UNUSED g
     cairo_set_source_surface(cr, ggw->offscreen_surface, 0, 0);
     cairo_paint(cr);
 
-    return false;
+    return GTK_WIDGET_CLASS(ggtk_window_parent_class)->draw(widget, cr);
 }
 
-GtkWidget* ggtk_window_new(GGTKWindow gw)
+static gboolean ggtk_window_event(GtkWidget *widget, GdkEvent *event)
 {
-    GGtkWindow *ggw = GGTK_WINDOW(g_object_new(GGTK_TYPE_WINDOW, NULL));
-    g_return_val_if_fail(ggw != NULL, NULL);
-
-    // I don't know if this is the correct thing to do, how is this meant to
-    // get initialised in the _init method?!
-    ggw->gw = gw;
-
-	g_signal_connect(ggw, "screen-changed", G_CALLBACK(ggtk_window_screen_changed), NULL);
-    g_signal_connect(ggw, "draw", G_CALLBACK(ggtk_window_draw), NULL);
-
-    return GTK_WIDGET(ggw);
+    Log(LOGINFO, "Received event type %s on %p", GdkEventName(event->type), widget);
+    
+    return true; // don't propagate any further
 }
 
 GGTKWindow ggtk_window_get_base(GGtkWindow *ggw)
@@ -1585,6 +1574,7 @@ cairo_t* ggtk_window_get_cairo_context(GGtkWindow *ggw)
 void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area)
 {
     if (area) {
+        Log(LOGDEBUG, "REQUEST EXPOSE %d %d %d %d", area->x, area->y, area->width, area->height);
         if (ggw->dirty_regions) {
             cairo_region_union_rectangle(ggw->dirty_regions, area);
         } else {
@@ -1592,18 +1582,20 @@ void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area)
         }
         gtk_widget_queue_draw_area(GTK_WIDGET(ggw), area->x, area->y, area->width, area->height);
         return;
+    } else {
+        Log(LOGDEBUG, "REQUEST EXPOSE ALL");
     }
     gtk_widget_queue_draw(GTK_WIDGET(ggw));
 }
 
 const char *ggtk_window_get_title(GGtkWindow *ggw)
 {
-	if (ggw->gw->is_toplevel) {
-		GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(ggw));
-		if (GTK_IS_WINDOW(toplevel)) {
-			return gtk_window_get_title(GTK_WINDOW(toplevel));
-		}
-	}
+    if (ggw->gw->is_toplevel) {
+        GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(ggw));
+        if (GTK_IS_WINDOW(toplevel)) {
+            return gtk_window_get_title(GTK_WINDOW(toplevel));
+        }  
+    }
 	return NULL;
 }
 
@@ -1616,7 +1608,38 @@ PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw)
 	return ggw->pango_layout;
 }
 
+GtkWidget* ggtk_window_new(GGTKWindow gw)
+{
+    GGtkWindow *ggw = GGTK_WINDOW(g_object_new(GGTK_TYPE_WINDOW, NULL));
+    g_return_val_if_fail(ggw != NULL, NULL);
 
+    // I don't know if this is the correct thing to do, how is this meant to
+    // get initialised in the _init method?!
+    ggw->gw = gw;
+
+    return GTK_WIDGET(ggw);
+}
+
+static void ggtk_window_class_init(GGtkWindowClass *ggwc)
+{
+    GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(ggwc);
+    GObjectClass *object_class = G_OBJECT_CLASS(ggwc);
+    
+    widget_class->draw = ggtk_window_draw;
+    widget_class->event = ggtk_window_event;
+    widget_class->screen_changed = ggtk_window_screen_changed;
+    widget_class->size_allocate = ggtk_window_size_allocate;
+
+    object_class->dispose = ggtk_window_dispose;
+}
+
+static void ggtk_window_init(GGtkWindow *ggw)
+{
+    GtkWidget *widget = GTK_WIDGET(ggw);
+    gtk_widget_set_can_default(widget, true);
+    gtk_widget_set_can_focus(widget, true);
+    gtk_widget_set_focus_on_click(widget, true);
+}
 
 // End GGtkWindow definition
 
