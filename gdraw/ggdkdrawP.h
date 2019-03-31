@@ -77,7 +77,6 @@ typedef struct ggdktimer { // :GTimer
     unsigned int has_differing_repeat_time: 1;
     int reference_count;
     guint glib_timeout_id;
-
 } GGDKTimer;
 
 typedef struct ggdkbuttonstate {

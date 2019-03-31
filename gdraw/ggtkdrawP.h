@@ -52,8 +52,11 @@ struct _GGtkWindowClass
 	// virtual methods here, no pad because screw ABI compat, it's internal
 };
 
-GtkWidget* ggtk_window_new(GGTKWindow gw);
+typedef void (*GGtkWindowEventHandler) (GGtkWindow *ggw, GdkEvent *event);
+
+GtkWidget* ggtk_window_new(GGTKWindow gw, GGtkWindowEventHandler eh);
 GGTKWindow ggtk_window_get_base(GGtkWindow *ggw);
+GtkWindow* ggtk_window_get_window(GGtkWindow *ggw);
 void ggtk_window_set_background(GGtkWindow *ggw, GdkRGBA *col);
 cairo_t* ggtk_window_get_cairo_context(GGtkWindow *ggw);
 void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area);
@@ -61,6 +64,22 @@ const char *ggtk_window_get_title(GGtkWindow *ggw);
 PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw);
 
 // end GGtkWindow declaration
+
+// Really GTimer should be opaque...
+typedef struct ggtktimer { // :GTimer
+    long time_sec;             // longs not int32s to match timeval
+    long time_usec;
+    int32 repeat_time;          // 0 == one shot (run once)
+    GWindow owner;
+    void *userdata;
+    struct gtimer *next;       // Unused in favour of a GLib list
+    unsigned int active: 1;
+    // Extensions below
+    unsigned int stopped: 1;
+    unsigned int has_differing_repeat_time: 1;
+    int reference_count;
+    guint glib_timeout_id;
+} GGTKTimer;
 
 typedef struct ggtkbuttonstate {
     uint32 last_press_time;
@@ -115,6 +134,7 @@ typedef struct ggtkdisplay { /* :GDisplay */
     unsigned int is_dying: 1; // Flag to indicate if we're cleaning up the display.
     
     GPtrArray *cursors; // List of cursors that the user made.
+    GList_Glib *timers; //List of GGTKTimer's
     
     GGTKButtonState bs;
     GGTKKeyState ks;
