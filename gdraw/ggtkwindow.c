@@ -268,6 +268,14 @@ static void ggtk_window_dispose(GObject *gobject)
 {
     GGtkWindow *ggw = GGTK_WINDOW(gobject);
     ggw->disposed = true;
+	
+	G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
+}
+
+static void ggtk_window_finalize(GObject *gobject)
+{
+    GGtkWindow *ggw = GGTK_WINDOW(gobject);
+    ggw->finalized = true;
 
 	if (ggw->pango_layout) {
 		g_object_unref(ggw->pango_layout);
@@ -289,17 +297,6 @@ static void ggtk_window_dispose(GObject *gobject)
     ggw->offscreen_height = 0;
 
     ggw->gw = NULL;
-	
-	G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
-}
-
-static void ggtk_window_finalize(GObject *gobject)
-{
-    GGtkWindow *ggw = GGTK_WINDOW(gobject);
-    if (!ggw->finalized) {
-        ggw->finalized = true;
-        // destroy gw
-    }
     G_OBJECT_CLASS(ggtk_window_parent_class)->finalize(gobject);
 }
 
