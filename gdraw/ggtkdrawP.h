@@ -145,7 +145,7 @@ typedef struct ggtkdisplay { /* :GDisplay */
     char *err_report;
     // Inherit GDisplay end
     
-    unsigned int is_space_pressed: 1; // Used for GGDKDrawKeyState. We cheat!
+    unsigned int is_space_pressed: 1; // Used for GGTKDrawKeyState. We cheat!
     unsigned int is_dying: 1; // Flag to indicate if we're cleaning up the display.
     
     int top_window_count;
@@ -158,6 +158,7 @@ typedef struct ggtkdisplay { /* :GDisplay */
 
     GdkDisplay *display;
     PangoContext *default_pango_context;
+    PangoLayout *default_pango_layout;
 } GGTKDisplay;
 
 struct ggtkwindow { /* :GWindow */
@@ -189,6 +190,7 @@ struct ggtkwindow { /* :GWindow */
     unsigned int is_cleaning_up: 1; //Are we running cleanup?
     
     int reference_count; // Knowing when to destroy is tricky...
+    GCursor current_cursor;
 
     cairo_surface_t *pixmap_surface;
     cairo_t *pixmap_context;
