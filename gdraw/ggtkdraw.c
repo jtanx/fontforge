@@ -107,21 +107,6 @@ static int16 _GGTKDraw_GdkModifierToKsm(GdkModifierType mask) {
     return state;
 }
 
-static VisibilityState _GGTKDraw_GdkVisibilityStateToVS(GdkVisibilityState state) {
-    switch (state) {
-        case GDK_VISIBILITY_FULLY_OBSCURED:
-            return vs_obscured;
-            break;
-        case GDK_VISIBILITY_PARTIAL:
-            return vs_partially;
-            break;
-        case GDK_VISIBILITY_UNOBSCURED:
-        default:
-            return vs_unobscured;
-            break;
-    }
-}
-
 static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWindow gw, GEvent *)) {
     if (eh) {
 		(void)gw;
@@ -270,8 +255,6 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
             gevent.u.mouse.clicks = gdisp->bs.cur_click;
         }
         break;
-        // HANDLE EXPOSE
-        // Not supported: et_visibility, doesn't work
         case GDK_FOCUS_CHANGE:
             gevent.type = et_focus;
             gevent.u.focus.gained_focus = ((GdkEventFocus *)event)->in;
@@ -342,11 +325,6 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
             gevent.u.expose.rect.height = expose->area.height;
         };
         break;
-        // BEGIN: These don't work here
-        case GDK_VISIBILITY_NOTIFY: // Get rid of this
-            gevent.type = et_visibility;
-            gevent.u.visibility.state = _GGTKDraw_GdkVisibilityStateToVS(((GdkEventVisibility *)event)->state);
-            break;
         case GDK_MAP:
             gevent.type = et_map;
             gevent.u.map.is_visible = true;
@@ -357,13 +335,11 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
             gevent.u.map.is_visible = false;
             gw->is_visible = false;
             break;
-        case GDK_DESTROY:
-            GGTKDrawDestroyWindow((GWindow)gw); //Note: If we get here, something's probably wrong.
-            break;
         case GDK_DELETE:
             gevent.type = et_close;
             break;
         // end
+        // I don't bother implementing GDK_VISIBILITY_NOTIFY; it's deprecated
         case GDK_SELECTION_CLEAR:
         break;
         case GDK_SELECTION_REQUEST:
@@ -462,9 +438,6 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         }
         if (wattrs->event_masks & (1 << et_mouseup)) {
             event_mask |= GDK_BUTTON_RELEASE_MASK | GDK_SCROLL_MASK;
-        }
-        if (wattrs->event_masks & (1 << et_visibility)) {
-            event_mask |= GDK_VISIBILITY_NOTIFY_MASK;
         }
     }
 
