@@ -1456,7 +1456,68 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
 
 void _GGTKDraw_DestroyDisplay(GDisplay *disp) {
     Log(LOGDEBUG, "");
-    return;
+    GGTKDisplay *gdisp = (GGTKDisplay *)(disp);
+
+    // Indicate we're dying...
+    gdisp->is_dying = true;
+
+    // Destroy remaining windows
+    GList_Glib *toplevels = gtk_window_list_toplevels();
+    GList_Glib *iter = toplevels;
+    while (iter) {
+        GtkWidget *widget = gtk_bin_get_child(GTK_BIN(iter->data));
+        if (GGTK_IS_WINDOW(widget)) {
+            GGtkWindow *ggw = GGTK_WINDOW(widget);
+            GGTKWindow gw = ggtk_window_get_base(ggw);
+            if (gw) {
+                Log(LOGINFO, "Forcibly destroying window (%p:%s)", gw, ggtk_window_get_title(ggw));
+                gw->reference_count = 2;
+                GGTKDrawDestroyWindow((GWindow)gw);
+                _GGTKDraw_OnWindowDestroyed(gw);                
+            }
+        }
+        iter = iter->next;
+    }
+    g_list_free(toplevels);
+
+    // Destroy root window
+    _GGTKDraw_OnWindowDestroyed(gdisp->groot);
+    gdisp->groot = NULL;
+
+    // Destroy cursors
+    for (guint i = 0; i < gdisp->cursors->len; i++) {
+        if (gdisp->cursors->pdata[i] != NULL) {
+            GGTKDrawDestroyCursor((GDisplay *)gdisp, (GCursor)(ct_user + i));
+        }
+    }
+    g_ptr_array_free(gdisp->cursors, true);
+    gdisp->cursors = NULL;
+
+    // Destroy any orphaned timers (???)
+    if (gdisp->timers != NULL) {
+        Log(LOGWARN, "Orphaned timers present - forcibly freeing!");
+        while (gdisp->timers != NULL) {
+            GGTKTimer *timer = (GGTKTimer *)gdisp->timers->data;
+            timer->reference_count = 1;
+            GGTKDrawCancelTimer((GTimer *)timer);
+        }
+    }
+
+    // Get rid of our pango context
+    g_object_unref(gdisp->default_pango_context);
+    gdisp->default_pango_context = NULL;
+
+    // Destroy the fontstate
+    free(gdisp->fontstate);
+    gdisp->fontstate = NULL;
+
+    // Close the display
+    if (gdisp->display != NULL) {
+        gdisp->display = NULL;
+    }
+
+    // Free the data structure
+    free(gdisp);
 }
 
 #endif // FONTFORGE_CAN_USE_GTK
