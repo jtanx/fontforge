@@ -218,7 +218,6 @@ static gboolean ggtk_window_event(GtkWidget *widget, GdkEvent *event)
 {
     Log(LOGINFO, "Received event type %s on %p", GdkEventName(event->type), widget);
     GGtkWindow *ggw = GGTK_WINDOW(widget);
-
     switch (event->type) {
         case GDK_KEY_PRESS:
         case GDK_KEY_RELEASE:
@@ -289,7 +288,7 @@ static void ggtk_window_dispose(GObject *gobject)
     ggw->offscreen_width = 0;
     ggw->offscreen_height = 0;
 
-    // Invoke close event on window?
+    ggw->gw = NULL;
 	
 	G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
 }
