@@ -41,6 +41,7 @@
 #include <string.h>
 
 // Forward declarations
+static void GGTKDrawCancelTimer(GTimer *timer);
 static void GGTKDrawDestroyWindow(GWindow w);
 static void GGTKDrawSetCursor(GWindow w, GCursor gcursor);
 static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner);
@@ -107,6 +108,37 @@ static int16 _GGTKDraw_GdkModifierToKsm(GdkModifierType mask) {
     return state;
 }
 
+static int _GGTKDraw_WindowOrParentsDying(GGTKWindow gw) {
+    while (gw != NULL) {
+        if (gw->is_dying) {
+            return true;
+        }
+        if (gw->is_toplevel) {
+            return false;
+        }
+        gw = gw->parent;
+    }
+    return false;
+}
+
+static GdkDevice *_GGTKDraw_GetPointer(GdkDisplay *display) {
+#ifdef GGDKDRAW_GDK_3_20
+    GdkSeat *seat = gdk_display_get_default_seat(display);
+    if (seat == NULL) {
+        return NULL;
+    }
+
+    return gdk_seat_get_pointer(seat);
+#else
+    GdkDeviceManager *manager = gdk_display_get_device_manager(display);
+    if (manager == NULL) {
+        return NULL;
+    }
+
+    return gdk_device_manager_get_client_pointer(manager);
+#endif
+}
+
 static gboolean _GGTKDraw_OnWindowDestroyed(gpointer data) {
     GGTKWindow gw = (GGTKWindow)data;
     Log(LOGDEBUG, "Window: %p", gw);
@@ -131,6 +163,7 @@ static gboolean _GGTKDraw_OnWindowDestroyed(gpointer data) {
     } else {
         if (gw != gw->display->groot) {
             if (gw->is_toplevel) {
+                // May need to manually disconnect the signal too?
                 gtk_widget_destroy(GTK_WIDGET(ggtk_window_get_window(gw->w)));
             } else {
                 gtk_widget_destroy(GTK_WIDGET(gw->w));
@@ -190,6 +223,18 @@ static void _GGTKDraw_InitiateWindowDestroy(GGTKWindow gw) {
     }
 }
 
+static void _GGTKDraw_OnTimerDestroyed(GGTKTimer *timer) {
+    GGTKDisplay *gdisp = ((GGTKWindow)(timer->owner))->display;
+
+    // We may stop the timer without destroying it -
+    // e.g. if the user doesn't cancel the timer before a window is destroyed.
+    if (!timer->stopped) {
+        g_source_remove(timer->glib_timeout_id);
+    }
+    gdisp->timers = g_list_remove(gdisp->timers, timer);
+    free(timer);
+}
+
 static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWindow gw, GEvent *)) {
     if (eh) {
 		// Increment reference counter
@@ -198,6 +243,41 @@ static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWin
         // Decrement reference counter
         GGTKDRAW_DECREF(gw, _GGTKDraw_InitiateWindowDestroy);
     }
+}
+
+static gboolean _GGTKDraw_ProcessTimerEvent(gpointer user_data) {
+    GGTKTimer *timer = (GGTKTimer *)user_data;
+    GEvent e = {0};
+    bool ret = true;
+
+    if (!timer->active || _GGTKDraw_WindowOrParentsDying((GGTKWindow)timer->owner)) {
+        timer->active = false;
+        timer->stopped = true;
+        return false;
+    }
+
+    e.type = et_timer;
+    e.w = timer->owner;
+    e.native_window = timer->owner->native_window;
+    e.u.timer.timer = (GTimer *)timer;
+    e.u.timer.userdata = timer->userdata;
+
+    GGTKDRAW_ADDREF(timer);
+    _GGTKDraw_CallEHChecked((GGTKWindow)timer->owner, &e, timer->owner->eh);
+    if (timer->active) {
+        if (timer->repeat_time == 0) {
+            timer->stopped = true; // Since we return false, this timer is no longer valid.
+            GGTKDrawCancelTimer((GTimer *)timer);
+            ret = false;
+        } else if (timer->has_differing_repeat_time) {
+            timer->has_differing_repeat_time = false;
+            timer->glib_timeout_id = g_timeout_add(timer->repeat_time, _GGTKDraw_ProcessTimerEvent, timer);
+            ret = false;
+        }
+    }
+
+    GGTKDRAW_DECREF(timer, _GGTKDraw_OnTimerDestroyed);
+    return ret;
 }
 
 static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
@@ -277,11 +357,26 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
                 case GDK_SCROLL_RIGHT:
                     gevent.u.mouse.button = 7;
                     break;
-                default: // Ignore GDK_SCROLL_SMOOTH
-                    gevent.type = et_noevent;
+                case GDK_SCROLL_SMOOTH: {
+                    // Under GTK, I seem to be only able to get these smooth scroll events...
+                    double dx, dy;
+                    if (gdk_event_get_scroll_deltas(event, &dx, &dy)) {
+                        if (dy < 0) {
+                            gevent.u.mouse.button = 4;
+                        } else if (dy > 0) {
+                            gevent.u.mouse.button = 5;
+                        } else if (dx < 0) {
+                            gevent.u.mouse.button = 6;
+                        } else if (dx > 0) {
+                            gevent.u.mouse.button = 7;
+                        }
+                    }
+                } break;
+                default:
+                    break;
             }
             // We need to simulate two events... I think.
-            if (gevent.type != et_noevent) {
+            if (gevent.u.mouse.button) {
                 GGTKDrawPostEvent(&gevent);
                 gevent.type = et_mouseup;
             }
@@ -643,8 +738,6 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
 	
 	// Set event mask, connect to the right signals
 	gtk_widget_add_events(GTK_WIDGET(nw->w), event_mask);
-	//g_signal_connect(GTK_WIDGET(nw->w), "event", G_CALLBACK(_GGTKDraw_DispatchEvent), NULL);
-	//g_signal_connect(GTK_WIDGET(nw->w), "size-allocate", G_CALLBACK(_GGTKDraw_ReceiveSizeAllocate), NULL);
     
     // Set cursor
     if ((wattrs->mask & wam_cursor) && wattrs->cursor != ct_default) {
@@ -915,8 +1008,7 @@ static void GGTKDrawMove(GWindow w, int32 x, int32 y) {
 	if (gw->is_toplevel) {
 		gtk_window_move(ggtk_window_get_window(gw->w), x, y);
 	} else {
-		gtk_layout_move(GTK_LAYOUT(gtk_widget_get_ancestor(GTK_WIDGET(gw->w), GTK_TYPE_LAYOUT)),
-						GTK_WIDGET(gw->w), x, y);
+		gtk_layout_move(GTK_LAYOUT(gw->parent->w), GTK_WIDGET(gw->w), x, y);
 	}
 }
 
@@ -995,6 +1087,31 @@ static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner) {
 
 static void GGTKDrawGetPointerPosition(GWindow w, GEvent *ret) {
     Log(LOGVERBOSE, " ");
+    
+    GGTKWindow gw = (GGTKWindow)w;
+    GdkDisplay *display = gw->display->display;
+    GtkWindow *window = NULL;
+    if (gw->w) {
+        window = GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
+        display = gdk_screen_get_display(gtk_window_get_screen(window));
+    }
+    
+    GdkModifierType mask;
+    int x, y;
+    GdkDevice *pointer = _GGTKDraw_GetPointer(display);
+    if (pointer == NULL) {
+        ret->u.mouse.x = 0;
+        ret->u.mouse.y = 0;
+        ret->u.mouse.state = 0;
+        return;
+    }
+
+    // FIXME: Root window?!
+    gdk_window_get_device_position(gtk_widget_get_window(GTK_WIDGET(window)), pointer, &x, &y, &mask);
+    gtk_widget_translate_coordinates(GTK_WIDGET(window), GTK_WIDGET(gw->w), x, y, &x, &y);
+    ret->u.mouse.x = x;
+    ret->u.mouse.y = y;
+    ret->u.mouse.state = _GGTKDraw_GdkModifierToKsm(mask);
 }
 
 static GWindow GGTKDrawGetPointerWindow(GWindow gw) {
@@ -1004,11 +1121,71 @@ static GWindow GGTKDrawGetPointerWindow(GWindow gw) {
 
 static void GGTKDrawSetCursor(GWindow w, GCursor gcursor) {
     Log(LOGVERBOSE, " ");
+    GGTKWindow gw = (GGTKWindow)w;
+    GdkWindow *window = gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
+    GdkCursor *cursor = NULL;
+    
+    if (!window) {
+        Log(LOGWARN, "Could not get the backing gdk window");
+    }
+    
+    // FIXME: This applies to the whole window and not just the widget area
+
+    switch (gcursor) {
+        case ct_default:
+        case ct_backpointer:
+        case ct_pointer:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "default");
+            break;
+        case ct_hand:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "hand");
+            break;
+        case ct_question:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "help");
+            break;
+        case ct_cross:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "crosshair");
+            break;
+        case ct_4way:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "move");
+            break;
+        case ct_text:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "text");
+            break;
+        case ct_watch:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "wait");
+            break;
+        case ct_draganddrop:
+            cursor = gdk_cursor_new_from_name(gw->display->display, "pointer");
+            break;
+        case ct_invisible:
+            return; // There is no *good* reason to make the cursor invisible
+            break;
+        default:
+            Log(LOGDEBUG, "CUSTOM CURSOR! %d", gcursor);
+    }
+
+    if (gcursor >= ct_user) {
+        GGTKDisplay *gdisp = gw->display;
+        gcursor -= ct_user;
+        if (gcursor < gdisp->cursors->len && gdisp->cursors->pdata[gcursor] != NULL) {
+            gdk_window_set_cursor(window, (GdkCursor *)gdisp->cursors->pdata[gcursor]);
+            gw->current_cursor = gcursor;
+        } else {
+            Log(LOGWARN, "Invalid cursor value passed: %d", gcursor);
+        }
+    } else {
+        gdk_window_set_cursor(window, cursor);
+        gw->current_cursor = gcursor;
+        if (cursor != NULL) {
+            g_object_unref(cursor);
+        }
+    }
 }
 
 static GCursor GGTKDrawGetCursor(GWindow gw) {
     Log(LOGVERBOSE, " ");
-    return (GCursor)0;
+    return ((GGTKWindow)gw)->current_cursor;
 }
 
 static GWindow GGTKDrawGetRedirectWindow(GDisplay *UNUSED(gdisp)) {
@@ -1178,12 +1355,31 @@ static int GGTKDrawRequestDeviceEvents(GWindow w, int devcnt, struct gdeveventma
 }
 
 static GTimer *GGTKDrawRequestTimer(GWindow w, int32 time_from_now, int32 frequency, void *userdata) {
-    //Log(LOGVERBOSE, " ");
-    return NULL;
+    Log(LOGVERBOSE, " ");
+    GGTKTimer *timer = calloc(1, sizeof(GGTKTimer));
+    GGTKWindow gw = (GGTKWindow)w;
+    if (timer == NULL)  {
+        return NULL;
+    }
+
+    gw->display->timers = g_list_append(gw->display->timers, timer);
+
+    timer->owner = w;
+    timer->repeat_time = frequency;
+    timer->userdata = userdata;
+    timer->active = true;
+    timer->has_differing_repeat_time = (time_from_now != frequency);
+    timer->glib_timeout_id = g_timeout_add(time_from_now, _GGTKDraw_ProcessTimerEvent, timer);
+
+    GGTKDRAW_ADDREF(timer);
+    return (GTimer *)timer;
 }
 
 static void GGTKDrawCancelTimer(GTimer *timer) {
-    //Log(LOGVERBOSE, " ");
+    Log(LOGVERBOSE, " ");
+    GGTKTimer *gtimer = (GGTKTimer *)timer;
+    gtimer->active = false;
+    GGTKDRAW_DECREF(gtimer, _GGTKDraw_OnTimerDestroyed);
 }
 
 static void GGTKDrawSyncThread(GDisplay *UNUSED(gdisp), void (*func)(void *), void *UNUSED(data)) {
@@ -1391,6 +1587,7 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
 
     // sigh, this is terrible, really it should get this wrt. each window
     gdisp->default_pango_context = gdk_pango_context_get_for_display(display);
+    gdisp->default_pango_layout = pango_layout_new(gdisp->default_pango_context);
     gdisp->res = pango_cairo_context_get_resolution(gdisp->default_pango_context);
     if (gdisp->res <= 0) {
         Log(LOGWARN, "Failed to get default DPI, assuming 96");
@@ -1503,8 +1700,10 @@ void _GGTKDraw_DestroyDisplay(GDisplay *disp) {
         }
     }
 
-    // Get rid of our pango context
+    // Get rid of our default pango layout/context
+    g_object_unref(gdisp->default_pango_layout);
     g_object_unref(gdisp->default_pango_context);
+    gdisp->default_pango_layout = NULL;
     gdisp->default_pango_context = NULL;
 
     // Destroy the fontstate

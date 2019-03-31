@@ -51,7 +51,7 @@ static cairo_t* _GGTKDraw_GetCairoContext(GGTKWindow gw) {
 }
 
 static PangoContext* _GGTKDraw_GetPangoContext(GGTKWindow gw) {
-	if (gw->is_pixmap) {
+	if (gw->is_pixmap || gw == gw->display->groot) {
 		return gw->display->default_pango_context;
 	}
 	return gtk_widget_get_pango_context(GTK_WIDGET(gw->w));
@@ -60,7 +60,9 @@ static PangoContext* _GGTKDraw_GetPangoContext(GGTKWindow gw) {
 static PangoLayout* _GGTKDraw_GetPangoLayout(GGTKWindow gw) {
 	if (gw->is_pixmap) {
 		return gw->pixmap_layout;
-	}
+	} else if (gw == gw->display->groot) {
+        return gw->display->default_pango_layout; //yuck
+    }
 	return ggtk_window_get_pango_layout(gw->w);
 }
 
@@ -146,11 +148,6 @@ static int _GGTKDraw_SetLine(cairo_t *cr, GGC *mine) {
 static PangoFontDescription *_GGTKDraw_ConfigFont(GWindow w, GFont *font) {
     GGTKWindow gw = (GGTKWindow) w;
     PangoFontDescription *fd;
-
-	if (!gw->is_pixmap && !gw->w) {
-		Log(LOGWARN, "Tried to config font on the root window!");
-		return NULL;
-	}
 
     PangoFontDescription **fdbase = &font->pangoc_fd;
     if (*fdbase != NULL) {

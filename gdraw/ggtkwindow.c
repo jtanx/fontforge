@@ -108,7 +108,7 @@ GtkWidget* ggtk_window_new(GGTKWindow gw, GGtkWindowEventHandler eh)
 
 static void ggtk_window_size_allocate(GtkWidget* widget, GtkAllocation *alloc)
 {
-    Log(LOGINFO, "SIZE ALLOCATE: %d %d %d %d", alloc->x, alloc->y, alloc->width, alloc->height);
+    Log(LOGDEBUG, "SIZE ALLOCATE: %d %d %d %d", alloc->x, alloc->y, alloc->width, alloc->height);
     GTK_WIDGET_CLASS(ggtk_window_parent_class)->size_allocate(widget, alloc);
 }
 
@@ -125,9 +125,9 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
 {
     Log(LOGWARN, "DRAWING NOW");
     GGtkWindow *ggw = GGTK_WINDOW(widget);
+    GtkAllocation alloc;
 
     bool repaint_all = false;
-    GtkAllocation alloc;
     gtk_widget_get_allocation(widget, &alloc);
 
     if (!ggw->offscreen_surface || ggw->offscreen_width != alloc.width || ggw->offscreen_height != alloc.height) {
@@ -173,11 +173,6 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
 		cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_OVER);
         
         if (repaint_all) {
-            if (ggw->gw->is_toplevel) {
-                // hmmmm
-                gtk_window_get_position(ggtk_window_get_window(ggw), &alloc.x, &alloc.y);
-            }
-            
             GdkEventConfigure configure = {
                 .type = GDK_CONFIGURE,
                 .send_event = TRUE,
@@ -187,6 +182,14 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
                 .height = alloc.height,
             };
             
+            if (ggw->gw->is_toplevel) {
+                // hmmmm
+                int x, y;
+                gtk_window_get_position(ggtk_window_get_window(ggw), &x, &y);
+                configure.x += x;
+                configure.y += y;
+            }
+
             ggw->eh(ggw, (GdkEvent*)&configure);
         }
 
