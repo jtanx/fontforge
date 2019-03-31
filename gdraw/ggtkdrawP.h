@@ -38,6 +38,19 @@
 #include "gdrawP.h"
 #include "ggdkdrawloggerP.h"
 
+#define GGTKDRAW_ADDREF(x) do { \
+    assert((x)->reference_count >= 0); \
+    (x)->reference_count++; \
+} while(0)
+
+#define GGTKDRAW_DECREF(x,y) do { \
+    assert((x)->reference_count > 0); \
+    (x)->reference_count--; \
+    if ((x)->reference_count == 0) { \
+        y(x); \
+    } \
+} while(0)
+
 typedef struct ggtkwindow *GGTKWindow;
 
 // GGtkWindow GObject declaration
@@ -133,6 +146,7 @@ typedef struct ggtkdisplay { /* :GDisplay */
     unsigned int is_space_pressed: 1; // Used for GGDKDrawKeyState. We cheat!
     unsigned int is_dying: 1; // Flag to indicate if we're cleaning up the display.
     
+    int top_window_count;
     GPtrArray *cursors; // List of cursors that the user made.
     GList_Glib *timers; //List of GGTKTimer's
     
@@ -164,11 +178,16 @@ struct ggtkwindow { /* :GWindow */
     unsigned int usecairo : 1;
     char *window_type_name;
     // Inherit GWindow end
+
     unsigned int is_dlg: 1;
     unsigned int not_restricted: 1;
     unsigned int restrict_input_to_me: 1;/* for dialogs, no input outside of dlg */
     unsigned int istransient: 1;	/* has transient for hint set */
     unsigned int isverytransient: 1;
+    unsigned int is_cleaning_up: 1; //Are we running cleanup?
+    
+    int reference_count; // Knowing when to destroy is tricky...
+
     cairo_surface_t *pixmap_surface;
     cairo_t *pixmap_context;
     PangoLayout *pixmap_layout;

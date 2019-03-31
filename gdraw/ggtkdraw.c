@@ -107,11 +107,96 @@ static int16 _GGTKDraw_GdkModifierToKsm(GdkModifierType mask) {
     return state;
 }
 
+static gboolean _GGTKDraw_OnWindowDestroyed(gpointer data) {
+    GGTKWindow gw = (GGTKWindow)data;
+    Log(LOGDEBUG, "Window: %p", gw);
+    if (gw->is_cleaning_up) {
+        return false;
+    }
+    gw->is_cleaning_up = true; // We're in the process of destroying it.
+    
+    if (gw->is_pixmap) {
+        if (gw->pixmap_layout) {
+            g_object_unref(gw->pixmap_layout);
+            gw->pixmap_layout = NULL;
+        }
+        if (gw->pixmap_context) {
+            cairo_destroy(gw->pixmap_context);
+            gw->pixmap_context = NULL;
+        }
+        if (gw->pixmap_surface) {
+            cairo_surface_destroy(gw->pixmap_surface);
+            gw->pixmap_surface = NULL;
+        }
+    } else {
+        if (gw != gw->display->groot) {
+            if (gw->is_toplevel) {
+                gtk_widget_destroy(GTK_WIDGET(ggtk_window_get_window(gw->w)));
+            } else {
+                gtk_widget_destroy(GTK_WIDGET(gw->w));
+            }
+        }
+
+        // Signal that it has been destroyed - only if we're not cleaning up the display
+        if (!gw->display->is_dying) {
+            struct gevent die = {0};
+            die.w = (GWindow)gw;
+            die.native_window = gw->w;
+            die.type = et_destroy;
+            GGTKDrawPostEvent(&die);
+        }
+
+        // Remove all relevant timers that haven't been cleaned up by the user
+        // Note: We do not free the GTimer struct as the user may then call DestroyTimer themselves...
+        GList_Glib *ent = gw->display->timers;
+        while (ent != NULL) {
+            GList_Glib *next = ent->next;
+            GGTKTimer *timer = (GGTKTimer *)ent->data;
+            if (timer->owner == (GWindow)gw) {
+                //Since we update the timer list ourselves, don't all GGTKDrawCancelTimer.
+                Log(LOGDEBUG, "Unstopped timer on window destroy!!! %p -> %p", gw, timer);
+                timer->active = false;
+                timer->stopped = true;
+                g_source_remove(timer->glib_timeout_id);
+                gw->display->timers = g_list_delete_link(gw->display->timers, ent);
+            }
+            ent = next;
+        }
+
+        // Decrement the toplevel window count
+        if (gw->display->groot == gw->parent && !gw->is_dlg) {
+            gw->display->top_window_count--;
+        }
+
+        Log(LOGDEBUG, "Window destroyed: %p[%p][%d]", gw, gw->w, gw->is_toplevel);
+        if (gw != gw->display->groot) {
+            // Unreference our reference to the window
+            g_object_unref(G_OBJECT(gw->w));
+        }
+    }
+
+    free(gw->ggc);
+    free(gw);
+    return false;
+}
+
+// FF expects the destroy call to happen asynchronously to
+// the actual GGTKDrawDestroyWindow call. So we add it to the queue...
+static void _GGTKDraw_InitiateWindowDestroy(GGTKWindow gw) {
+    if (gw->is_pixmap) {
+        _GGTKDraw_OnWindowDestroyed(gw);
+    } else if (!gw->is_cleaning_up) { // Check for nested call - if we're already being destroyed.
+        g_timeout_add(10, _GGTKDraw_OnWindowDestroyed, gw);
+    }
+}
+
 static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWindow gw, GEvent *)) {
     if (eh) {
-		(void)gw;
-		Log(LOGVERBOSE, "Sending %d", event->type);
+		// Increment reference counter
+        GGTKDRAW_ADDREF(gw);
         (eh)((GWindow)gw, event);
+        // Decrement reference counter
+        GGTKDRAW_DECREF(gw, _GGTKDraw_InitiateWindowDestroy);
     }
 }
 
@@ -359,6 +444,11 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
     Log(LOGVERBOSE, "[%d] Finished processing %d(%s)", request_id++, event->type, GdkEventName(event->type));
 }
 
+static gboolean _GGTKDraw_HandleDeleteEvent(GtkWidget *widget, GdkEvent *event, gpointer user_data) {
+    _GGTKDraw_DispatchEvent(GGTK_WINDOW(user_data), event);
+    return true; // GDraw has to explicitly close windows    
+}
+
 static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *pos,
                                       int (*eh)(GWindow, GEvent *), void *user_data, GWindowAttrs *wattrs) {
 
@@ -507,6 +597,8 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         if ((wattrs->mask & wam_transient) && wattrs->transient != NULL) {
             // GGTKDrawSetTransientFor((GWindow)nw, wattrs->transient);
             nw->is_dlg = true;
+        } else if (!nw->is_dlg) {
+            ++gdisp->top_window_count;
         } else if (nw->restrict_input_to_me) {
             gtk_window_set_modal(window, true);
         }
@@ -522,11 +614,12 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
             return NULL;
         }
 
-		// Set event mask on toplevel window too...
 		gtk_widget_add_events(GTK_WIDGET(window), event_mask);
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(nw->w));
 		gtk_window_set_default(window, GTK_WIDGET(nw->w));
         gtk_widget_show(GTK_WIDGET(nw->w)); // show/hide controlled on the GtkWindow
+        
+        g_signal_connect(window, "delete-event", G_CALLBACK(_GGTKDraw_HandleDeleteEvent), nw->w);
     } else {
         nw->w = GGTK_WINDOW(ggtk_window_new(nw, _GGTKDraw_DispatchEvent));
         if (nw->w == NULL) {
@@ -552,6 +645,25 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
 	gtk_widget_add_events(GTK_WIDGET(nw->w), event_mask);
 	//g_signal_connect(GTK_WIDGET(nw->w), "event", G_CALLBACK(_GGTKDraw_DispatchEvent), NULL);
 	//g_signal_connect(GTK_WIDGET(nw->w), "size-allocate", G_CALLBACK(_GGTKDraw_ReceiveSizeAllocate), NULL);
+    
+    // Set cursor
+    if ((wattrs->mask & wam_cursor) && wattrs->cursor != ct_default) {
+        GGTKDrawSetCursor((GWindow)nw, wattrs->cursor);
+    }
+
+    // Add a reference to our own structure.
+    GGTKDRAW_ADDREF(nw);
+    // We need to make sure that our widget doesn't get finalised until we're ready, so add a ref
+    g_object_ref_sink(G_OBJECT(nw->w));
+
+    // Event handler
+    if (eh != NULL) {
+        GEvent e = {0};
+        e.type = et_create;
+        e.w = (GWindow) nw;
+        e.native_window = nw->w;
+        _GGTKDraw_CallEHChecked(nw, &e, eh);
+    }
 
     Log(LOGWARN, "Window created: %p[%p][%d] has window: %d %d", nw, nw->w, nw->is_toplevel,
         gtk_widget_get_has_window(GTK_WIDGET(nw->w)),
@@ -602,6 +714,8 @@ static GWindow _GGTKDraw_NewPixmap(GDisplay *disp, GWindow similar, uint16 width
 									gtk_widget_get_pango_context(GTK_WIDGET(((GGTKWindow)similar)->w));
 			gw->pixmap_layout = pango_layout_new(context);
 			if (gw->pixmap_layout != NULL) {
+                // Add a reference to ourselves
+                GGTKDRAW_ADDREF(gw);
 				return (GWindow)gw;
 			}
 			Log(LOGWARN, "Failed to create pixmap layout, context=%p", context);
@@ -722,14 +836,36 @@ static void GGTKDrawDestroyCursor(GDisplay *disp, GCursor gcursor) {
 
 static void GGTKDrawDestroyWindow(GWindow w) {
     Log(LOGVERBOSE, " ");
+    GGTKWindow gw = (GGTKWindow) w;
+
+    if (gw->is_dying) {
+        return;
+    }
+
+    gw->is_dying = true;
+
+    if (!gw->is_pixmap && gw != gw->display->groot) {
+        GList_Glib *list = gtk_container_get_children(GTK_CONTAINER(gw->w));
+        GList_Glib *child = list;
+        while (child != NULL) {
+            if (GGTK_IS_WINDOW(child->data)) {
+                GGTKDrawDestroyWindow((GWindow)ggtk_window_get_base(GGTK_WINDOW(child->data)));
+            }
+            child = child->next;
+        }
+        g_list_free(list);
+    }
+    GGTKDRAW_DECREF(gw, _GGTKDraw_InitiateWindowDestroy);
 }
 
 static int GGTKDrawNativeWindowExists(GDisplay *UNUSED(gdisp), void *native_window) {
     Log(LOGVERBOSE, " ");
-	if (GGTK_IS_WINDOW(native_window)) {
-		return true;
-	}
-	return false; // ??
+    
+    // So if the window is dying, the gdk window is already gone.
+    // But gcontainer.c expects this to return true on et_destroy...
+    // This returns false when native_window is finalised
+    // We make sure it only gets finalised after et_destroy has been sent
+    return GGTK_IS_WINDOW(native_window);
 }
 
 static void GGTKDrawSetZoom(GWindow UNUSED(gw), GRect *UNUSED(size), enum gzoom_flags UNUSED(flags)) {
@@ -1010,9 +1146,19 @@ static void GGTKDrawProcessOneEvent(GDisplay *gdisp) {
 
 static void GGTKDrawEventLoop(GDisplay *gdisp) {
     Log(LOGVERBOSE, " ");
-	
-	// fixme
-	gtk_main();
+    do {
+        while (((GGTKDisplay *)gdisp)->top_window_count > 0) {
+            gtk_main_iteration();
+            if ((gdisp->err_flag) && (gdisp->err_report)) {
+                GDrawIErrorRun("%s", gdisp->err_report);
+            }
+            if (gdisp->err_report) {
+                free(gdisp->err_report);
+                gdisp->err_report = NULL;
+            }
+        }
+        GGTKDrawProcessPendingEvents(gdisp);
+    } while (((GGTKDisplay *)gdisp)->top_window_count > 0 || gtk_events_pending());
 }
 
 static void GGTKDrawPostEvent(GEvent *e) {
