@@ -138,7 +138,7 @@ static GdkDevice *_GGTKDraw_GetPointer(GdkDisplay *display) {
 
 static gboolean _GGTKDraw_OnWindowDestroyed(gpointer data) {
     GGTKWindow gw = (GGTKWindow)data;
-    Log(LOGDEBUG, "Window: %p", gw);
+    Log(LOGINFO, "Destroying: %p", gw);
     if (gw->is_cleaning_up) {
         return false;
     }
@@ -173,7 +173,9 @@ static gboolean _GGTKDraw_OnWindowDestroyed(gpointer data) {
             die.w = (GWindow)gw;
             die.native_window = gw->w;
             die.type = et_destroy;
+            GGTKDRAW_ADDREF(gw); // temporarily increase it again, so performing this doesn't destroy us agian
             GGTKDrawPostEvent(&die);
+            gw->reference_count--;
         }
 
         // Remove all relevant timers that haven't been cleaned up by the user
@@ -213,6 +215,7 @@ static gboolean _GGTKDraw_OnWindowDestroyed(gpointer data) {
 // FF expects the destroy call to happen asynchronously to
 // the actual GGTKDrawDestroyWindow call. So we add it to the queue...
 static void _GGTKDraw_InitiateWindowDestroy(GGTKWindow gw) {
+    Log(LOGINFO, "Initiating destroy for %p", gw);
     if (gw->is_pixmap) {
         _GGTKDraw_OnWindowDestroyed(gw);
     } else if (!gw->is_cleaning_up) { // Check for nested call - if we're already being destroyed.
@@ -755,7 +758,7 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         _GGTKDraw_CallEHChecked(nw, &e, eh);
     }
 
-    Log(LOGWARN, "Window created: %p[%p][%d] has window: %d %d", nw, nw->w, nw->is_toplevel,
+    Log(LOGINFO, "Window created: %p[%p][%d] has window: %d %d", nw, nw->w, nw->is_toplevel,
         gtk_widget_get_has_window(GTK_WIDGET(nw->w)),
         gtk_widget_has_focus(GTK_WIDGET(nw->w)));
     return (GWindow)nw;
@@ -1271,7 +1274,7 @@ static void GGTKDrawPointerGrab(GWindow w) {
 }
 
 static void GGTKDrawRequestExpose(GWindow w, GRect *rect, int UNUSED(doclear)) {
-    //Log(LOGDEBUG, "%p [%s]", w, ((GGTKWindow) w)->window_title);
+    Log(LOGWARN, "%p [%s]", w, ggtk_window_get_title(((GGTKWindow) w)->w));
 	assert(!w->is_pixmap);
 	cairo_rectangle_int_t r;
 	if (rect) {

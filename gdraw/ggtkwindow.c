@@ -16,6 +16,7 @@ struct _GGtkWindow
     cairo_surface_t *offscreen_surface;
     cairo_t* offscreen_context;
     cairo_region_t* dirty_regions;
+    bool repaint_all;
     int offscreen_width;
     int offscreen_height;
 
@@ -43,6 +44,7 @@ void ggtk_window_set_background(GGtkWindow *ggw, GdkRGBA *col)
     gtk_widget_queue_draw(GTK_WIDGET(ggw));
 }
 
+// OPTIMISE: If calling push clip, then restrict redraw to the clip area
 cairo_t* ggtk_window_get_cairo_context(GGtkWindow *ggw)
 {
     if (ggw->offscreen_context) {
@@ -72,6 +74,7 @@ void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area)
         gtk_widget_queue_draw_area(GTK_WIDGET(ggw), area->x, area->y, area->width, area->height);
         return;
     } else {
+        ggw->repaint_all = true;
         Log(LOGDEBUG, "REQUEST EXPOSE ALL");
     }
     gtk_widget_queue_draw(GTK_WIDGET(ggw));
@@ -123,45 +126,42 @@ static void ggtk_window_screen_changed(GtkWidget *widget, G_GNUC_UNUSED GdkScree
 
 static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
 {
-    Log(LOGWARN, "DRAWING NOW");
+    Log(LOGDEBUG, "DRAWING NOW");
     GGtkWindow *ggw = GGTK_WINDOW(widget);
     GtkAllocation alloc;
 
-    bool repaint_all = false;
     gtk_widget_get_allocation(widget, &alloc);
 
+    if (ggw->offscreen_context) {
+        cairo_destroy(ggw->offscreen_context);
+        ggw->offscreen_context = NULL;
+    }
+    
     if (!ggw->offscreen_surface || ggw->offscreen_width != alloc.width || ggw->offscreen_height != alloc.height) {
         GdkWindow* window = gtk_widget_get_window(widget);
-        
-        if (ggw->offscreen_context) {
-            cairo_destroy(ggw->offscreen_context);
-            ggw->offscreen_context = NULL;
-        }
 
         cairo_surface_destroy(ggw->offscreen_surface);
-        if (ggw->dirty_regions) {
-            cairo_region_destroy(ggw->dirty_regions);
-            ggw->dirty_regions = NULL;
-        }
         ggw->offscreen_surface = gdk_window_create_similar_surface(window, CAIRO_CONTENT_COLOR, alloc.width, alloc.height);
         ggw->offscreen_width = alloc.width;
         ggw->offscreen_height = alloc.height;
-        repaint_all = true;
+        ggw->repaint_all = true;
     }
 
-    if (repaint_all || ggw->dirty_regions) {
+    if (ggw->repaint_all || ggw->dirty_regions) {
 		cairo_rectangle_int_t extents = {.width = alloc.width, .height = alloc.height};
         ggw->offscreen_context = cairo_create(ggw->offscreen_surface);
         if (ggw->dirty_regions) {
-            cairo_rectangle_int_t area;
-            int num_rectangles = cairo_region_num_rectangles(ggw->dirty_regions);
+            if (!ggw->repaint_all) {
+                cairo_rectangle_int_t area;
+                int num_rectangles = cairo_region_num_rectangles(ggw->dirty_regions);
 
-            for (int i = 0; i < num_rectangles; ++i) {
-                cairo_region_get_rectangle(ggw->dirty_regions, i, &area);
-                cairo_rectangle(ggw->offscreen_context, area.x, area.y, area.width, area.height);
+                for (int i = 0; i < num_rectangles; ++i) {
+                    cairo_region_get_rectangle(ggw->dirty_regions, i, &area);
+                    cairo_rectangle(ggw->offscreen_context, area.x, area.y, area.width, area.height);
+                }
+                cairo_clip(ggw->offscreen_context);
+                cairo_region_get_extents(ggw->dirty_regions, &extents);
             }
-            cairo_clip(ggw->offscreen_context);
-			cairo_region_get_extents(ggw->dirty_regions, &extents);
             cairo_region_destroy(ggw->dirty_regions);
             ggw->dirty_regions = NULL;
         }
@@ -172,7 +172,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
         cairo_paint(ggw->offscreen_context);
 		cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_OVER);
         
-        if (repaint_all) {
+        if (ggw->repaint_all) {
             GdkEventConfigure configure = {
                 .type = GDK_CONFIGURE,
                 .send_event = TRUE,
@@ -207,6 +207,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
         
         cairo_destroy(ggw->offscreen_context);
         ggw->offscreen_context = NULL;
+        ggw->repaint_all = false;
     }
 
     // Now paint the offscreen surface
@@ -219,7 +220,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
 
 static gboolean ggtk_window_event(GtkWidget *widget, GdkEvent *event)
 {
-    Log(LOGINFO, "Received event type %s on %p", GdkEventName(event->type), widget);
+    Log(LOGVERBOSE, "Received event type %s on %p", GdkEventName(event->type), widget);
     GGtkWindow *ggw = GGTK_WINDOW(widget);
     switch (event->type) {
         case GDK_KEY_PRESS:
@@ -235,7 +236,7 @@ static gboolean ggtk_window_event(GtkWidget *widget, GdkEvent *event)
             return true; // don't propagate any further
         break;
         default:
-            Log(LOGINFO, "Discarded event %s on %p", GdkEventName(event->type), widget);
+            Log(LOGVERBOSE, "Discarded event %s on %p", GdkEventName(event->type), widget);
     }
     
     return false;
