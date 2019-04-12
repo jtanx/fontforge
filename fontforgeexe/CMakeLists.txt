@@ -21,3 +21,5 @@ target_link_libraries(${MODULE} fontforge m)
 if (FONTFORGE_CAN_USE_GDK)
     target_link_libraries(${MODULE} gdraw)
 endif()
+
+set_target_properties(${MODULE} PROPERTIES OUTPUT_NAME "fontforge")
