@@ -591,7 +591,9 @@ void GGTKDrawPushClip(GWindow w, GRect *rct, GRect *old) {
 
 void GGTKDrawPopClip(GWindow w, GRect *old) {
     //Log(LOGDEBUG, " ");
-    w->ggc->clip = *old;
+    if (old) {
+        w->ggc->clip = *old;
+    }
 	cairo_restore(_GGTKDraw_GetCairoContext((GGTKWindow)w));
 }
 

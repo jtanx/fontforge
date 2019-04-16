@@ -65,8 +65,6 @@ if (GDK_FOUND)
     link_directories(${GTK_LIBRARY_DIRS})
 endif()
 
-include_directories("uthash/src")
-
 # Include directories
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/inc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/inc")
