@@ -35,6 +35,7 @@ add_library(gdraw STATIC
   ggtkcdraw.c
   ggtkdraw.c
   ggtkdrawP.h
+  ggtkwindow.c
   ghvbox.c
   gimageclut.c
   gimagecvt.c
@@ -76,10 +77,10 @@ if(ENABLE_X11)
     Pango::Pango
   )
 elseif(ENABLE_GTK)
-  set(gdraw_LIBRARIES GTK3::GTK3)
   if(CMAKE_COMPILER_IS_GNUCC)
-    set_source_files_properties(ggtkdraw.c PROPERTIES COMPILE_FLAGS "-Wall -Wno-format-zero-length")
+    set_source_files_properties(ggtkdraw.c ggtkcdraw.c ggtkwindow.c PROPERTIES COMPILE_FLAGS "-Wall -Wno-format-zero-length")
   endif()
+  target_link_libraries(gdraw PUBLIC GTK3::GTK3)
 else()
   if(APPLE)
     target_sources(gdraw PRIVATE ggdkcocoa.m)

@@ -30,6 +30,7 @@
 */
 
 #ifdef FONTFORGE_CAN_USE_GTK
+
 #include "fontP.h"
 #include "ggtkdrawP.h"
 #include "gkeysym.h"
@@ -122,7 +123,7 @@ static int _GGTKDraw_WindowOrParentsDying(GGTKWindow gw) {
 }
 
 static GdkDevice *_GGTKDraw_GetPointer(GdkDisplay *display) {
-#ifdef GGDKDRAW_GDK_3_20
+#ifdef GGTKDRAW_GDK_3_20
     GdkSeat *seat = gdk_display_get_default_seat(display);
     if (seat == NULL) {
         return NULL;

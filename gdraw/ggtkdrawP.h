@@ -38,6 +38,14 @@
 #include "gdrawP.h"
 #include "ggdkdrawloggerP.h"
 
+#if (((GDK_MAJOR_VERSION == 3) && (GDK_MINOR_VERSION >= 22)) || (GDK_MAJOR_VERSION > 3))
+#    define GGTKDRAW_GDK_3_22
+#endif
+
+#if (((GDK_MAJOR_VERSION == 3) && (GDK_MINOR_VERSION >= 20)) || (GDK_MAJOR_VERSION > 3))
+#    define GGTKDRAW_GDK_3_20
+#endif
+
 #define GGTKDRAW_ADDREF(x) do { \
     assert((x)->reference_count >= 0); \
     (x)->reference_count++; \
@@ -51,12 +59,15 @@
     } \
 } while(0)
 
+
 typedef struct ggtkwindow *GGTKWindow;
 
 // GGtkWindow GObject declaration
 
+#define GList  GList_Glib
 #define GGTK_TYPE_WINDOW ggtk_window_get_type()
 G_DECLARE_FINAL_TYPE(GGtkWindow, ggtk_window, GGTK, WINDOW, GtkLayout)
+#undef GList
 
 struct _GGtkWindowClass
 {

@@ -26,6 +26,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <fontforge-config.h>
+
 /**
  *  \file ggtkcdraw.c
  *  \brief Cairo drawing functionality
@@ -34,6 +36,7 @@
 
 #ifdef FONTFORGE_CAN_USE_GTK
 
+#include "fontP.h"
 #include "ggtkdrawP.h"
 #include "ustring.h"
 
@@ -592,7 +595,9 @@ void GGTKDrawPushClip(GWindow w, GRect *rct, GRect *old) {
 
 void GGTKDrawPopClip(GWindow w, GRect *old) {
     //Log(LOGDEBUG, " ");
-    w->ggc->clip = *old;
+    if (old) {
+        w->ggc->clip = *old;
+    }
 	cairo_restore(_GGTKDraw_GetCairoContext((GGTKWindow)w));
 }
 

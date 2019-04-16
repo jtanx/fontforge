@@ -1,7 +1,7 @@
 #include "ggtkdrawP.h"
 #include "ggdkdrawloggerP.h"
 
-#ifdef FONTFORGE_CAN_USE_GDK
+#ifdef FONTFORGE_CAN_USE_GTK    
 
 struct _GGtkWindow
 {
@@ -328,4 +328,4 @@ static void ggtk_window_init(GGtkWindow *ggw)
     gtk_widget_set_focus_on_click(widget, true);
 }
 
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK
