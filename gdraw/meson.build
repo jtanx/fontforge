@@ -67,7 +67,7 @@ gdraw_sources = files([
 libgdraw = static_library('gdraw',
   gdraw_sources,
   include_directories: default_includes,
-  dependencies: [libgutils_dep, gdk_dep],
+  dependencies: [libfontforge_dep, gdk_dep],
 )
 
-libgdraw_dep = declare_dependency(link_with : libgdraw, dependencies: [libgutils_dep, gdk_dep])
+libgdraw_dep = declare_dependency(link_with : libgdraw, dependencies: [libfontforge_dep, gdk_dep])

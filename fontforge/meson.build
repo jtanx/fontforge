@@ -212,12 +212,13 @@ fontforge_sources = files([
   'zapfnomen.c',
 ])
 
-libfontforge = static_library('fontforge',
+libfontforge = shared_library('fontforge',
   noinst_fontforge_headers,
   pkginclude_fontforge_headers,
   fontforge_sources,
   include_directories: default_includes,
-  dependencies: [libgutils_dep, freetype_dep, libxml2_dep, zlib_dep, libgdraw_dep, libspiro_dep, m_dep],
+  dependencies: [libgutils_dep, freetype_dep, libxml2_dep, zlib_dep, libspiro_dep, m_dep],
+  soversion: 4,
 )
 
 libfontforge_dep = declare_dependency(link_with : libfontforge)
