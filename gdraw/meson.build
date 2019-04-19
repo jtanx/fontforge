@@ -67,7 +67,7 @@ gdraw_sources = files([
 libgdraw = static_library('gdraw',
   gdraw_sources,
   include_directories: default_includes,
-  dependencies: [dep_libgutils, dep_gdk],
+  dependencies: [libgutils_dep, gdk_dep],
 )
 
-dep_libgdraw = declare_dependency(link_with : libgdraw, dependencies: [dep_libgutils, dep_gdk])
+libgdraw_dep = declare_dependency(link_with : libgdraw, dependencies: [libgutils_dep, gdk_dep])

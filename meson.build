@@ -19,17 +19,17 @@ conf_data.set10('FONTFORGE_CAN_USE_GDK', true)
 conf_data.set10('X_DISPLAY_MISSING', true)
 conf_data.set10('FONTFORGE_CONFIG_USE_DOUBLE', true)
 
-dep_glib = dependency('glib-2.0')
-dep_gio = dependency('gio-2.0')
-dep_freetype = dependency('freetype2')
-dep_libxml2 = dependency('libxml-2.0')
-dep_zlib = dependency('zlib')
-dep_m = cc.find_library('m', required : false)
-dep_gdk = dependency('gdk-3.0', required: false)
-dep_libspiro = dependency('libspiro', required: false)
-conf_data.set10('FONTFORGE_CAN_USE_GDK', dep_gdk.found())
-conf_data.set10('_LIBSPIRO_FUN', dep_libspiro.found())
-if not dep_libspiro.found()
+glib_dep = dependency('glib-2.0')
+gio_dep = dependency('gio-2.0')
+freetype_dep = dependency('freetype2')
+libxml2_dep = dependency('libxml-2.0')
+zlib_dep = dependency('zlib')
+m_dep = cc.find_library('m', required : false)
+gdk_dep = dependency('gdk-3.0', required: false)
+libspiro_dep = dependency('libspiro', required: false)
+conf_data.set10('FONTFORGE_CAN_USE_GDK', gdk_dep.found())
+conf_data.set10('_LIBSPIRO_FUN', libspiro_dep.found())
+if not libspiro_dep.found()
   conf_data.set10('_NO_LIBSPIRO', true)
 endif
 
@@ -41,7 +41,7 @@ if not cc.has_function('iconv_open')
     error('iconv was not found')
   endif
 endif
-dep_iconv = declare_dependency(dependencies: iconv_lib)
+iconv_dep = declare_dependency(dependencies: iconv_lib)
 
 default_includes = include_directories('.', 'inc')
 

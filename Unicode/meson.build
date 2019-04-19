@@ -42,7 +42,7 @@ gunicode_sources = files([
 libgunicode = static_library('gunicode',
   gunicode_sources,
   include_directories: default_includes,
-  dependencies: dep_iconv,
+  dependencies: iconv_dep,
 )
 
-dep_libgunicode = declare_dependency(link_with : libgunicode, dependencies: dep_iconv)
+libgunicode_dep = declare_dependency(link_with : libgunicode, dependencies: iconv_dep)

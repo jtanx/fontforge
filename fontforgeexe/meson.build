@@ -86,5 +86,5 @@ fontforge_noui_sources = files([
 fontforgeexe = executable('fontforge',
   fontforge_graphical_sources,
   include_directories: [default_includes, include_directories('../fontforge')],
-  dependencies: [dep_libfontforge, dep_libgdraw],
+  dependencies: [libfontforge_dep, libgdraw_dep],
 )

@@ -217,7 +217,7 @@ libfontforge = static_library('fontforge',
   pkginclude_fontforge_headers,
   fontforge_sources,
   include_directories: default_includes,
-  dependencies: [dep_libgutils, dep_freetype, dep_libxml2, dep_zlib, dep_libgdraw, dep_libspiro, dep_m],
+  dependencies: [libgutils_dep, freetype_dep, libxml2_dep, zlib_dep, libgdraw_dep, libspiro_dep, m_dep],
 )
 
-dep_libfontforge = declare_dependency(link_with : libfontforge)
+libfontforge_dep = declare_dependency(link_with : libfontforge)

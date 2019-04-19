@@ -37,7 +37,7 @@ gutils_sources = files([
 libgutils = static_library('gutils',
   gutils_sources,
   include_directories: default_includes,
-  dependencies: [dep_libgunicode, dep_glib, dep_gio],
+  dependencies: [libgunicode_dep, glib_dep, gio_dep],
 )
 
-dep_libgutils = declare_dependency(link_with : libgutils, dependencies: [dep_libgunicode, dep_glib, dep_gio])
+libgutils_dep = declare_dependency(link_with : libgutils, dependencies: [libgunicode_dep, glib_dep, gio_dep])
