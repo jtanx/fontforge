@@ -13,9 +13,6 @@ project('fontforge', 'c',
 cc = meson.get_compiler('c')
 
 conf_data = configuration_data()
-conf_data.set10('HAVE_PTHREAD_H', false)
-conf_data.set10('HAVE_ICONV_H', true)
-conf_data.set10('FONTFORGE_CAN_USE_GDK', true)
 conf_data.set10('X_DISPLAY_MISSING', true)
 conf_data.set10('FONTFORGE_CONFIG_USE_DOUBLE', true)
 
@@ -27,6 +24,9 @@ zlib_dep = dependency('zlib')
 m_dep = cc.find_library('m', required : false)
 gdk_dep = dependency('gdk-3.0', required: false)
 libspiro_dep = dependency('libspiro', required: false)
+thread_dep = dependency('threads', required: false)
+
+conf_data.set10('HAVE_PTHREAD_H', thread_dep.found())
 conf_data.set10('FONTFORGE_CAN_USE_GDK', gdk_dep.found())
 conf_data.set10('_LIBSPIRO_FUN', libspiro_dep.found())
 if not libspiro_dep.found()
