@@ -27,9 +27,9 @@
 #ifndef _SPLINEFONT_H
 #define _SPLINEFONT_H
 
+#include <fontforge-config.h>
 #include <basics.h>
 #include <dlist.h>
-#include "configure-fontforge.h"
 #include <gwwiconv.h>
 #include "locale.h"
 
