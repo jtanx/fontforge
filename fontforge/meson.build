@@ -216,6 +216,7 @@ libfontforge = shared_library('fontforge',
   fontforge_sources,
   include_directories: default_includes,
   dependencies: [libgutils_dep, freetype_dep, libxml2_dep, zlib_dep, libspiro_dep, m_dep],
+  link_whole: [libgutils],
   soversion: 4,
 )
 
