@@ -48,6 +48,8 @@
 #include "splinesaveafm.h"
 #include "splineutil.h"
 #include "splineutil2.h"
+
+#include <assert.h>
 #include <math.h>
 #include <locale.h>
 #include <ustring.h>
@@ -3657,7 +3659,8 @@ void CVChangeSC( CharView *cv, SplineChar *sc )
     cv->b.layerheads[dm_back] = &sc->layers[blayer];
     cv->b.layerheads[dm_grid] = &sc->parent->grid;
     cv->p.sp = cv->lastselpt = NULL;
-    cv->p.spiro = cv->lastselcp = NULL;
+    cv->lastselcp.present = false;
+    cv->p.spiro = 0;
     cv->apmine = cv->apmatch = NULL; cv->apsc = NULL;
     cv->template1 = cv->template2 = NULL;
 #if HANYANG
@@ -3992,7 +3995,7 @@ void CVInfoDrawText(CharView *cv, GWindow pixmap ) {
     int ybase = cv->mbh+cv->charselectorh+(cv->infoh-cv->sfh)/2+cv->sas;
     real xdiff, ydiff;
     SplinePoint *sp, dummy;
-    spiro_cp *cp;
+    const spiro_cp *cp;
 
     GDrawSetFont(pixmap,cv->small);
     r.x = RPT_DATA; r.width = SPT_BASE-RPT_DATA;
@@ -4068,9 +4071,12 @@ void CVInfoDrawText(CharView *cv, GWindow pixmap ) {
 		FreeTypeStringVersion(), -1,fg);
     }
     sp = NULL; cp = NULL;
-    if ( cv->b.sc->inspiro && hasspiro())
-	cp = cv->p.spiro!=NULL ? cv->p.spiro : cv->lastselcp;
-    else
+    if ( cv->b.sc->inspiro && hasspiro()) {
+        if (cv->p.spiro)
+            cp = CVGetPressedSpiro(&cv->p);
+        else if (cv->lastselcp.present)
+            cp = &cv->lastselcp.cp;
+    } else
 	sp = cv->p.sp!=NULL ? cv->p.sp : cv->lastselpt;
     if ( sp==NULL && cp==NULL )
 	    if ( cv->active_tool==cvt_rect || cv->active_tool==cvt_elipse ||
@@ -4183,11 +4189,13 @@ static int CheckSpiroPoint(FindSel *fs, spiro_cp *cp, SplineSet *spl,int index) 
 
     if ( fs->xl<=cp->x && fs->xh>=cp->x &&
 	    fs->yl<=cp->y && fs->yh >= cp->y ) {
-	fs->p->spiro = cp;
+    if (spl) {
+	fs->p->spiro = spl ? index + 1 : 0; // FIXME join_cp wtf
 	fs->p->spline = NULL;
 	fs->p->anysel = true;
 	fs->p->spl = spl;
-	fs->p->spiro_index = index;
+	fs->p->spiro_index_fuzzy = index;
+    }
 return( true );
     }
 return( false );
@@ -4263,7 +4271,7 @@ return( false );
 	fs->p->spline = spline;
 	fs->p->spl = spl;
 	fs->p->anysel = true;
-	fs->p->spiro_index = SplineT2SpiroIndex(spline,fs->p->t,spl);
+	fs->p->spiro_index_fuzzy = SplineT2SpiroIndex(spline,fs->p->t,spl);
 return( false /*true*/ );	/* Check if there's a point where we are first */
 	/* if there is use it, if not (because anysel is true) we'll fall back */
 	/* here */
@@ -4562,16 +4570,6 @@ int CVTestSelectFromEvent(CharView *cv,GEvent *event) {
 return( _CVTestSelectFromEvent(cv,&fs));
 }
 
-/**
- * A cache for the selected spline point or spiro control point
- */
-typedef struct lastselectedpoint
-{
-    SplinePoint *lastselpt;
-    spiro_cp *lastselcp;
-} lastSelectedPoint;
-
-
 void CVFreePreTransformSPL( CharView* cv )
 {
     if( cv->p.pretransform_spl )
@@ -4736,8 +4734,6 @@ static void CVSwitchActiveSC( CharView *cv, SplineChar* sc, int idx )
 static void CVMouseDown(CharView *cv, GEvent *event ) {
     FindSel fs;
     GEvent fake;
-    lastSelectedPoint lastSel;
-    memset( &lastSel, 0, sizeof(lastSelectedPoint));
 
     if ( event->u.mouse.button==2 && event->u.mouse.device!=NULL &&
 	    strcmp(event->u.mouse.device,"stylus")==0 )
@@ -4804,10 +4800,8 @@ return;		/* I treat this more like a modifier key change than a button press */
 	if ( cv->showpointnumbers && cv->b.layerheads[cv->b.drawmode]->order2 )
 	    fs.all_controls = true;
 	fs.alwaysshowcontrolpoints = cv->alwaysshowcontrolpoints;
-	lastSel.lastselpt = cv->lastselpt;
-	lastSel.lastselcp = cv->lastselcp;
 	cv->lastselpt = NULL;
-	cv->lastselcp = NULL;
+	cv->lastselcp.present = false;
 	_CVTestSelectFromEvent(cv,&fs);
 	fs.p = &cv->p;
 
@@ -4986,10 +4980,11 @@ return;		/* I treat this more like a modifier key change than a button press */
 	cv->info.x = p->x;
 	cv->info.y = p->y;
 	cv->p.cx = p->x; cv->p.cy = p->y;
-    } else if ( cv->p.spiro!=NULL ) {
-	cv->info.x = cv->p.spiro->x;
-	cv->info.y = cv->p.spiro->y;
-	cv->p.cx = cv->p.spiro->x; cv->p.cy = cv->p.spiro->y;
+    } else if ( cv->p.spiro ) {
+	spiro_cp *cpt = CVGetPressedSpiro(&cv->p);
+	cv->info.x = cpt->x;
+	cv->info.y = cpt->y;
+	cv->p.cx = cpt->x; cv->p.cy = cpt->y;
     } else {
 	cv->info.x = cv->p.cx;
 	cv->info.y = cv->p.cy;
@@ -5003,7 +4998,9 @@ return;		/* I treat this more like a modifier key change than a button press */
 	CVMouseDownPointer(cv, &fs, event);
 	CVMaybeCreateDraggingComparisonOutline( cv );
 	cv->lastselpt = fs.p->sp;
-	cv->lastselcp = fs.p->spiro;
+	cv->lastselcp.present = !!fs.p->spiro;
+    if (cv->lastselcp.present)
+        cv->lastselcp.cp = *CVGetPressedSpiro(fs.p);
       break;
       case cvt_magnify: case cvt_minify:
           //When scroll zooming, the old showing tool is the normal pointer.
@@ -5137,7 +5134,8 @@ void SCClearSelPt(SplineChar *sc) {
 
     for ( cv=(CharView *) (sc->views); cv!=NULL; cv=(CharView *) (cv->b.next) ) {
 	cv->lastselpt = cv->p.sp = NULL;
-	cv->p.spiro = cv->lastselcp = NULL;
+	cv->lastselcp.present = false;
+    cv->p.spiro = 0;
     }
 }
 
@@ -5365,9 +5363,10 @@ return;
     } else if ( p.sp!=NULL && p.sp!=cv->active_sp ) {		/* Snap to points */
 	p.cx = p.sp->me.x;
 	p.cy = p.sp->me.y;
-    } else if ( p.spiro!=NULL && p.spiro!=cv->active_cp ) {
-	p.cx = p.spiro->x;
-	p.cy = p.spiro->y;
+    } else if ( p.spiro && CVGetPressedSpiro(&p)!=CVGetActiveSpiro(cv) ) {
+    spiro_cp *cpt = CVGetPressedSpiro(&p);
+	p.cx = cpt->x;
+	p.cy = cpt->y;
     } else {
 	CVDoSnaps(cv,&fs);
     }
@@ -8296,7 +8295,9 @@ return;
 	SPIRO_SELECT(other);
     cv->p.sp = NULL;
     cv->lastselpt = NULL;
-    cv->lastselcp = other;
+    cv->lastselcp.present = other != NULL;
+    if (cv->lastselcp.present)
+        cv->lastselcp.cp = *other;
 
     /* Make sure the point is visible and has some context around it */
     if ( other!=NULL ) {
@@ -8370,7 +8371,8 @@ return;
 	other->selected = true;
     cv->p.sp = NULL;
     cv->lastselpt = other;
-    cv->p.spiro = cv->lastselcp = NULL;
+    cv->lastselcp.present = false;
+    cv->p.spiro = 0;
 
     /* Make sure the point is visible and has some context around it */
     if ( other!=NULL ) {
@@ -8575,9 +8577,10 @@ static void CVDoClear(CharView *cv) {
     }
     if ( anyimages )
 	SCOutOfDateBackground(cv->b.sc);
-    if ( cv->lastselpt!=NULL || cv->p.sp!=NULL || cv->p.spiro!=NULL || cv->lastselcp!=NULL ) {
+    if ( cv->lastselpt!=NULL || cv->p.sp!=NULL || cv->p.spiro || cv->lastselcp.present ) {
 	cv->lastselpt = NULL; cv->p.sp = NULL;
-	cv->p.spiro = cv->lastselcp = NULL;
+	cv->lastselcp.present = false;
+    cv->p.spiro = 0;
 	CVInfoDraw(cv,cv->gw);
     }
 }
@@ -9686,7 +9689,8 @@ return;
 
 static void CVMenuNLTransform(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
     CharView *cv = (CharView *) GDrawGetUserData(gw);
-    cv->lastselpt = NULL; cv->lastselcp = NULL;
+    cv->lastselpt = NULL;
+    cv->lastselcp.present = false;
     NonLinearDlg(NULL,cv);
 }
 
@@ -10627,7 +10631,8 @@ static void CVMenuReverseDir(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *U
 	if ( PointListIsSelected(ss)) {
 	    if ( !changed ) {
 		CVPreserveState(&cv->b);
-	        cv->lastselpt = NULL; cv->lastselcp = NULL;
+	        cv->lastselpt = NULL;
+            cv->lastselcp.present = false;
 		changed = true;
 	    }
 	    SplineSetReverse(ss);
@@ -13523,3 +13528,17 @@ bool CVShouldInterpolateCPsOnMotion( CharView* cv )
     return ret;
 }
 
+spiro_cp *CVGetPressedSpiro(PressedOn *p) {
+    if (p && p->spiro && p->spl) {
+        assert(p->spiro > 0 && p->spiro <= p->spl->spiro_cnt);
+        return &p->spl->spiros[p->spiro - 1];
+    }
+    return NULL;
+}
+
+spiro_cp *CVGetActiveSpiro(CharView *cv) {
+    if (cv && cv->active_cp && cv->active_spl) {
+        assert(cv->active_cp > 0 && cv->active_cp <= cv->active_spl->spiro_cnt);
+        return &cv->active_spl->spiros[cv->active_cp - 1];
+    }
+}

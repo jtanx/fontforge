@@ -327,21 +327,23 @@ static void CVMouseDownSpiroPoint(CharView *cv, GEvent *event) {
 
     cv->active_spl = NULL;
     cv->active_sp = NULL;
+    cv->active_cp = 0;
 
     sel = CVAnySelPointList(cv);
     if ( sel!=NULL ) {
 	if ( SPIRO_SELECTED(&sel->spiros[0]) ) base_index = 0;
 	else base_index = sel->spiro_cnt-2;
 	base = &sel->spiros[base_index];
-	if ( base==cv->p.spiro )
+	if ( base==CVGetPressedSpiro(&cv->p) )
 return;			/* We clicked on the active point, that's a no-op */
     }
     CVPreserveState(&cv->b);
     CVClearSel(cv);
     if ( sel!=NULL ) {
-	if ( (cp = cv->p.spiro)!=NULL )
+	if ( (cp = CVGetPressedSpiro(&cv->p))!=NULL )
 	    cp_index = cp-cv->p.spl->spiros;
-	cv->lastselcp = base;
+    cv->lastselcp.present = true;
+    cv->lastselcp.cp = *base;
 	ss = sel;
 	if ( base_index!=sel->spiro_cnt-2 ) {
 	    SplineSetReverse(sel);
@@ -380,10 +382,10 @@ return;			/* We clicked on the active point, that's a no-op */
 	ss = cv->p.spl;
 	if ( ss->spiro_cnt>=ss->spiro_max )
 	    ss->spiros = realloc(ss->spiros,(ss->spiro_max += 10)*sizeof(spiro_cp));
-	for ( i=ss->spiro_cnt-1; i>cv->p.spiro_index; --i )
+	for ( i=ss->spiro_cnt-1; i>cv->p.spiro_index_fuzzy; --i )
 	    ss->spiros[i+1] = ss->spiros[i];
 	++ss->spiro_cnt;
-	cp = &ss->spiros[cv->p.spiro_index+1];
+	cp = &ss->spiros[cv->p.spiro_index_fuzzy+1];
 	cp->x = cv->p.cx;
 	cp->y = cv->p.cy;
 	cp->ty = ty;
@@ -408,7 +410,7 @@ return;			/* We clicked on the active point, that's a no-op */
     SSRegenerateFromSpiros(ss);
 
     cv->active_spl = ss;
-    cv->active_cp = cp;
+    cv->active_cp = (cp - &ss->spiros[0]) + 1;
     CVSetCharChanged(cv,true);
     CVInfoDraw(cv,cv->gw);
     SCUpdateAll(sc);
@@ -673,12 +675,14 @@ void CVMergeSplineSets(CharView *cv, SplinePoint *active, SplineSet *activess,
 }
 
 static void CVMouseMoveSpiroPoint(CharView *cv, PressedOn *p) {
-    spiro_cp *active = cv->active_cp, *merge = p->spiro;
+    spiro_cp *active, *merge = CVGetPressedSpiro(p);
     SplineSet *activess = cv->active_spl;
-    int active_index;
+    int active_index = cv->active_cp - 1;
 
-    if ( active==NULL )
+    if ( active_index < 0 )
 return;
+    active = &cv->active_spl->spiros[active_index];
+
     if ( cv->info.x==active->x && cv->info.y==active->y )
 return;
 
@@ -687,8 +691,6 @@ return;
     active->x = cv->info.x;
     active->y = cv->info.y;
     CVSetCharChanged(cv,true);
-
-    active_index = active-activess->spiros;
 
     if ( active!=merge && merge!=NULL && p->spl!=NULL &&
 	    SPIRO_SPL_OPEN(activess) &&
@@ -820,7 +822,7 @@ void CVMouseUpPoint(CharView *cv,GEvent *event) {
     cv->lastselpt = active;
     cv->active_spl = NULL;
     cv->active_sp = NULL;
-    cv->active_cp = NULL;
+    cv->active_cp = 0;
     cv->joinvalid = false;
     CVInfoDraw(cv,cv->gw);
     CPEndInfo(cv);

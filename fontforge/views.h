@@ -258,7 +258,10 @@ typedef struct charview {
 						/*  Will not be updated when fontview is reencoded */
     PressedOn p;
     SplinePoint *lastselpt;
-    spiro_cp *lastselcp;
+    struct {
+        spiro_cp cp;
+        int present;
+    } lastselcp;
     /*GWindow tools, layers;*/
     int8 b1_tool, cb1_tool, b2_tool, cb2_tool;	/* Button 3 does a popup */
     int8 b1_tool_old;				/* Used by mingw port */
@@ -267,7 +270,7 @@ typedef struct charview {
     int8 spacebar_hold;				/* spacebar is held down */
     SplinePointList *active_spl;
     SplinePoint *active_sp;
-    spiro_cp *active_cp;
+    int active_cp; /* Index into spiros of active_spl of the active spiro point. This is 1-indexed, so that a 0-value indicates no selection */
     IPoint handscroll_base;
     uint16 rfh, ras;
     BasePoint lastknife;
@@ -1491,6 +1494,7 @@ extern int CVNearLBearingLine( CharView* cv, real x, real fudge );
 
 extern void CVMenuConstrain(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e));
 
-
+extern spiro_cp *CVGetPressedSpiro(PressedOn *p);
+extern spiro_cp *CVGetActiveSpiro(CharView *cv);
 
 #endif	/* _VIEWS_H */

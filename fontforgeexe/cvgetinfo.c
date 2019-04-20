@@ -3798,8 +3798,8 @@ void CVPGetInfo(CharView *cv) {
 	ApGetInfo(cv,cv->p.ap);
     else if ( cv->p.sp!=NULL )
 	PointGetInfo(cv,cv->p.sp,cv->p.spl);
-    else if ( cv->p.spiro!=NULL )
-	SpiroPointGetInfo(cv,cv->p.spiro,cv->p.spl);
+    else if ( cv->p.spiro )
+	SpiroPointGetInfo(cv,CVGetPressedSpiro(&cv->p),cv->p.spl);
 }
 
 void SCRefBy(SplineChar *sc) {

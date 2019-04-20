@@ -71,8 +71,8 @@ typedef struct pressedOn {
     float ex, ey;		/* end of last rubber band rectangle */
     BasePoint constrain;	/* Point to which we constrain movement */
     BasePoint cp;		/* Original control point position */
-    spiro_cp *spiro;		/* If they clicked on a spiro point */
-    int spiro_index;		/* index of a clicked spiro_cp, or */
+    int spiro;			/* Index into the spl's spiros if they clicked on a spiro point. This is 1-indexed - a value of 0 means no spiro cp is selected. See also CVGetPressedSpiro */
+    int spiro_index_fuzzy;	/* index of a clicked spiro_cp, or */
 			/* if they clicked on the spline between spiros, */
 			/* this is the spiro indexof the preceding spiro */
     GList_Glib*      pretransform_spl; /* If we want to draw an image of the original spl while doing something

@@ -149,7 +149,8 @@ int CVClearSel(CharView *cv) {
 
     CVFreePreTransformSPL( cv );
     
-    cv->lastselpt = NULL; cv->lastselcp = NULL;
+    cv->lastselpt = NULL;
+    cv->lastselcp.present = false;
     for ( spl = cv->b.layerheads[cv->b.drawmode]->splines; spl!=NULL; spl = spl->next )
     {
 	if ( spl->first->selected )
@@ -221,7 +222,8 @@ int CVSetSel(CharView *cv,int mask) {
     RefChar *usemymetrics = HasUseMyMetrics(cv->b.sc,CVLayer((CharViewBase *) cv));
     int i;
 
-    cv->lastselpt = NULL; cv->lastselcp = NULL;
+    cv->lastselpt = NULL;
+    cv->lastselcp.present = false;
     if ( mask&1 ) {
 	if ( !cv->b.sc->inspiro || !hasspiro()) {
 	    for ( spl = cv->b.layerheads[cv->b.drawmode]->splines; spl!=NULL; spl = spl->next ) {
@@ -241,7 +243,8 @@ int CVSetSel(CharView *cv,int mask) {
 			needsupdate = true;
 			SPIRO_SELECT(&spl->spiros[i]);
 		    }
-		    cv->lastselcp = &spl->spiros[i];
+            cv->lastselcp.present = true;
+		    cv->lastselcp.cp = spl->spiros[i];
 		}
 	    }
 	}
@@ -275,7 +278,8 @@ void CVInvertSel(CharView *cv) {
     ImageList *img;
     int i;
 
-    cv->lastselpt = NULL; cv->lastselcp = NULL;
+    cv->lastselpt = NULL;
+    cv->lastselcp.present = false;
 
     for ( spl = cv->b.layerheads[cv->b.drawmode]->splines; spl!=NULL; spl = spl->next ) {
 	if ( cv->b.sc->inspiro && hasspiro()) {
@@ -653,7 +657,7 @@ return;
     cv->nearcaret = nearcaret = -1;
     if ( cv->showhmetrics ) nearcaret = NearCaret(cv->b.sc,cv->p.cx,fs->fudge);
     if ( (fs->p->sp==NULL    || !fs->p->sp->selected) &&
-	 (fs->p->spiro==NULL || !SPIRO_SELECTED(fs->p->spiro)) &&
+	 (!fs->p->spiro || !SPIRO_SELECTED(CVGetPressedSpiro(fs->p))) &&
 	 (fs->p->ref==NULL   || !fs->p->ref->selected) &&
 	 (fs->p->img==NULL   || !fs->p->img->selected) &&
 	 (fs->p->ap==NULL    || !fs->p->ap->selected) &&
@@ -782,9 +786,9 @@ return;
 	} else if ( fs->p->sp!=NULL ) {
 	    if ( !fs->p->sp->selected ) needsupdate = true;
 	    fs->p->sp->selected = true;
-	} else if ( fs->p->spiro!=NULL ) {
-	    if ( !SPIRO_SELECTED(fs->p->spiro) ) needsupdate = true;
-	    SPIRO_SELECT( fs->p->spiro );
+	} else if ( fs->p->spiro ) {
+	    if ( !SPIRO_SELECTED(CVGetPressedSpiro(fs->p)) ) needsupdate = true;
+	    SPIRO_SELECT( CVGetPressedSpiro(fs->p) );
 	} else if ( fs->p->spline!=NULL && (!cv->b.sc->inspiro || !hasspiro())) {
 	    if ( !fs->p->spline->to->selected &&
 		    !fs->p->spline->from->selected ) needsupdate = true;
@@ -814,9 +818,9 @@ return;
 	} else if ( fs->p->sp!=NULL ) {
 	    needsupdate = true;
 	    fs->p->sp->selected = !fs->p->sp->selected;
-	} else if ( fs->p->spiro!=NULL ) {
-	    needsupdate = true;
-	    fs->p->spiro->ty ^= 0x80;
+	} else if ( fs->p->spiro ) {
+        needsupdate = true;
+        CVGetPressedSpiro(fs->p)->ty ^= 0x80;
 	} else if ( fs->p->spline!=NULL && (!cv->b.sc->inspiro || !hasspiro())) {
 	    needsupdate = true;
 	    fs->p->spline->to->selected = !fs->p->spline->to->selected;
@@ -1005,8 +1009,10 @@ static int CVRectSelect(CharView *cv, real newx, real newy) {
 			( spl->spiros[i].x>=new.minx && spl->spiros[i].x<new.maxx &&
 			    spl->spiros[i].y>=new.miny && spl->spiros[i].y<new.maxy )) {
 		    spl->spiros[i].ty ^= 0x80;
-		    if ( SPIRO_SELECTED(&spl->spiros[i]))
-			cv->lastselcp = &spl->spiros[i];
+		    if ( SPIRO_SELECTED(&spl->spiros[i])) {
+                cv->lastselcp.present = true;
+                cv->lastselcp.cp = spl->spiros[i];
+            }
 		    any = true;
 		}
 	    }
