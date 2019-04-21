@@ -700,6 +700,9 @@ return;
 	SplinePoint *activesp = active_index==0 ? activess->first : activess->last;
 	SplinePoint *mergesp = (merge-p->spl->spiros)==0 ? p->spl->first : p->spl->last;
 	CVMergeSplineSets(cv,activesp,activess,mergesp,p->spl);
+	cv->active_cp = active_index==0 ? activess->spiro_cnt-1 : 1;
+	if (cv->active_cp > activess->spiro_cnt || cv->active_cp < 0)
+	    cv->active_cp = 0;
     }
     SSRegenerateFromSpiros(activess);
     SCUpdateAll(cv->b.sc);
