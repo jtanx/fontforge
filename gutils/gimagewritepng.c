@@ -43,6 +43,7 @@ static int a_file_must_define_something=0;	/* ANSI says so */
 #define uint8 _uint8
 
 #include "gimage.h"
+#include <gfile.h>
 
 static void user_error_fn(png_structp png_ptr, png_const_charp error_msg) {
     fprintf(stderr, "%s\n", error_msg );
@@ -172,7 +173,7 @@ int GImageWritePng(GImage *gi, char *filename, int progressive) {
     int ret;
 
    /* open the file */
-   fp = fopen(filename, "wb");
+   fp = GFileFopen(filename, "wb");
    if (!fp)
 return(false);
     ret = GImageWrite_Png(gi,fp,progressive);

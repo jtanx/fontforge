@@ -2657,7 +2657,7 @@ FontDict *ReadPSFont(char *fontname) {
     FILE *in;
     FontDict *fd;
 
-    in = fopen(fontname,"rb");
+    in = GFileFopen(fontname,"rb");
     if ( in==NULL ) {
 	LogError( _("Cannot open %s\n"), fontname );
 return(NULL);
@@ -2786,5 +2786,5 @@ return( ret );
 }
 
 char **NamesReadPostScript(char *filename) {
-return( _NamesReadPostScript( fopen(filename,"rb")));
+return( _NamesReadPostScript( GFileFopen(filename,"rb")));
 }

@@ -48,6 +48,7 @@
 #include <time.h>
 #include <utype.h>
 #include <ustring.h>
+#include <gfile.h>
 #include <gutils.h>
 #include <math.h>
 
@@ -112,7 +113,7 @@ static void KPInsert( SplineChar *sc1, SplineChar *sc2, int off, int isv ) {
 }
 
 int LoadKerningDataFromAfm(SplineFont *sf, char *filename) {
-    FILE *file = fopen(filename,"r");
+    FILE *file = GFileFopen(filename,"r");
     char buffer[200], *pt, *ept, ch;
     SplineChar *sc1, *sc2;
     int off;
@@ -204,7 +205,7 @@ int LoadKerningDataFromAmfm(SplineFont *sf, char *filename) {
     MMSet *mm = sf->mm;
 
     if ( mm!=NULL )
-	file = fopen(filename,"r");
+	file = GFileFopen(filename,"r");
     pt = strstrmatch(filename,".amfm");
     if ( pt!=NULL ) {
 	char *afmname = copy(filename);
@@ -505,7 +506,7 @@ return;
 #define BigEndianWord(pt) ((((uint8 *) pt)[0]<<24) | (((uint8 *) pt)[1]<<16) | (((uint8 *) pt)[2]<<8) | (((uint8 *) pt)[3]))
 
 int LoadKerningDataFromTfm(SplineFont *sf, char *filename,EncMap *map) {
-    FILE *file = fopen(filename,"rb");
+    FILE *file = GFileFopen(filename,"rb");
     int i, tag, left, ictag;
     struct tfmdata tfmd;
     int charlist[256];
@@ -722,7 +723,7 @@ return;
 }
 
 int LoadKerningDataFromOfm(SplineFont *sf, char *filename,EncMap *map) {
-    FILE *file = fopen(filename,"rb");
+    FILE *file = GFileFopen(filename,"rb");
     int i, tag, left, ictag;
     int level;
     int height, depth;
@@ -2476,7 +2477,7 @@ return( !ferror(pfm));
 /* **************************** Reading PFM files *************************** */
 /* ************************************************************************** */
 int LoadKerningDataFromPfm(SplineFont *sf, char *filename,EncMap *map) {
-    FILE *file = fopen(filename,"rb");
+    FILE *file = GFileFopen(filename,"rb");
     int widthbytes, kernoff, i, kerncnt;
     int ch1, ch2, offset;
     int winmap[256];
@@ -3440,7 +3441,7 @@ return( _OTfmSplineFont(tfm,sf,map,65536,layer));
 enum metricsformat { mf_none, mf_afm, mf_amfm, mf_tfm, mf_ofm, mf_pfm, mf_feat };
 
 static enum metricsformat MetricsFormatType(char *filename) {
-    FILE *file = fopen(filename,"rb");
+    FILE *file = GFileFopen(filename,"rb");
     unsigned char buffer[200];
     struct stat sb;
     int len;

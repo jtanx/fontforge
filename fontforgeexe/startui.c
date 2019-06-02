@@ -563,7 +563,7 @@ static  OSErr install_apple_event_handlers(void) {
  if ( getenv("HOME")!=NULL ) {
   char buffer[1024];
   sprintf( buffer, "%s/.FontForge-LogFile.txt", getenv("HOME"));
-  logfile = fopen("/tmp/LogFile.txt","w");
+  logfile = GFileFopen("/tmp/LogFile.txt","w");
  }
  if ( logfile==NULL )
   logfile = stderr;
@@ -713,7 +713,7 @@ static int ReopenLastFonts(void) {
     if ( ffdir==NULL ) return false;
 
     sprintf( buffer, "%s/FontsOpenAtLastQuit", ffdir );
-    old = fopen(buffer,"r");
+    old = GFileFopen(buffer,"r");
     if ( old==NULL ) {
         free(ffdir);
         return false;
@@ -776,7 +776,7 @@ return( false );		/* we use a script, no x display at all */
 return( false );		/* script on stdin */
 	} else {
 	    /* Is this argument a script file ? */
-	    FILE *temp = fopen(argv[i],"r");
+	    FILE *temp = GFileFopen(argv[i],"r");
 	    char buffer[200];
 	    if ( temp==NULL )
 return( true );			/* not a script file, so need local local X */

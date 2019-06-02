@@ -45,6 +45,7 @@ static void *a_file_must_define_something=(void *) &a_file_must_define_something
 
 #include "inc/basics.h"
 # include "gimage.h"
+#include <gfile.h>
 
 static void *libpng=(void *) 1;
 
@@ -197,7 +198,7 @@ GImage *GImageReadPng(char *filename) {
     GImage *ret=NULL;
     FILE *fp;
 
-    fp = fopen(filename, "rb");
+    fp = GFileFopen(filename, "rb");
     if (!fp)
 return( NULL );
 

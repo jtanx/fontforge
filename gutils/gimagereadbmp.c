@@ -26,6 +26,7 @@
  */
 #include "gimage.h"
 #include "gimagebmpP.h"
+#include <gfile.h>
 #include <string.h>
 GImage *_GImage_Create(enum image_type type, int32 width, int32 height);
 
@@ -436,7 +437,7 @@ GImage *GImageReadBmp(char *filename) {
     FILE *file;			/* source file */
     GImage *ret;
 
-    if ( (file=fopen(filename,"rb"))==NULL ) {
+    if ( (file=GFileFopen(filename,"rb"))==NULL ) {
 	fprintf(stderr,"Can't open \"%s\"\n", filename);
 	return( NULL );
     }

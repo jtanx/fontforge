@@ -35,6 +35,7 @@
 #include "splinefill.h"
 #include "splinesaveafm.h"
 #include <gdraw.h>			/* for the defn of GClut for greymaps */
+#include <gfile.h>
 #include <string.h>
 #include <ustring.h>
 #include <utype.h>
@@ -434,7 +435,7 @@ int BDFFontDump(char *filename,BDFFont *font, EncMap *map, int res) {
 	sprintf(buffer,"%s-%s.%d.bdf", font->sf->fontname, encodingname, font->pixelsize );
 	filename = buffer;
     }
-    file = fopen(filename,"w" );
+    file = GFileFopen(filename,"w" );
     if ( file==NULL )
 	LogError( _("Can't open %s\n"), filename );
     else {

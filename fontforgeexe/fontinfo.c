@@ -43,6 +43,7 @@
 #include "splineutil.h"
 #include "splineutil2.h"
 #include "tottf.h"
+#include <gfile.h>
 #include <gutils.h>
 #include <ustring.h>
 #include <chardata.h>
@@ -6831,7 +6832,7 @@ return;
 	if ( filename==NULL )
 return;
 	/* Convert to def encoding !!! */
-	out = fopen(filename,"w");
+	out = GFileFopen(filename,"w");
 	if ( out==NULL ) {
 	    ff_post_error(_("Cannot open file"),_("Cannot open %s"), filename );
 	    free(filename);

@@ -26,6 +26,7 @@
  */
 #include "gimage.h"
 #include "string.h"
+#include <gfile.h>
 
 int GImageWriteXbm(GImage *gi, char *filename) {
 /* Export an *.xbm image, return 0 if all done okay */
@@ -50,7 +51,7 @@ int GImageWriteXbm(GImage *gi, char *filename) {
     if ( (pt=strrchr(stem,'.'))!=NULL && pt!=stem )
 	*pt = '\0';
 
-    if ( (file=fopen(filename,"w"))==NULL ) {
+    if ( (file=GFileFopen(filename,"w"))==NULL ) {
 	fprintf(stderr,"Can't open \"%s\"\n", filename);
 	return( -1 );
     }

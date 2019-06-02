@@ -40,6 +40,7 @@ static int a_file_must_define_something=0;	/* ANSI says so */
 #include <jerror.h>
 #include <setjmp.h>
 #include "gimage.h"
+#include <gfile.h>
 
 /******************************************************************************/
 
@@ -139,7 +140,7 @@ GImage *GImageReadJpeg(char *filename) {
     GImage *ret;
     FILE * infile;		/* source file */
 
-    if ((infile = fopen(filename, "rb")) == NULL) {
+    if ((infile = GFileFopen(filename, "rb")) == NULL) {
 	fprintf(stderr,"Can't open \"%s\"\n", filename);
 	return( NULL );
     }

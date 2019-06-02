@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include "sd.h"
+#include <gfile.h>
 #include <ustring.h>
 #include <utype.h>
 
@@ -150,7 +151,7 @@ return;
 }
 
 void SCImportPS(SplineChar *sc,int layer,char *path,int doclear, int flags) {
-    FILE *ps = fopen(path,"r");
+    FILE *ps = GFileFopen(path,"r");
 
     if ( ps==NULL )
 return;
@@ -193,7 +194,7 @@ return;
 }
 
 void SCImportPDF(SplineChar *sc,int layer,char *path,int doclear, int flags) {
-    FILE *pdf = fopen(path,"r");
+    FILE *pdf = GFileFopen(path,"r");
 
     if ( pdf==NULL )
 return;
@@ -831,7 +832,7 @@ void SCImportFig(SplineChar *sc,int layer,char *path,int doclear) {
     SplineSet *spl, *espl, **head;
     int i;
 
-    fig = fopen(path,"r");
+    fig = GFileFopen(path,"r");
     if ( fig==NULL ) {
 	ff_post_error(_("Can't find the file"),_("Can't find the file"));
 return;

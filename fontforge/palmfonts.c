@@ -41,6 +41,7 @@
 #include <math.h>
 #include "splinefont.h"
 #include <string.h>
+#include <gfile.h>
 #include <ustring.h>
 
 /* Palm bitmap fonts are a bastardized version of the mac 'FONT' resource
@@ -347,7 +348,7 @@ SplineFont *SFReadPalmPdb(char *filename) {
     int offset, next_offset;
     SplineFont *sf;
 
-    file = fopen(filename,"rb");
+    file = GFileFopen(filename,"rb");
     if ( file==NULL )
 return( NULL );
 
@@ -403,7 +404,7 @@ static FILE *MakeFewRecordPdb(const char *filename,int cnt) {
     if ( pt2==NULL || pt2<pt1 )
 	pt2 = fn+strlen(fn);
     strcpy(pt2,".pdb");
-    file = fopen(fn,"wb");
+    file = GFileFopen(fn,"wb");
     if ( file==NULL ) {
 	ff_post_error(_("Couldn't open file"),_("Couldn't open file %.200s"),fn);
 	free(fn);

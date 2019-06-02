@@ -29,6 +29,7 @@
 #include "splinefill.h"
 #include "splineutil.h"
 #include "tottfgpos.h"
+#include <gfile.h>
 #include <gkeysym.h>
 #include <math.h>
 
@@ -736,7 +737,7 @@ static void SFTextAreaSave(SFTextArea *st) {
 
     if ( cret==NULL )
 return;
-    file = fopen(cret,"w");
+    file = GFileFopen(cret,"w");
     if ( file==NULL ) {
 	ff_post_error(_("Could not open"),_("Could not open %.100s"),cret);
 	free(cret);

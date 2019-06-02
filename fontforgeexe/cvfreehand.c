@@ -30,6 +30,7 @@
 #include "splinestroke.h"
 #include "splineutil.h"
 #include "splineutil2.h"
+#include <gfile.h>
 #include <math.h>
 
 #undef DEBUG_FREEHAND
@@ -743,7 +744,7 @@ void CVMouseMoveFreeHand(CharView *cv, GEvent *event) {
 
 #ifdef DEBUG_FREEHAND
 static void RepeatFromFile(CharView *cv) {
-    FILE *foo = fopen("mousemove","r");
+    FILE *foo = GFileFopen("mousemove","r");
     /*char buffer[100];*/
     GEvent e;
     int x,y,p,t;

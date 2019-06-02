@@ -31,6 +31,7 @@
 #include <gresedit.h>
 #include <string.h>
 #include <stdlib.h>
+#include <gfile.h>
 #include <ustring.h>
 
 struct tofree {
@@ -702,7 +703,7 @@ static int GRE_Save(GGadget *g, GEvent *e) {
         filename = gwwv_save_filename_with_gadget(_("Save Resource file as..."),gre->def_res_file,NULL,gcdp);
         if ( filename==NULL )
             return true;
-        output = fopen( filename,"w" );
+        output = GFileFopen( filename,"w" );
         if ( output==NULL ) {
             gwwv_post_error(_("Open failed"), _("Failed to open %s for output"), filename );
             free(filename);

@@ -26,6 +26,7 @@
  */
 #include "fontforgevw.h"
 #include "groups.h"
+#include <gfile.h>
 #include <unistd.h>
 #include <ustring.h>
 #include <utype.h>
@@ -117,7 +118,7 @@ return;
 	unlink(groupfilename);
 return;
     }
-    groups = fopen(groupfilename,"w");
+    groups = GFileFopen(groupfilename,"w");
     if ( groups==NULL )
 return;
     _SaveGroupList(groups,group_root,0);
@@ -246,7 +247,7 @@ void LoadGroupList(void) {
     groupfilename = getPfaEditGroups();
     if ( groupfilename==NULL )
 return;
-    groups = fopen(groupfilename,"r");
+    groups = GFileFopen(groupfilename,"r");
     if ( groups==NULL )
 return;
     GroupFree(group_root);

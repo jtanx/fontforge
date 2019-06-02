@@ -34,6 +34,8 @@
 #include "hotkeys.h"
 #include "gkeysym.h"
 
+#include <gfile.h>
+
 /////////////////////////////////////////////////////////////////
 // The below keys are from this file, when/if we move to GTK+
 // then perhaps we should include this file instead of the inline
@@ -1265,7 +1267,7 @@ int GStringSetResourceFileV(char *filename,uint32 checksum) {
 return( 1 );
     }
 
-    res = fopen(filename,"r");
+    res = GFileFopen(filename,"r");
     if ( res==NULL )
 return( 0 );
 
@@ -1334,7 +1336,7 @@ unichar_t *GStringFileGetResource(char *filename, int index,unichar_t *mnemonic)
     if ( filename==NULL )
 return( uc_copy("Default"));
 
-    res = fopen(filename,"r");
+    res = GFileFopen(filename,"r");
     if ( res==NULL )
 return( 0 );
 

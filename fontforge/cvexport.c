@@ -149,7 +149,7 @@ int ExportEPS(char *filename,SplineChar *sc,int layer) {
     FILE *eps;
     int ret;
 
-    eps = fopen(filename,"w");
+    eps = GFileFopen(filename,"w");
     if ( eps==NULL ) {
 return(0);
     }
@@ -297,7 +297,7 @@ int ExportPDF(char *filename,SplineChar *sc,int layer) {
     FILE *eps;
     int ret;
 
-    eps = fopen(filename,"w");
+    eps = GFileFopen(filename,"w");
     if ( eps==NULL ) {
 return(0);
     }
@@ -355,7 +355,7 @@ int ExportPlate(char *filename,SplineChar *sc,int layer) {
     FILE *plate;
     int ret;
 
-    plate = fopen(filename,"w");
+    plate = GFileFopen(filename,"w");
     if ( plate==NULL ) {
 return(0);
     }
@@ -368,7 +368,7 @@ int ExportSVG(char *filename,SplineChar *sc,int layer) {
     FILE *svg;
     int ret;
 
-    svg = fopen(filename,"w");
+    svg = GFileFopen(filename,"w");
     if ( svg==NULL ) {
 return(0);
     }
@@ -381,7 +381,7 @@ int ExportGlif(char *filename,SplineChar *sc,int layer,int version) {
     FILE *glif;
     int ret;
 
-    glif = fopen(filename,"w");
+    glif = GFileFopen(filename,"w");
     if ( glif==NULL ) {
 return(0);
     }
@@ -483,7 +483,7 @@ int ExportFig(char *filename,SplineChar *sc,int layer) {
     int spmax = sc->parent->ascent+sc->parent->descent;
     /* This is by no means perfect. but it is a reasonable approximation */
 
-    fig = fopen(filename,"w");
+    fig = GFileFopen(filename,"w");
     if ( fig==NULL ) {
 return(0);
     }

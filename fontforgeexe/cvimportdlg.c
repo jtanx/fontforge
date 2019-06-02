@@ -35,12 +35,13 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include "sd.h"
+#include <gfile.h>
 #include <gkeysym.h>
 #include <ustring.h>
 #include <utype.h>
 
 static void ImportPS(CharView *cv,char *path) {
-    FILE *ps = fopen(path,"r");
+    FILE *ps = GFileFopen(path,"r");
 
     if ( ps==NULL )
 return;
@@ -49,7 +50,7 @@ return;
 }
 
 static void ImportPDF(CharView *cv,char *path) {
-    FILE *pdf = fopen(path,"r");
+    FILE *pdf = GFileFopen(path,"r");
 
     if ( pdf==NULL )
 return;
@@ -58,7 +59,7 @@ return;
 }
 
 static void ImportPlate(CharView *cv,char *path) {
-    FILE *plate = fopen(path,"r");
+    FILE *plate = GFileFopen(path,"r");
 
     if ( plate==NULL )
 return;

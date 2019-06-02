@@ -1,6 +1,7 @@
 #include "othersubrs.h"
 
 #include "fontforge.h"		/* For LogError */
+#include <gfile.h>
 
 /* These subroutines are code by Adobe for this exact use (from T1_Spec.pdf) */
 
@@ -489,7 +490,7 @@ void DefaultOtherSubrs(void) {
 }
 
 int ReadOtherSubrsFile(char *filename) {
-    FILE *os = fopen(filename,"r");
+    FILE *os = GFileFopen(filename,"r");
     char buffer[500];
     char **lines=NULL;
     int l=0, lmax=0;

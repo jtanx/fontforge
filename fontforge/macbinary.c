@@ -1605,7 +1605,7 @@ return( 0 );
     if ( __Mac && format==ff_pfbmacbin )
 	res = GFileTmpfile();
     else
-	res = fopen(filename,"wb+");
+	res = GFileFopen(filename,"wb+");
     if ( res==NULL ) {
 	fclose(temppfb);
 return( 0 );
@@ -1669,7 +1669,7 @@ return( 0 );
     if ( __Mac && format==ff_ttfmacbin )
 	res = GFileTmpfile();
     else
-	res = fopen(filename,"wb+");
+	res = GFileFopen(filename,"wb+");
     if ( res==NULL ) {
 	fclose(tempttf);
 return( 0 );
@@ -1746,7 +1746,7 @@ int WriteMacBitmaps(char *filename,SplineFont *sf, int32 *sizes, int is_dfont,
     if ( __Mac && !is_dfont )
 	res = GFileTmpfile();
     else
-	res = fopen(binfilename,"wb+");
+	res = GFileFopen(binfilename,"wb+");
     if ( res==NULL ) {
 	free(binfilename);
 return( 0 );
@@ -1854,7 +1854,7 @@ return( 0 );
 	    (format==ff_none && bf==bf_nfntmacbin)))
 	res = GFileTmpfile();
     else
-	res = fopen(filename,"wb+");
+	res = GFileFopen(filename,"wb+");
     if ( res==NULL ) {
 	for ( sfsub=sfs; sfsub!=NULL; sfsub=sfsub->next )
 	    fclose( sfsub->tempttf );
@@ -2932,11 +2932,11 @@ static SplineFont *HasResourceFork(char *filename,int flags,enum openflags openf
     respath = malloc(strlen(tempfn)+strlen("/..namedfork/rsrc")+1);
     strcpy(respath,tempfn);
     strcat(respath,"/..namedfork/rsrc");
-    resfork = fopen(respath,"r");
+    resfork = GFileFopen(respath,"r");
     if ( resfork==NULL ) {
 	strcpy(respath,tempfn);
 	strcat(respath,"/rsrc");
-	resfork = fopen(respath,"r");
+	resfork = GFileFopen(respath,"r");
     }
     free(respath);
     if ( tempfn!=filename )
@@ -3095,7 +3095,7 @@ static SplineFont *IsResourceInFile(char *filename,int flags,enum openflags open
 	temp = copy(filename);
 	temp[lparen-filename] = '\0';
     }
-    f = fopen(temp,"rb");
+    f = GFileFopen(temp,"rb");
     if ( temp!=filename ) free(temp);
     if ( f==NULL )
 return( NULL );
