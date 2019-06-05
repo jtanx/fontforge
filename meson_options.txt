@@ -1,0 +1,31 @@
+option('disable-native-scripting', type : 'boolean', value : false,
+    description: 'Disable native scripting support')
+
+option('disable-programs', type : 'boolean', value : false,
+    description: 'Disable building the executable; build only the shared library')
+
+option('disable-python-scripting', type: 'boolean', value : false,
+    description: 'Disable building with python support')
+
+option('disable-python-extension', type: 'boolean', value: false,
+    description: 'Disable building the python extensions for use in external Python installations')
+
+option('enable-debug', type: 'boolean', value : false,
+    description: 'Enable some debugging code (mostly just extra logging)')
+
+option('enable-real', type : 'combo', choices : ['double', 'float'], value : 'double',
+    description: 'Sets the floating point type used internally')
+
+option('enable-freetype-debugger', type: 'string',
+    description: '''Enable the FreeType debugger. This option to be set to the
+                    toplevel folder containing the source code of the version of FreeType
+                    that FontForge will be linked to.''')
+
+option('enable-debug-raw-points', type: 'boolean', value: false,
+    description: 'Add a raw mode to the points window of the debugger')
+
+option('theme', type: 'combo', choices: ['tango', '2012'], value: 'tango',
+    description: 'Sets the theme to use')
+
+option('enable-tile-path', type: 'boolean', value: false,
+    description: 'Enable a \'tile path\' command (a variant of \'expand stroke\')')
