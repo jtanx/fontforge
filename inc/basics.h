@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _BASICS_H
-#define _BASICS_H
+
+#ifndef FONTFORGE_BASICS_H
+#define FONTFORGE_BASICS_H
 
 #include <fontforge-config.h>
 #include <stdio.h>		/* for NULL */
@@ -122,4 +123,4 @@ static inline int imax(int a, int b)
 		    }
 
 
-#endif
+#endif /* FONTFORGE_BASICS_H */

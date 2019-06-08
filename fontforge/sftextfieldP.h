@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _SFTEXTFIELDP_H
-# define _SFTEXTFIELDP_H
+#ifndef FONTFORGE_SFTEXTFIELDP_H
+#define FONTFORGE_SFTEXTFIELDP_H
 
 #include "sflayoutP.h"
 #include "../gdraw/ggadgetP.h"
@@ -96,4 +96,4 @@ extern GGadget *SFTextAreaCreate(struct gwindow *base, GGadgetData *gd,void *dat
 extern void SFTFPopupMenu(SFTextArea *st, GEvent *event);
 
 extern struct gfuncs sftextarea_funcs;
-#endif
+#endif /* FONTFORGE_SFTEXTFIELDP_H */

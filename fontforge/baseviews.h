@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _BASEVIEWS_H
-#define _BASEVIEWS_H
+
+#ifndef FONTFORGE_BASEVIEWS_H
+#define FONTFORGE_BASEVIEWS_H
 
 #include <ffglib.h>
 #include "splinefont.h"
@@ -443,4 +444,4 @@ extern void MVSelectFirstKerningTable(struct metricsview *mv);
 
 extern float joinsnap;
 
-#endif
+#endif /* FONTFORGE_BASEVIEWS_H */

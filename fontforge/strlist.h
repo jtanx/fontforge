@@ -2,8 +2,9 @@
  *
  * A general-purpose singly-linked list of C strings.
  */
-#ifndef _STRLIST_H_
-#define _STRLIST_H_
+
+#ifndef FONTFORGE_STRLIST_H
+#define FONTFORGE_STRLIST_H
 
 struct string_list {
     struct string_list *next;
@@ -16,4 +17,4 @@ extern struct string_list *prepend_string_list(struct string_list*, const char *
 extern struct string_list *append_string_list(struct string_list*, const char *);
 extern struct string_list *sort_string_list(struct string_list*);
 
-#endif /* _STRLIST_H */
+#endif /* FONTFORGE_STRLIST_H */

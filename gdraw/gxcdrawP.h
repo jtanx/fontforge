@@ -1,5 +1,5 @@
-#ifndef _GXCDRAWP_H
-# define _GXCDRAWP_H
+#ifndef FONTFORGE_GXCDRAWP_H
+#define FONTFORGE_GXCDRAWP_H
 
 #include <fontforge-config.h>
 #ifndef FONTFORGE_CAN_USE_GDK
@@ -73,4 +73,4 @@ extern int  _GXPDraw_LayoutLineCount(GWindow w);
 extern int  _GXPDraw_LayoutLineStart(GWindow w,int l);
 
 #endif /* FONTFORGE_CAN_USE_GDK */
-#endif /* _GXCDRAWP_H */
+#endif /* FONTFORGE_GXCDRAWP_H */

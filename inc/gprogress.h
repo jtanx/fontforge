@@ -25,8 +25,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _GPROGRESS_H
-#define _GPROGRESS_H
+#ifndef FONTFORGE_GPROGRESS_H
+#define FONTFORGE_GPROGRESS_H
+
 #include <basics.h>
 #include <intl.h>
 
@@ -76,4 +77,4 @@ extern void GProgressChangeLine2_8(const char *line2); /* Changes the text in th
 #define gwwv_progress_pause_timer	GProgressPauseTimer
 #define gwwv_progress_resume_timer	GProgressResumeTimer
 #define gwwv_progress_enable_stop	GProgressEnableStop
-#endif
+#endif /* FONTFORGE_GPROGRESS_H */

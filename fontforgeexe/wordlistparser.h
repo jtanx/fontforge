@@ -26,8 +26,8 @@
 *******************************************************************************
 ******************************************************************************/
 
-#ifndef _ALREADY_INCLUDED_FF_WORDLIST_PARSER_H
-#define _ALREADY_INCLUDED_FF_WORDLIST_PARSER_H
+#ifndef FONTFORGE_WORDLISTPARSER_H
+#define FONTFORGE_WORDLISTPARSER_H
 
 #include "splinefont.h"
 #include <ffglib.h>
@@ -118,4 +118,4 @@ extern WordListLine WordlistEscapedInputStringToParsedDataComplex(
     WordlistEscapedInputStringToRealString_getFakeUnicodeOfScFunc getUnicodeFunc,
     void* udata );
 
-#endif
+#endif /* FONTFORGE_WORDLISTPARSER_H */

@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _FONTP_H
-#define _FONTP_H
+
+#ifndef FONTFORGE_FONTP_H
+#define FONTFORGE_FONTP_H
 
 #include "fontforge-config.h"
 
@@ -198,4 +199,5 @@ extern enum charset _GDraw_ParseMapping(unichar_t *setname);
 extern int _GDraw_FontFigureWeights(unichar_t *weight_str);
 extern struct font_name *_GDraw_HashFontFamily(FState *fonts,unichar_t *name, int prop);
 extern void _GDraw_FreeFD(struct font_data *fd);
-#endif
+
+#endif /* FONTFORGE_FONTP_H */

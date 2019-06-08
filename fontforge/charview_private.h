@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _CHARVIEW_PRIVATE_H
-#define _CHARVIEW_PRIVATE_H
+
+#ifndef FONTFORGE_CHARVIEW_PRIVATE_H
+#define FONTFORGE_CHARVIEW_PRIVATE_H
 
 
 #define MID_Fit		2001
@@ -249,4 +250,4 @@ extern void CVMergeToLine(GWindow gw,struct gmenuitem *mi,GEvent *e);
 extern void CVLSelectLayer(CharView *cv, int layer);
 
 
-#endif
+#endif /* FONTFORGE_CHARVIEW_PRIVATE_H */

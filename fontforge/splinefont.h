@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _SPLINEFONT_H
-#define _SPLINEFONT_H
+
+#ifndef FONTFORGE_SPLINEFONT_H
+#define FONTFORGE_SPLINEFONT_H
 
 #include <basics.h>
 #include <dlist.h>
@@ -2700,4 +2701,4 @@ static inline void freelocale_hack(locale_t dataset) {
 
 
 
-#endif
+#endif /* FONTFORGE_SPLINEFONT_H */

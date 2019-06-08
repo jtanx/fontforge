@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _HOTKEYS_H
-#define _HOTKEYS_H
+#ifndef FONTFORGE_HOTKEYS_H
+#define FONTFORGE_HOTKEYS_H
 
 #include "basics.h"
 #include "dlist.h"
@@ -229,4 +229,4 @@ extern void HotkeyParse( Hotkey* hk, const char *shortcut );
 extern void hotkeySystemSetCanUseMacCommand( int v );
 extern int hotkeySystemGetCanUseMacCommand(void);
 
-#endif // _HOTKEYS_H
+#endif /* FONTFORGE_HOTKEYS_H */

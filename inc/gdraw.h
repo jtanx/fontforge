@@ -24,8 +24,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _GDRAW_H
-#define _GDRAW_H
+
+#ifndef FONTFORGE_GDRAW_H
+#define FONTFORGE_GDRAW_H
+
 #include "gimage.h"
 #include "charset.h"
 
@@ -599,4 +601,4 @@ extern void GDrawRemoveReadFD( GDisplay *disp,
  */
 extern void MacServiceReadFDs(void);
 
-#endif
+#endif /* FONTFORGE_GDRAW_H */

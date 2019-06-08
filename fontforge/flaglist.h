@@ -1,6 +1,7 @@
 /* flaglist.h */
-#ifndef _FLAGLIST_H_
-#define _FLAGLIST_H_
+
+#ifndef FONTFORGE_FLAGLIST_H
+#define FONTFORGE_FLAGLIST_H
 
 #include <basics.h>
 
@@ -11,4 +12,4 @@ struct flaglist { const char *name; int flag; };
 extern int FindFlagByName( struct flaglist *flaglist, const char *name );
 extern const char *FindNameOfFlag( struct flaglist *flaglist, int flag );
 
-#endif
+#endif /* FONTFORGE_FLAGLIST_H */

@@ -24,8 +24,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _CHARSET_H
-#define _CHARSET_H
+
+#ifndef FONTFORGE_CHARSET_H
+#define FONTFORGE_CHARSET_H
+
 /* ASCII is ISO 646, except the ISO version admits national alternatives */
 enum encoding { e_usascii, e_iso646_no, e_iso646_se, e_iso8859_1,
     e_iso8859_2, e_iso8859_3, e_iso8859_4, e_iso8859_5, e_iso8859_6,
@@ -70,4 +72,4 @@ extern char *iconv_local_encoding_name;
 # include "gwwiconv.h"		/* My fake iconv based on encodings in gdraw/gunicode */
 #endif
 extern struct namemap { const char *name; int map; } encodingnames[];
-#endif
+#endif /* FONTFORGE_CHARSET_H */

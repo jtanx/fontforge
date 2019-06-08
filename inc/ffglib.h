@@ -19,8 +19,8 @@
  * distribution.
  */
 
-#ifndef _FFGLIB_H_
-#define _FFGLIB_H_
+#ifndef FONTFORGE_FFGLIB_H
+#define FONTFORGE_FFGLIB_H
 
 #define GTimer GTimer_GTK
 #define GList  GList_Glib
@@ -30,4 +30,4 @@
 #undef GTimer
 #undef GList
 
-#endif
+#endif /* FONTFORGE_FFGLIB_H */

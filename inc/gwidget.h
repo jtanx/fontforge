@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _GWIDGET_H
-#define _GWIDGET_H
+
+#ifndef FONTFORGE_GWIDGET_H
+#define FONTFORGE_GWIDGET_H
 
 #include <stdarg.h>
 #include "gdraw.h"
@@ -156,4 +157,4 @@ extern GIC *GWidgetCreateInputContext(GWindow w,enum gic_style def_style);
 extern GIC *GWidgetGetInputContext(GWindow w);
 
 
-#endif
+#endif /* FONTFORGE_GWIDGET_H */

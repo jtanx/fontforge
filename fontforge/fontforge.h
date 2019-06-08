@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _PFAEDIT_H_
-#define _PFAEDIT_H_
+
+#ifndef FONTFORGE_PFAEDIT_H
+#define FONTFORGE_PFAEDIT_H
 
 #include <fontforge-config.h>
 #include "configure-fontforge.h"
@@ -82,4 +83,4 @@ extern int quiet;
 extern MacFeat *default_mac_feature_map;
 
 extern int fontforge_main(int, char **);
-#endif
+#endif /* FONTFORGE_PFAEDIT_H */

@@ -24,8 +24,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _UIINTERFACE_H
-#define _UIINTERFACE_H
+
+#ifndef FONTFORGE_UIINTERFACE_H
+#define FONTFORGE_UIINTERFACE_H
+
 # include <basics.h>
 #include <fontforge-config.h>
 
@@ -511,4 +513,4 @@ extern struct clip_interface *clip_interface;
 
 extern const char *NOUI_TTFNameIds(int id);
 extern const char *NOUI_MSLangString(int language);
-#endif
+#endif /* FONTFORGE_UIINTERFACE_H */

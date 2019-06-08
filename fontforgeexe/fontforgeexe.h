@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _FONTFORGEEXE_H
-#define _FONTFORGEEXE_H
+
+#ifndef FONTFORGE_FONTFORGEEXE_H
+#define FONTFORGE_FONTFORGEEXE_H
 
 /**
  * These are functions which can only be used on a build that has UI
@@ -35,4 +36,4 @@
 
 extern FontView* FontViewFindUI( int (*testFunc)( FontViewBase*, void* udata ), void* udata );
 
-#endif	/* _FONTFORGEEXE_H */
+#endif /* FONTFORGE_FONTFORGEEXE_H */

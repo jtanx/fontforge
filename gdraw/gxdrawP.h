@@ -51,8 +51,8 @@ slightly slower, but should make no significant difference on a machine
 capable of using composite.
 */
 
-#ifndef _XDRAW_H
-#define _XDRAW_H
+#ifndef FONTFORGE_XDRAW_H
+#define FONTFORGE_XDRAW_H
 
 #include <fontforge-config.h>
 
@@ -394,4 +394,4 @@ void _GXDraw_Wacom_TestEvents(GXDisplay *gdisp);
 
 #endif // FONTFORGE_CAN_USE_GDK
 
-#endif
+#endif /* FONTFORGE_XDRAW_H */

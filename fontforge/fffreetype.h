@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _FFFREETYPE_H
-#define _FFFREETYPE_H
+#ifndef FONTFORGE_FFFREETYPE_H
+#define FONTFORGE_FFFREETYPE_H
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -76,4 +76,4 @@ extern void *__FreeTypeFontContext(FT_Library context,
 	int layer,
 	enum fontformat ff,int flags,void *shared_ftc);
 
-#endif /* _FFFREETYPE_H */
+#endif /* FONTFORGE_FFFREETYPE_H */
