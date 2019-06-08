@@ -25,7 +25,11 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef FONTFORGE_MACOBJECTIVE_H
+#define FONTFORGE_MACOBJECTIVE_H
+
 #import <Cocoa/Cocoa.h>
 
 #include "fontforge-config.h"
 
+#endif /* FONTFORGE_MACOBJECTIVE_H */

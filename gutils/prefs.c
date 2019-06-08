@@ -26,10 +26,8 @@
  */
 
 #include "prefs.h"
-#include <ffglib.h>
-#include <stdio.h>
-#include "ustring.h"
-#include "gfile.h"
+
+// FIXME: Remove this file...
 
 int cv_auto_goto = 0;
 
