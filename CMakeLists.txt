@@ -47,38 +47,40 @@ include(FindPkgConfig REQUIRED)
 
 # Required packages
 pkg_check_modules(GLIB glib-2.0 REQUIRED)
-include_directories(${GLIB_INCLUDE_DIRS})
-link_directories(${GLIB_LIBRARY_DIRS})
-
 pkg_check_modules(GIO gio-2.0 REQUIRED)
-include_directories(${GIO_INCLUDE_DIRS})
-link_directories(${GIO_LIBRARY_DIRS})
-
 pkg_check_modules(FREETYPE freetype2 REQUIRED)
-include_directories(${FREETYPE_INCLUDE_DIRS})
-link_directories(${FREETYPE_LIBRARY_DIRS})
-
 pkg_check_modules(LIBXML2 libxml-2.0 REQUIRED)
-include_directories(${LIBXML2_INCLUDE_DIRS})
-link_directories(${LIBXML2_LIBRARY_DIRS})
-
-pkg_check_modules (ZLIB zlib REQUIRED)
-include_directories(${ZLIB_INCLUDE_DIRS})
-link_directories(${ZLIB_LIBRARY_DIRS})
-
+pkg_check_modules(ZLIB zlib REQUIRED)
 pkg_check_modules(ICONV iconv)
-include_directories(${ICONV_INCLUDE_DIRS})
-link_directories(${ICONV_LIBRARY_DIRS})
 
 # Requirements for options
 
-pkg_check_modules(GDK gdk-3.0)
-if (GDK_FOUND)
-    pkg_check_modules(GTK gtk+-3.0)
-    include_directories(${GDK_INCLUDE_DIRS})
-    link_directories(${GDK_LIBRARY_DIRS})
-    include_directories(${GTK_INCLUDE_DIRS})
-    link_directories(${GTK_LIBRARY_DIRS})
-endif()
+if (ENABLE_GUI)
+    if (ENABLE_GDK)
+        pkg_check_modules(GDK gdk-3.0)
+        if (GDK_FOUND)
+            pkg_check_modules(GTK gtk+-3.0)
+        endif ()
+    else ()
+        find_package(X11 REQUIRED)
+    endif ()
+endif ()
+
+if (ENABLE_PYTHON_SCRIPTING)
+    find_package(PythonInterp 3.3 REQUIRED)
+    find_package(PythonLibs 3.3 REQUIRED)
+endif ()
+
+#if (ENABLE_LIBSPIRO)
+#    pkg_check_modules(LIBSPIRO libspiro REQUIRED)
+#endif ()
+
+#if (ENABLE_LIBUNINAMESLIST)
+#    pkg_check_modules(LIBUNINAMESLIST libuninameslist REQUIRED)
+#endif ()
+
+if (ENABLE_LIBGIF)
+    find_package(GIF REQUIRED)
+endif ()
 
 print_build_options()
