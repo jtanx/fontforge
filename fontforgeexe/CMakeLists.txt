@@ -1,0 +1,111 @@
+add_executable(fontforgeexe main.c)
+set_target_properties(fontforgeexe PROPERTIES OUTPUT_NAME "fontforge")
+
+if(ENABLE_GUI)
+  target_sources(fontforgeexe PRIVATE
+    alignment.c
+    anchorsaway.c
+    autowidth2dlg.c
+    basedlg.c
+    bdfinfo.c
+    bitmapdlg.c
+    bitmapview.c
+    charinfo.c
+    charview_private.h
+    charview.c
+    clipui.c
+    combinations.c
+    contextchain.c
+    cursors.c
+    cvaddpoints.c
+    cvdebug.c
+    cvdgloss.c
+    cvexportdlg.c
+    cvfreehand.c
+    cvgetinfo.c
+    cvgridfit.c
+    cvhand.c
+    cvhints.c
+    cvimportdlg.c
+    cvknife.c
+    cvpalettes.c
+    cvpointer.c
+    cvruler.c
+    cvruler.h
+    cvshapes.c
+    cvstroke.c
+    cvtranstools.c
+    deltaui.c
+    displayfonts.c
+    effectsui.c
+    encodingui.c
+    fontinfo.c
+    fontview.c
+    freetypeui.c
+    fvfontsdlg.c
+    fvmetricsdlg.c
+    gotodlg.c
+    groupsdlg.c
+    histograms.c
+    images.c
+    justifydlg.c
+    kernclass.c
+    layer2layer.c
+    lookupui.c
+    macencui.c
+    math.c
+    metricsview.c
+    mmdlg.c
+    nonlineartransui.c
+    openfontdlg.c
+    prefs.c
+    problems.c
+    pythonui.c
+    savefontdlg.c
+    scriptingdlg.c
+    scstylesui.c
+    searchview.c
+    sftextfield.c
+    sftextfieldP.h
+    sfundo.c
+    sfundo.h
+    showatt.c
+    simplifydlg.c
+    splashimage.c
+    startui.c
+    statemachine.c
+    tilepath.c
+    transform.c
+    ttfinstrsui.c
+    uiutil.c
+    usermenu.c
+    usermenu.h
+    windowmenu.c
+    wordlistparser.c
+    wordlistparser.h
+  )
+
+  if(APPLE)
+    target_sources(fontforgeexe PRIVATE macobjective.m)
+    target_link_libraries(fontforgeexe
+      PRIVATE
+      "-framework Cocoa"
+      "-framework CoreServices"
+      "-framework Foundation"
+    )
+  endif()
+
+  if(ENABLE_FREETYPE_DEBUGGER)
+    target_link_libraries(fontforgeexe PRIVATE Threads::Threads)
+  endif()
+
+  if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
+    target_link_libraries(fontforgeexe PRIVATE gdraw_interface)
+  else()
+    target_link_libraries(fontforgeexe PRIVATE gdraw)
+  endif()
+else()
+  target_sources(fontforgeexe PRIVATE startnoui.c)
+endif()
+
+target_link_libraries(fontforgeexe PRIVATE fontforge Iconv::Iconv MathLib::MathLib)

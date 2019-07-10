@@ -1,0 +1,6 @@
+if(ENABLE_MAINTAINER_TOOLS)
+  add_subdirectory(cidmap)
+endif()
+if(ENABLE_FONTFORGE_EXTRAS)
+  add_subdirectory(fonttools)
+endif()
