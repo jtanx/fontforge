@@ -1,23 +1,40 @@
 cmake_minimum_required(VERSION 3.5)
-cmake_policy(SET CMP0048 NEW) # Actually set the version as passed in to project()
-cmake_policy(SET CMP0057 NEW) # Allow IN_LIST in if statements
 
 # Update the version for each new release
 project(fontforge VERSION 20190709 LANGUAGES C CXX)
 
 # Add folder for custom cmake modules
-list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
+list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/packages)
+if (${CMAKE_VERSION} VERSION_LESS "3.14.5")
+  # This could be more targeted, but keep it simple
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/backports/3.14.5)
+endif ()
+
+# Set any global defines
+set(CMAKE_THREAD_PREFER_PTHREAD 1)
 
 # Include any required modules
-include(BuildOption REQUIRED)
+include(BuildOption)
+include(CheckIncludeFile)
+include(PackageUtils)
 
 # Options
-build_option(ENABLE_GUI BOOL ON "Build FontForge with GUI support")
-build_option(ENABLE_GDK BOOL ON "Build the GUI using the GDK backend instead of the X11 backend" "ENABLE_GUI")
+build_option(ENABLE_GUI              BOOL ON  "Build FontForge with GUI support")
+build_option(ENABLE_GDK              BOOL ON  "Build the GUI using the GDK backend instead of the X11 backend" "ENABLE_GUI")
 
-build_option(ENABLE_NATIVE_SCRIPTING BOOL ON "Enables FontForge's native scripting support")
-build_option(ENABLE_PYTHON_SCRIPTING BOOL ON "Enables FontForge's Python scripting support")
-build_option(ENABLE_PYTHON_EXTENSION BOOL ON "Builds the Python models for use with system python" "ENABLE_PYTHON_SCRIPTING")
+build_option(ENABLE_NATIVE_SCRIPTING BOOL ON  "Enables FontForge's native scripting support")
+build_option(ENABLE_PYTHON_SCRIPTING BOOL ON  "Enables FontForge's Python scripting support")
+build_option(ENABLE_PYTHON_EXTENSION BOOL ON  "Builds the Python models for use with system python" "ENABLE_PYTHON_SCRIPTING")
+
+build_option(ENABLE_LIBSPIRO         BOOL ON  "Enables libspiro support")
+build_option(ENABLE_LIBUNINAMESLIST  BOOL ON  "Enables libuninameslist support")
+build_option(ENABLE_LIBGIF           AUTO ON  "Enables GIF support")
+build_option(ENABLE_LIBJPEG          AUTO ON  "Enables JPEG support")
+build_option(ENABLE_LIBPNG           AUTO ON  "Enables PNG support")
+build_option(ENABLE_LIBREADLINE      AUTO ON  "Enables Readline support")
+build_option(ENABLE_LIBTIFF          AUTO ON  "Enables TIFF support")
+build_option(ENABLE_WOFF2            AUTO ON  "Enables WOFF2 support")
+
 build_option(ENABLE_CODE_COVERAGE    BOOL OFF "Build with code coverage support")
 build_option(ENABLE_DEBUG            BOOL OFF "Turn on debug build and FONTFORGE_DEBUG conditional code")
 build_option(ENABLE_DEBUG_RAW_POINTS BOOL OFF "Add a raw mode to the points window of the debugger")
@@ -26,15 +43,6 @@ build_option(ENABLE_MAINTAINER_TOOLS BOOL OFF "Build programs normally only used
 build_option(ENABLE_TILE_PATH        BOOL OFF "Enable a 'tile path' command (a variant of 'expand stroke')")
 build_option(ENABLE_WRITE_PFM        BOOL OFF "Add the ability to save a PFM file without creating the associated font file")
 
-build_option(ENABLE_LIBSPIRO         BOOL ON "Enables libspiro support")
-build_option(ENABLE_LIBUNINAMESLIST  BOOL ON "Enables libuninameslist support")
-build_option(ENABLE_LIBGIF           AUTO ON "Enables GIF support")
-build_option(ENABLE_LIBJPEG          AUTO ON "Enables JPEG support")
-build_option(ENABLE_LIBPNG           AUTO ON "Enables PNG support")
-build_option(ENABLE_LIBREADLINE      AUTO ON "Enables Readline support")
-build_option(ENABLE_LIBTIFF          AUTO ON "Enables TIFF support")
-build_option(ENABLE_WOFF2            AUTO ON "Enables WOFF2 support")
-
 build_option(ENABLE_FREETYPE_DEBUGGER PATH "" "Use FreeType's internal debugger within FontForge.\
  If enabling this option, this must be set to the path of the FreeType source.\
  The version of that source must match the version that FontForge will link to.")
@@ -42,45 +50,49 @@ build_option(ENABLE_FREETYPE_DEBUGGER PATH "" "Use FreeType's internal debugger 
 build_option(REAL_TYPE ENUM "double" "Sets the floating point type used." "double" "float")
 build_option(THEME     ENUM "tango"  "Sets the GUI theme." "tango" "2012")
 
-# Dependencies
-include(FindPkgConfig REQUIRED)
+# Required and default dependencies
+# Note: When adding a dependency, ensure it has an imported target (wherever appropriate) 
+find_package(Freetype 2.3.7 REQUIRED)
+find_package(Gettext REQUIRED)
+find_package_with_target(Intl REQUIRED)
+find_package(GLIB 2.6 REQUIRED COMPONENTS gio)
+find_package(Iconv REQUIRED)
+find_package(LibXml2 REQUIRED)
+find_package(ZLIB REQUIRED)
 
-# Required packages
-pkg_check_modules(GLIB glib-2.0 REQUIRED)
-pkg_check_modules(GIO gio-2.0 REQUIRED)
-pkg_check_modules(FREETYPE freetype2 REQUIRED)
-pkg_check_modules(LIBXML2 libxml-2.0 REQUIRED)
-pkg_check_modules(ZLIB zlib REQUIRED)
-pkg_check_modules(ICONV iconv)
+check_include_file(pthread.h HAVE_PTHREAD_H)
+if(HAVE_PTHREAD_H)
+  find_package(Threads)
+endif()
 
 # Requirements for options
-
 if (ENABLE_GUI)
-    if (ENABLE_GDK)
-        pkg_check_modules(GDK gdk-3.0)
-        if (GDK_FOUND)
-            pkg_check_modules(GTK gtk+-3.0)
-        endif ()
-    else ()
-        find_package(X11 REQUIRED)
-    endif ()
+  if (ENABLE_GDK)
+    find_package(GDK3 3.10 REQUIRED)
+  else ()
+    find_package(Cairo 1.6 REQUIRED)
+    find_package(Pango 1.10 COMPONENTS pangocairo pangoxft REQUIRED)
+    find_package(X11 REQUIRED)
+  endif ()
 endif ()
 
-if (ENABLE_PYTHON_SCRIPTING)
-    find_package(PythonInterp 3.3 REQUIRED)
-    find_package(PythonLibs 3.3 REQUIRED)
+if (ENABLE_FREETYPE_DEBUGGER)
+  if(NOT HAVE_PTHREAD_H)
+    message(FATAL_ERROR "pthreads must be present to enable the FreeType debugger")
+  else()
+    set(FreeTypeSource_HINT ${ENABLE_FREETYPE_DEBUGGER})
+    find_package(FreeTypeSource "${FREETYPE_VERSION_STRING}" EXACT REQUIRED)
+  endif()
 endif ()
 
-#if (ENABLE_LIBSPIRO)
-#    pkg_check_modules(LIBSPIRO libspiro REQUIRED)
-#endif ()
-
-#if (ENABLE_LIBUNINAMESLIST)
-#    pkg_check_modules(LIBUNINAMESLIST libuninameslist REQUIRED)
-#endif ()
-
-if (ENABLE_LIBGIF)
-    find_package(GIF REQUIRED)
-endif ()
+find_package_auto(ENABLE_PYTHON_SCRIPTING Python3 3.3 COMPONENTS Development Interpreter)
+find_package_auto(ENABLE_LIBSPIRO         Libspiro)
+find_package_auto(ENABLE_LIBUNINAMESLIST  Libuninameslist)
+find_package_auto(ENABLE_LIBGIF           GIF)
+find_package_auto(ENABLE_LIBJPEG          JPEG)
+find_package_auto(ENABLE_LIBPNG           PNG)
+find_package_auto(ENABLE_LIBREADLINE      Readline)
+find_package_auto(ENABLE_LIBTIFF          TIFF)
+find_package_auto(ENABLE_WOFF2            WOFF2)
 
 print_build_options()
