@@ -216,6 +216,7 @@ target_include_directories(fontforge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_available_targets(fontforge_LIBRARIES
   FreeTypeSource::FreeTypeSource
+  Iconv::Iconv
   Libspiro::Libspiro
   Libuninameslist::Libuninameslist
   Python3::Python

@@ -41,19 +41,18 @@ if(NOT DEFINED MathLib_IS_BUILT_IN)
 endif()
 
 if(NOT MathLib_IS_BUILT_IN)
-  set(MathLib_LIBRARY_NAMES "m")
+  find_library(MathLib_LIBRARIES
+    NAMES m
+    DOC "math library")
+  set(MathLib_OK ${MathLib_LIBRARIES})
 else()
-  set(MathLib_LIBRARY_NAMES "c")
+  set(MathLib_OK "built-in")
 endif()
-
-find_library(MathLib_LIBRARIES
-  NAMES ${MathLib_LIBRARY_NAMES}
-  DOC "math library (potentially the C library)")
 
 mark_as_advanced(MathLib_LIBRARIES)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(MathLib REQUIRED_VARS MathLib_LIBRARIES)
+find_package_handle_standard_args(MathLib REQUIRED_VARS MathLib_OK)
 
 if(MathLib_FOUND AND NOT TARGET MathLib::MathLib)
   add_library(MathLib::MathLib INTERFACE IMPORTED)
