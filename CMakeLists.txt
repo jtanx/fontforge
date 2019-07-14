@@ -99,4 +99,10 @@ find_package_auto(ENABLE_WOFF2            WOFF2)
 
 print_build_options()
 
+#dirty but whatever
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 add_subdirectory(inc)
+add_subdirectory(Unicode)
+add_subdirectory(gutils)
+add_subdirectory(gdraw)
