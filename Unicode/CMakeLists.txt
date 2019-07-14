@@ -57,3 +57,10 @@ else()
   )
 endif()
 
+if (ENABLE_MAINTAINER_TOOLS)
+  add_executable(makeutype makeutype.c)
+  target_link_libraries(makeutype PRIVATE fontforge_common_headers)
+
+  add_executable(makebuildtables makebuildtables.c)
+  target_link_libraries(makebuildtables PRIVATE fontforge_common_headers)
+endif()

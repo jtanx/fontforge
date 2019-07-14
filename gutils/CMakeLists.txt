@@ -38,7 +38,12 @@ if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
     PUBLIC
       ${FONTFORGE_COMMON_INCLUDE_DIRS}
     PRIVATE
+      ${GIF_INCLUDE_DIR}
       ${GLIB_INCLUDE_DIRS}
+      ${JPEG_INCLUDE_DIR}
+      ${Libuninameslist_INCLUDE_DIRS}
+      ${PNG_INCLUDE_DIRS}
+      ${TIFF_INCLUDE_DIRS}
   )
 else()
   target_link_libraries(gutils
@@ -48,5 +53,9 @@ else()
       gunicode
       GLIB::GLIB
   )
+  target_link_libraries_auto(ENABLE_LIBUNINAMESLIST gutils PRIVATE Libuninameslist::Libuninameslist)
+  target_link_libraries_auto(ENABLE_LIBPNG          gutils PRIVATE PNG::PNG)
+  target_link_libraries_auto(ENABLE_LIBGIF          gutils PRIVATE GIF::GIF)
+  target_link_libraries_auto(ENABLE_LIBTIFF         gutils PRIVATE TIFF::TIFF)
+  target_link_libraries_auto(ENABLE_LIBJPEG         gutils PRIVATE JPEG::JPEG)
 endif()
-

@@ -2,10 +2,6 @@
 #not included
 #  gdrawwacomdriver.c genkeysym.c growcol.c
 
-if(APPLE)
-  set(OBJC_SOURCE ggdkcocoa.m)
-endif()
-
 add_library(gdraw OBJECT
   choosericons.c
   colorP.h
@@ -69,9 +65,11 @@ add_library(gdraw OBJECT
   hotkeys.c
   hotkeys.h
   xkeysyms_unicode.c
-
-  ${OBJC_SOURCE}
 )
+
+if(APPLE)
+  target_sources(gdraw PRIVATE ggdkcocoa.m)
+endif()
 
 if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
   target_include_directories(gdraw

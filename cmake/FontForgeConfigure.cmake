@@ -35,8 +35,8 @@ function(_set_negated outval inval)
   endif()
 endfunction()
 
-function(_get_git_revision)
-  set(FONTFORGE_GIT_REVISION "" PARENT_SCOPE)
+function(_get_git_version)
+  set(FONTFORGE_GIT_VERSION "" PARENT_SCOPE)
 
   find_package(Git)
   if(Git_FOUND)
@@ -50,7 +50,7 @@ function(_get_git_revision)
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     if(${GIT_RETVAL} EQUAL 0)
-      set(FONTFORGE_GIT_REVISION "${GIT_OUTPUT}" PARENT_SCOPE)
+      set(FONTFORGE_GIT_VERSION "${GIT_OUTPUT}" PARENT_SCOPE)
     endif()
   endif()
 endfunction()
@@ -103,7 +103,7 @@ function(fontforge_generate_config template destination)
   include(TestBigEndian)
 
   # Versioning
-  _get_git_revision()
+  _get_git_version()
   _get_modtime()
   _get_modtime_str(${FONTFORGE_MODTIME})
 
@@ -172,8 +172,6 @@ function(fontforge_generate_config template destination)
   if(ENABLE_LIBUNINAMESLIST_RESULT)
     set(_LIBUNINAMESLIST_FUN ${Libuninameslist_FEATURE_LEVEL})
   endif()
-
-  # SHAREDIR, DOCDIR based on install path...
 
   configure_file(${template} ${destination})
 endfunction()

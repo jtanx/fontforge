@@ -36,7 +36,7 @@
 #define FONTFORGE_VERSION "@PROJECT_VERSION@"
 
 /* git hash that FontForge was built from */
-#define FONTFORGE_GIT_REVISION "@FONTFORGE_GIT_REVISION@"
+#define FONTFORGE_GIT_VERSION "@FONTFORGE_GIT_VERSION@"
 
 /* Epoch time of when the FontForge build was configured */
 #define FONTFORGE_MODTIME_RAW @FONTFORGE_MODTIME@L

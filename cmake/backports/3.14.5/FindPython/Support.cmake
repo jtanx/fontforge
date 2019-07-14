@@ -24,8 +24,11 @@ else()
   message (FATAL_ERROR "FindPython: INTERNAL ERROR")
 endif()
 
-get_property(_${_PYTHON_PREFIX}_CMAKE_ROLE GLOBAL PROPERTY CMAKE_ROLE)
-
+if (${CMAKE_VERSION} VERSION_LESS "3.14")
+  set(_${_PYTHON_PREFIX}_CMAKE_ROLE PROJECT)
+else()
+  get_property(_${_PYTHON_PREFIX}_CMAKE_ROLE GLOBAL PROPERTY CMAKE_ROLE)
+endif()
 
 #
 # helper commands
