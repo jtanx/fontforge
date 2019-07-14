@@ -66,6 +66,7 @@ find_package_with_target(Intl REQUIRED)
 find_package(GLIB 2.6 REQUIRED COMPONENTS gio)
 find_package(Iconv REQUIRED)
 find_package(LibXml2 REQUIRED)
+find_package(MathLib REQUIRED)
 find_package(ZLIB REQUIRED)
 
 check_include_file(pthread.h HAVE_PTHREAD_H)

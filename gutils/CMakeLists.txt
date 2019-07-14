@@ -33,6 +33,17 @@ add_library(gutils OBJECT
   unicodelibinfo.h
 )
 
+set_available_targets(gutils_LIBRARIES
+  GIF::GIF
+  GLIB::GLIB
+  JPEG::JPEG
+  Libuninameslist::Libuninameslist
+  PNG::PNG
+  TIFF::TIFF
+)
+# Required for backwards compatibility
+set(gutils_LIBRARIES ${gutils_LIBRARIES} PARENT_SCOPE)
+
 if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
   target_include_directories(gutils
     PUBLIC
@@ -49,13 +60,7 @@ else()
   target_link_libraries(gutils
     PUBLIC
       fontforge_common_headers
-    PRIVATE
       gunicode
-      GLIB::GLIB
+      ${gutils_LIBRARIES}
   )
-  target_link_libraries_auto(ENABLE_LIBUNINAMESLIST gutils PRIVATE Libuninameslist::Libuninameslist)
-  target_link_libraries_auto(ENABLE_LIBPNG          gutils PRIVATE PNG::PNG)
-  target_link_libraries_auto(ENABLE_LIBGIF          gutils PRIVATE GIF::GIF)
-  target_link_libraries_auto(ENABLE_LIBTIFF         gutils PRIVATE TIFF::TIFF)
-  target_link_libraries_auto(ENABLE_LIBJPEG         gutils PRIVATE JPEG::JPEG)
 endif()

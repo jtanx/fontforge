@@ -185,6 +185,7 @@ add_library(fontforge
   splinefont.c
   splineorder2.c
   splineoverlap.c
+  splinerefigure.c
   splinesave.c
   splinesaveafm.c
   splinestroke.c
@@ -208,41 +209,33 @@ add_library(fontforge
 
 if(ENABLE_WOFF2_RESULT)
   target_sources(fontforge PRIVATE woff2.cc)
-  target_link_libraries(fontforge PRIVATE WOFF2::WOFF2)
 endif()
 
 # This is pretty bad...
 target_include_directories(fontforge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(fontforge
-  PUBLIC
-    fontforge_common_headers
-  PRIVATE
-    Freetype::Freetype
-    LibXml2::LibXml2
-    GLIB::GLIB
+set_available_targets(fontforge_LIBRARIES
+  FreeTypeSource::FreeTypeSource
+  Libspiro::Libspiro
+  Libuninameslist::Libuninameslist
+  Python3::Python
+  Readline::Readline
+  WOFF2::WOFF2
 )
-
-if (ENABLE_FREETYPE_DEBUGGER)
-  target_link_libraries(fontforge PRIVATE FreeTypeSource::FreeTypeSource)
-endif()
-
-target_link_libraries_auto(ENABLE_LIBJPEG          fontforge PRIVATE JPEG::JPEG)
-target_link_libraries_auto(ENABLE_LIBPNG           fontforge PRIVATE PNG::PNG)
-target_link_libraries_auto(ENABLE_LIBREADLINE      fontforge PRIVATE Readline::Readline)
-target_link_libraries_auto(ENABLE_LIBSPIRO         fontforge PRIVATE Libspiro::Libspiro)
-target_link_libraries_auto(ENABLE_LIBUNINAMESLIST  fontforge PRIVATE Libuninameslist::Libuninameslist)
-target_link_libraries_auto(ENABLE_PYTHON_SCRIPTING fontforge PUBLIC Python3::Python)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
   target_sources(fontforge PUBLIC $<TARGET_OBJECTS:gunicode> $<TARGET_OBJECTS:gutils>)
-  target_link_libraries_auto(ENABLE_LIBGIF  fontforge PRIVATE GIF::GIF)
-  target_link_libraries_auto(ENABLE_LIBTIFF fontforge PRIVATE TIFF::TIFF)
+  set(fontforge_LIBRARIES ${fontforge_LIBRARIES} ${gutils_LIBRARIES})
 else()
-  target_link_libraries(fontforge
-    PUBLIC
-      fontforge_common_headers
-      gunicode
-      gutils
-  )
+  set(fontforge_LIBRARIES ${fontforge_LIBRARIES} gunicode gutils)
 endif()
+
+target_link_libraries(fontforge
+  PUBLIC
+    fontforge_common_headers
+    ${fontforge_LIBRARIES}
+    Freetype::Freetype
+    LibXml2::LibXml2
+    MathLib::MathLib
+    GLIB::GLIB
+)

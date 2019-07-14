@@ -71,6 +71,14 @@ if(APPLE)
   target_sources(gdraw PRIVATE ggdkcocoa.m)
 endif()
 
+set_available_targets(gdraw_LIBRARIES
+  GDK3::GDK3
+  X11::X11
+  GLIB::GLIB
+)
+# Required for backwards compatibility
+set(gdraw_LIBRARIES ${gdraw_LIBRARIES} PARENT_SCOPE)
+
 if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
   target_include_directories(gdraw
     PUBLIC
@@ -84,15 +92,9 @@ else()
   target_link_libraries(gdraw
     PUBLIC
       fontforge_common_headers
+      ${gdraw_LIBRARIES}
     PRIVATE
-      gunicode
       gutils
-      GLIB::GLIB
+      gunicode
   )
-
-  if(ENABLE_GDK)
-    target_link_libraries(gdraw PRIVATE GDK3::GDK3)
-  else()
-    target_link_libraries(gdraw PRIVATE X11::X11)
-  endif()
 endif()
