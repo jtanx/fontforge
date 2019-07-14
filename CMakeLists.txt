@@ -11,6 +11,8 @@ if (${CMAKE_VERSION} VERSION_LESS "3.14.5")
 endif ()
 
 # Set any global defines
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_THREAD_PREFER_PTHREAD 1)
 
 # Include any required modules
@@ -96,3 +98,5 @@ find_package_auto(ENABLE_LIBTIFF          TIFF)
 find_package_auto(ENABLE_WOFF2            WOFF2)
 
 print_build_options()
+
+add_subdirectory(inc)
