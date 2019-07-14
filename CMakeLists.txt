@@ -104,8 +104,6 @@ find_package_auto(ENABLE_LIBREADLINE      Readline)
 find_package_auto(ENABLE_LIBTIFF          TIFF)
 find_package_auto(ENABLE_WOFF2            WOFF2)
 
-print_build_options()
-
 #dirty but whatever
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -117,3 +115,5 @@ if(ENABLE_GUI)
   add_subdirectory(gdraw)
 endif()
 add_subdirectory(fontforgeexe)
+
+print_build_options()

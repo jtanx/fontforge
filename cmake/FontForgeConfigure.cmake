@@ -144,7 +144,7 @@ function(fontforge_generate_config template destination)
 
   # Configurable features
   _set_negated(_NO_XKB "${X11_Xkb_FOUND}")
-  _set_negated(_NO_XINPUT "${X11_Xinput_FOUND}")
+  _set_negated(_NO_XINPUT "${X11_Xi_FOUND}")
 
   if(NOT ENABLE_GUI OR ENABLE_GDK)
     set(X_DISPLAY_MISSING 1)

@@ -31,7 +31,7 @@ This module will set the following variables in your project:
 #]=======================================================================]
 
 find_package(PkgConfig)
-pkg_check_modules(WOFF2 libwoff2enc libwoff2dec)
+pkg_check_modules(WOFF2 QUIET libwoff2enc libwoff2dec)
 
 if(WOFF2_FOUND)
   set(WOFF2_VERSION ${WOFF2_libwoff2enc_VERSION})

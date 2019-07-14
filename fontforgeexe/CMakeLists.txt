@@ -1,4 +1,6 @@
 add_executable(fontforgeexe main.c)
+set_target_properties(fontforgeexe PROPERTIES OUTPUT_NAME "fontforge")
+target_link_libraries(fontforgeexe PRIVATE fontforge)
 
 if(ENABLE_GUI)
   target_sources(fontforgeexe PRIVATE
@@ -92,13 +94,10 @@ if(ENABLE_GUI)
 
   if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
     target_sources(fontforgeexe PRIVATE $<TARGET_OBJECTS:gdraw>)
-    target_link_libraries(fontforgeexe PRIVATE ${gdraw_LIBRARIES} GLIB::GLIB ${GDK3_LIBRARIES})
+    target_link_libraries(fontforgeexe PRIVATE ${gdraw_LIBRARIES})
   else()
     target_link_libraries(fontforgeexe PRIVATE gdraw)
   endif()
 else()
   target_sources(fontforgeexe PRIVATE startnoui.c)
 endif()
-
-target_link_libraries(fontforgeexe PRIVATE fontforge)
-set_target_properties(fontforgeexe PROPERTIES OUTPUT_NAME "fontforge")

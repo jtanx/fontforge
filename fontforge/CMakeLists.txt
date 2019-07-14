@@ -237,6 +237,7 @@ target_link_libraries(fontforge
     ${fontforge_LIBRARIES}
     Freetype::Freetype
     LibXml2::LibXml2
-    MathLib::MathLib
     GLIB::GLIB
+  PRIVATE
+    MathLib::MathLib
 )
