@@ -82,6 +82,12 @@ if(ENABLE_GUI)
 
   if(APPLE)
     target_sources(fontforgeexe PRIVATE macobjective.m)
+    target_link_libraries(fontforgeexe
+      PRIVATE
+      "-framework Cocoa"
+      "-framework CoreServices"
+      "-framework Foundation"
+    )
   endif()
 
   if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
