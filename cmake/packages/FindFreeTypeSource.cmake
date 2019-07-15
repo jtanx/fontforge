@@ -55,7 +55,8 @@ if(FreeTypeSource_INCLUDE_DIR AND FreeTypeSource_FREETYPE_INCLUDE_DIR AND FreeTy
   set (FreeTypeSource_INCLUDE_DIRS
        ${FreeTypeSource_INCLUDE_DIR}
        ${FreeTypeSource_FREETYPE_INCLUDE_DIR}
-       ${FreeTypeSource_TRUETYPE_INCLUDE_DIR})
+       ${FreeTypeSource_TRUETYPE_INCLUDE_DIR}
+       CACHE INTERNAL "FreeType source include directories")
 
   if(EXISTS "${FreeTypeSource_FREETYPE_INCLUDE_DIR}/freetype.h")
     set(FREETYPE_H "${FreeTypeSource_FREETYPE_INCLUDE_DIR}/freetype.h")
@@ -93,3 +94,10 @@ find_package_handle_standard_args(
     FreeTypeSource_VERSION
 )
 
+mark_as_advanced(FreeTypeSource_INCLUDE_DIRS)
+
+if(FreeTypeSource_FOUND AND NOT TARGET FreeTypeSource::FreeTypeSource)
+  add_library(FreeTypeSource::FreeTypeSource INTERFACE IMPORTED)
+  set_property(TARGET FreeTypeSource::FreeTypeSource PROPERTY
+               INTERFACE_INCLUDE_DIRECTORIES "${FreeTypeSource_INCLUDE_DIRS}")
+endif()
