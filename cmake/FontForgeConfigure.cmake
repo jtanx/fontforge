@@ -110,64 +110,68 @@ function(fontforge_generate_config template destination)
 endfunction()
 
 function(_get_git_version)
-  set(FONTFORGE_GIT_VERSION "" PARENT_SCOPE)
-
-  find_package(Git)
-  if(Git_FOUND)
-    execute_process(
-      COMMAND
-        "${GIT_EXECUTABLE}" "log" "--pretty=format:%H" "-n" "1"
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      RESULT_VARIABLE GIT_RETVAL
-      OUTPUT_VARIABLE GIT_OUTPUT
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(${GIT_RETVAL} EQUAL 0)
-      set(FONTFORGE_GIT_VERSION "${GIT_OUTPUT}" PARENT_SCOPE)
+  if(NOT DEFINED FONTFORGE_GIT_VERSION)
+    find_package(Git)
+    if(Git_FOUND)
+      execute_process(
+        COMMAND
+          "${GIT_EXECUTABLE}" "log" "--pretty=format:%H" "-n" "1"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        RESULT_VARIABLE GIT_RETVAL
+        OUTPUT_VARIABLE GIT_OUTPUT
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+      if(${GIT_RETVAL} EQUAL 0)
+        set(_git_version "${GIT_OUTPUT}")
+      endif()
     endif()
+    set(FONTFORGE_GIT_VERSION "${_git_version}" CACHE INTERNAL "Git revision that FontForge was built off")
   endif()
 endfunction()
 
 function(_get_modtime)
-  if(${CMAKE_VERSION} VERSION_LESS "3.6.0") # so unfortunate
-    if(DEFINED ENV{SOURCE_DATE_EPOCH} AND "$ENV{SOURCE_DATE_EPOCH}" MATCHES "^[0-9]+$")
-      set(FONTFORGE_MODTIME "$ENV{SOURCE_DATE_EPOCH}" PARENT_SCOPE)
+  if(NOT DEFINED FONTFORGE_MODTIME)
+    set(_modtime "0")
+    if(${CMAKE_VERSION} VERSION_LESS "3.6.0") # so unfortunate
+      if(DEFINED ENV{SOURCE_DATE_EPOCH} AND "$ENV{SOURCE_DATE_EPOCH}" MATCHES "^[0-9]+$")
+        set(_modtime "$ENV{SOURCE_DATE_EPOCH}")
+      else()
+        execute_process(
+          COMMAND "date" "+%s"
+          RESULT_VARIABLE DATE_RETVAL
+          OUTPUT_VARIABLE DATE_OUTPUT
+          ERROR_QUIET
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(${DATE_RETVAL} EQUAL 0 AND "${DATE_OUTPUT}" MATCHES "^[0-9]+$")
+          set(_modtime "${DATE_OUTPUT}")
+        endif()
+      endif()
     else()
-      set(FONTFORGE_MODTIME "0" PARENT_SCOPE)
+      string(TIMESTAMP _modtime "%s")
+    endif()
+    set(FONTFORGE_MODTIME "${_modtime}" CACHE INTERNAL "Unix epoch of when the build was initially configured")
+  endif()
+endfunction()
+
+function(_get_modtime_str _modtime)
+  if(NOT DEFINED FONTFORGE_MODTIME_STR)
+    if(${CMAKE_VERSION} VERSION_LESS "3.6.0")
       execute_process(
-        COMMAND "date" "+%s"
+        COMMAND "date" "-u" "--date=@${_modtime}" "+%Y-%m-%d %H:%M UTC"
         RESULT_VARIABLE DATE_RETVAL
         OUTPUT_VARIABLE DATE_OUTPUT
         ERROR_QUIET
         OUTPUT_STRIP_TRAILING_WHITESPACE
       )
-      if(${DATE_RETVAL} EQUAL 0 AND "${DATE_OUTPUT}" MATCHES "^[0-9]+$")
-        set(FONTFORGE_MODTIME "${DATE_OUTPUT}" PARENT_SCOPE)
+      if(${DATE_RETVAL} EQUAL 0)
+        set(_modtime_str "${DATE_OUTPUT}")
       endif()
+    else()
+      string(TIMESTAMP _modtime_str "%Y-%m-%d %H:%M UTC" UTC)
     endif()
-  else()
-    string(TIMESTAMP _modtime "%s")
-    set(FONTFORGE_MODTIME "${_modtime}" PARENT_SCOPE)
-  endif()
-endfunction()
-
-function(_get_modtime_str _modtime)
-  if(${CMAKE_VERSION} VERSION_LESS "3.6.0")
-    set(FONTFORGE_MODTIME_STR "" PARENT_SCOPE)
-    execute_process(
-      COMMAND "date" "-u" "--date=@${_modtime}" "+%Y-%m-%d %H:%M UTC"
-      RESULT_VARIABLE DATE_RETVAL
-      OUTPUT_VARIABLE DATE_OUTPUT
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(${DATE_RETVAL} EQUAL 0)
-      set(FONTFORGE_MODTIME_STR "${DATE_OUTPUT}" PARENT_SCOPE)
-    endif()
-  else()
-    string(TIMESTAMP _modtime "%Y-%m-%d %H:%M UTC" UTC)
-    set(FONTFORGE_MODTIME_STR "${_modtime}" PARENT_SCOPE)
+    set(FONTFORGE_MODTIME_STR "${_modtime_str}" CACHE INTERNAL "Human readable string of when the build was initially configured")
   endif()
 endfunction()
 

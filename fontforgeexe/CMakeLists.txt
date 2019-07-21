@@ -109,3 +109,4 @@ else()
 endif()
 
 target_link_libraries(fontforgeexe PRIVATE fontforge Iconv::Iconv MathLib::MathLib)
+install(TARGETS fontforgeexe RUNTIME DESTINATION bin)

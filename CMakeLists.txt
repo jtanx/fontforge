@@ -13,6 +13,7 @@ endif()
 # Include any required modules
 include(BuildOption)
 include(CheckIncludeFile)
+include(CTest)
 include(PackageUtils)
 include(TargetUtils)
 
@@ -126,5 +127,8 @@ if(ENABLE_PYTHON_SCRIPTING AND ENABLE_PYTHON_EXTENSION)
 endif()
 add_subdirectory(po)
 add_subdirectory(contrib)
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()
 
 print_build_options()
