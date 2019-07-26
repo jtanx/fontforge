@@ -228,6 +228,13 @@ target_link_libraries(fontforge
     ZLIB::ZLIB
 )
 
+if(APPLE)
+  target_link_libraries(fontforge
+    PRIVATE
+    "-framework CoreServices"
+  )
+endif()
+
 if(ENABLE_FREETYPE_DEBUGGER)
   target_link_libraries(fontforge PUBLIC FreeTypeSource::FreeTypeSource)
 endif()
