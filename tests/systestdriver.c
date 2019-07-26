@@ -279,7 +279,7 @@ static int run_pyhook_systest(ArgData *args, gchar **argv) {
     GPtrArray *test_args = g_ptr_array_new_with_free_func(g_free);
     int retcode;
 
-#if G_OS_WIN32
+#ifdef G_OS_WIN32
     char *path = g_strconcat(args->exedir, G_SEARCHPATH_SEPARATOR_S, g_getenv("PATH"), NULL);
     g_setenv("PATH", path, TRUE);
     g_free(path);
