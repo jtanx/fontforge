@@ -90,8 +90,6 @@ if(ENABLE_GUI)
     target_link_libraries(fontforgeexe
       PRIVATE
       "-framework Cocoa"
-      "-framework CoreServices"
-      "-framework Foundation"
     )
   endif()
 
