@@ -274,25 +274,27 @@ static int run_executable(ArgData *args, gchar **argv) {
 }
 
 static int run_ff_systest(ArgData *args, gchar **argv) {
-    GPtrArray *test_args = g_ptr_array_new_with_free_func(g_free);
+    GPtrArray *test_args = g_ptr_array_new();
+    gchar *lang = g_strconcat("-lang=", args->mode, NULL);
     int retcode;
 
-    g_ptr_array_add(test_args, g_strdup(args->binary));
-    g_ptr_array_add(test_args, g_strconcat("-lang=", args->mode, NULL));
-    g_ptr_array_add(test_args, g_strdup("-script"));
-    g_ptr_array_add(test_args, g_strdup(args->script));
+    g_ptr_array_add(test_args, args->binary);
+    g_ptr_array_add(test_args, lang);
+    g_ptr_array_add(test_args, "-script");
+    g_ptr_array_add(test_args, args->script);
     while (*argv) {
-        g_ptr_array_add(test_args, g_strdup(*argv++));
+        g_ptr_array_add(test_args, *argv++);
     }
     g_ptr_array_add(test_args, NULL);
 
     retcode = run_executable(args, (gchar**)test_args->pdata);
     g_ptr_array_free(test_args, TRUE);
+    g_free(lang);
     return retcode;
 }
 
 static int run_pyhook_systest(ArgData *args, gchar **argv) {
-    GPtrArray *test_args = g_ptr_array_new_with_free_func(g_free);
+    GPtrArray *test_args = g_ptr_array_new();
     int retcode;
 
 #ifdef G_OS_WIN32
@@ -303,11 +305,11 @@ static int run_pyhook_systest(ArgData *args, gchar **argv) {
 
     g_setenv("PYTHONPATH", args->libdir, TRUE);
 
-    g_ptr_array_add(test_args, g_strdup(args->binary));
-    g_ptr_array_add(test_args, g_strdup("-Ss"));
-    g_ptr_array_add(test_args, g_strdup(args->script));
+    g_ptr_array_add(test_args, args->binary);
+    g_ptr_array_add(test_args, "-Ss");
+    g_ptr_array_add(test_args, args->script);
     while (*argv) {
-        g_ptr_array_add(test_args, g_strdup(*argv++));
+        g_ptr_array_add(test_args, *argv++);
     }
     g_ptr_array_add(test_args, NULL);
 
