@@ -9,26 +9,6 @@ function(add_download_target font url)
   )
 endfunction()
 
-function(add_generation_target output input)
-  add_custom_command(
-    OUTPUT
-      "${CMAKE_CURRENT_BINARY_DIR}/fonts/${output}"
-    COMMAND "${CMAKE_COMMAND}"
-      -E
-      make_directory
-      "${CMAKE_CURRENT_BINARY_DIR}/fonts"
-    COMMAND fontforgeexe
-      -lang=ff
-      -c
-      "Open($1); Generate($2)"
-      "${CMAKE_CURRENT_SOURCE_DIR}/fonts/${input}"
-      "${CMAKE_CURRENT_BINARY_DIR}/fonts/${output}"
-    DEPENDS
-     "${CMAKE_CURRENT_SOURCE_DIR}/fonts/${input}"
-    VERBATIM
-  )
-endfunction()
-
 function(add_ff_test test_name test_script)
   list(LENGTH ARGN _arglen)
   if (${_arglen} LESS 1)

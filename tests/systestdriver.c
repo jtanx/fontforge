@@ -33,6 +33,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef G_OS_UNIX
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
+
 typedef struct ArgData {
     gchar *mode;
     gchar *binary;
@@ -247,13 +252,24 @@ static int run_executable(ArgData *args, gchar **argv) {
     
     tmp = g_strjoinv(" ", argv);
     fprintf(stderr, "Running: %s\n", tmp);
+    fflush(stderr);
     g_free(tmp);
 
     if (!g_spawn_sync(args->workdir, argv, NULL, G_SPAWN_DEFAULT, NULL, NULL, NULL, NULL, &retcode, &error)) {
          fprintf(stderr, "execution failed: %d: %s\n", retcode, error ? error->message : "unknown error");
          g_error_free(error);
-         return retcode ? retcode : 1;
+         retcode = 1;
     }
+#ifdef G_OS_UNIX
+    else {
+        if (WIFEXITED(retcode)) {
+            retcode = WEXITSTATUS(retcode);
+        } else {
+            fprintf(stderr, "unknown waitpid status %d\n", retcode);
+            retcode = 1;
+        }
+    }
+#endif
     return retcode;
 }
 
