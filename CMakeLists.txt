@@ -114,6 +114,7 @@ find_package_auto(ENABLE_LIBPNG           PNG)
 find_package_auto(ENABLE_LIBREADLINE      Readline)
 find_package_auto(ENABLE_LIBTIFF          TIFF)
 find_package_auto(ENABLE_WOFF2            WOFF2)
+find_package_auto(ENABLE_CODE_COVERAGE    Gcov)
 
 add_subdirectory(inc)
 add_subdirectory(Unicode)

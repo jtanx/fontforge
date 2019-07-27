@@ -16,3 +16,10 @@ target_link_libraries(fontforge_common_headers
   INTERFACE
     GLIB::GLIB
 )
+
+if(ENABLE_CODE_COVERAGE_RESULT)
+target_link_libraries(fontforge_common_headers
+  INTERFACE
+    Gcov::Gcov
+)
+endif()
