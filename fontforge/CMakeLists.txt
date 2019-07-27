@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 set(FONTFORGE_NOINST_HEADERS
   asmfpst.h
   autohint.h

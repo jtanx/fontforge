@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 cmake_minimum_required(VERSION 3.5)
 
 # Update the version for each new release
@@ -65,7 +67,6 @@ build_option(THEME     ENUM "tango"  "Sets the GUI theme." "tango" "2012")
 
 if(CMAKE_COMPILER_IS_GNUCC)
   set_supported_c_compiler_flags(FONTFORGE_DEFAULT_CFLAGS -Werror=implicit-function-declaration -Werror=int-conversion)
-  add_compile_options(${FONTFORGE_DEFAULT_CFLAGS} $<$<CONFIG:Debug>:-O0>)
 endif()
 
 # Required and default dependencies

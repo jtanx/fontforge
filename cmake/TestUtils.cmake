@@ -1,9 +1,28 @@
+# Distributed under the original FontForge BSD 3-clause license
+
+#[=======================================================================[.rst:
+TestUtils
+---------
+
+``add_download_target` creates a custom target that will ensure that
+``font`` exists. If it is not present in the source tree, it will be
+downloaded via ``url``.
+
+``add_ff_test`` and ``add_py_test`` both wrap ``add_test`` to add a
+standard system test, which involves invoking either a native or Python
+script. System tests are performed by invoking ``systestdriver``, which
+handles determining if a test should be skipped, based on missing inputs,
+and also runs each test in its own test folder.
+
+#]=======================================================================]
+
 function(add_download_target font url)
   add_custom_command(
     OUTPUT
       "${CMAKE_CURRENT_BINARY_DIR}/fonts/${font}"
     COMMAND "${CMAKE_COMMAND}"
       -D DEST:FILEPATH="${CMAKE_CURRENT_BINARY_DIR}/fonts/${font}"
+      -D SOURCE:FILEPATH="${CMAKE_CURRENT_SOURCE_DIR}/fonts/${font}"
       -D URL:STRING="${url}"
       -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/DownloadIfMissing.cmake"
   )

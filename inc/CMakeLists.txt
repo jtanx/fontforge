@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 add_library(fontforge_common_headers INTERFACE)
 
 include(FontForgeConfigure)

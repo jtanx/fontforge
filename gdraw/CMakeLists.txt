@@ -1,5 +1,6 @@
+# Distributed under the original FontForge BSD 3-clause license
 
-#not included
+# not included
 #  gdrawwacomdriver.c genkeysym.c growcol.c
 
 add_library(gdraw OBJECT

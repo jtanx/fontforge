@@ -1,3 +1,7 @@
+# Distributed under the original FontForge BSD 3-clause license
+
+# Note that you should invoke the `check` target instead of
+# the `test` target so that test-specific prerequisites are checked.
 
 include(TestUtils)
 
@@ -7,7 +11,9 @@ endif()
 
 add_executable(systestdriver systestdriver.c)
 target_link_libraries(systestdriver PRIVATE GLIB::GLIB)
-target_compile_options(systestdriver PRIVATE -Wall -pedantic)
+if(CMAKE_COMPILER_IS_GNUCC)
+  target_compile_options(systestdriver PRIVATE -Wall -pedantic)
+endif()
 
 # Downloaded files
 add_download_target("NotoSans-Regular.ttc" "https://github.com/fontforge/debugfonts/raw/master/NotoSans-Regular.ttc")
