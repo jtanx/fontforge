@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 add_library(fontforge_pyhook MODULE fontforgepyhook.c)
 add_library(psMat_pyhook MODULE psMatpyhook.c)
 

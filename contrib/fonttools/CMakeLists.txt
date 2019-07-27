@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 # Use these at your own risk, these are mostly unmaintained.
 
 add_executable(acorn2sfd acorn2sfd.c)

@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 add_executable(mapcns1 src/mapcns1.c)
 add_executable(mapgb1 src/mapgb1.c)
 add_executable(mapjapan1 src/mapjapan1.c)

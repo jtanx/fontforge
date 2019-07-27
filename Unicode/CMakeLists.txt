@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 add_library(gunicode OBJECT
   ArabicForms.c
   char.c
@@ -63,7 +65,7 @@ if (ENABLE_MAINTAINER_TOOLS)
   add_executable(makebuildtables makebuildtables.c)
   target_link_libraries(makebuildtables PRIVATE fontforge_common_headers)
 
-  if(COMPILER_IS_GNUCC)
+  if(CMAKE_COMPILER_IS_GNUCC)
     target_compile_options(makeutype PRIVATE -Wall)
     target_compile_options(makebuildtables PRIVATE -Wall)
   endif()

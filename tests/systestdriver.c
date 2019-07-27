@@ -213,49 +213,57 @@ static gboolean remove_dir(const char *path) {
 }
 
 static gboolean setup_test_dir(ArgData *args) {
-    gchar *base_name, *dir_name;
+    gchar *name, *dir_name;
 
-    base_name = dir_name = g_path_get_basename(args->script);
-    for (; *base_name; ++base_name) {
-        if (!g_ascii_isalnum(*base_name)) {
-            *base_name = '_';
+    name = dir_name = g_path_get_basename(args->script);
+    for (; *name; ++name) {
+        if (!g_ascii_isalnum(*name)) {
+            *name = '_';
         }
     }
 
-    base_name = dir_name;
-    dir_name = g_strconcat(base_name, "_", args->mode, NULL);
-    g_free(base_name);
+    name = dir_name;
+    dir_name = g_strconcat(name, "_", args->mode, NULL);
+    g_free(name);
+    name = g_build_filename("systests", dir_name, NULL);
+    g_free(dir_name);
 
-    if (!remove_dir(dir_name) || g_mkdir(dir_name, 0755)) {
-        fprintf(stderr, "failed to setup the working directory: %s\n", dir_name);
-        g_free(dir_name);
+    if (!remove_dir(name) || g_mkdir_with_parents(name, 0755)) {
+        fprintf(stderr, "failed to setup the working directory: %s\n", name);
+        g_free(name);
         return FALSE;
     }
 
-    args->workdir = dir_name;
+    args->workdir = name;
     return TRUE;
 }
 
 static int run_executable(ArgData *args, gchar **argv) {
     int retcode = 0;
+    gboolean ret;
     GError *error = NULL;
-    gchar *tmp;
+    gchar *binary, *tmp;
     
-    tmp = g_find_program_in_path(argv[0]);
-    make_absolute(&tmp); // ^ is broken?!
-    if (!tmp) {
-        fprintf(stderr, "failed to find %s\n", tmp);
+    binary = g_find_program_in_path(argv[0]);
+    make_absolute(&binary); // ^ is broken?!
+    if (!binary) {
+        fprintf(stderr, "failed to find %s\n", binary);
         return 1;
     }
-    g_free(argv[0]);
-    argv[0] = tmp;
+    tmp = argv[0];
+    argv[0] = binary;
+    binary = tmp;
     
     tmp = g_strjoinv(" ", argv);
     fprintf(stderr, "Running: %s\n", tmp);
     fflush(stderr);
     g_free(tmp);
 
-    if (!g_spawn_sync(args->workdir, argv, NULL, G_SPAWN_DEFAULT, NULL, NULL, NULL, NULL, &retcode, &error)) {
+    ret = g_spawn_sync(args->workdir, argv, NULL, G_SPAWN_DEFAULT, NULL, NULL, NULL, NULL, &retcode, &error);
+    g_free(argv[0]);
+    argv[0] = binary;
+
+    if (!ret) {
          fprintf(stderr, "execution failed: %d: %s\n", retcode, error ? error->message : "unknown error");
          g_error_free(error);
          retcode = 1;
@@ -275,11 +283,11 @@ static int run_executable(ArgData *args, gchar **argv) {
 
 static int run_ff_systest(ArgData *args, gchar **argv) {
     GPtrArray *test_args = g_ptr_array_new();
-    gchar *lang = g_strconcat("-lang=", args->mode, NULL);
     int retcode;
 
     g_ptr_array_add(test_args, args->binary);
-    g_ptr_array_add(test_args, lang);
+    g_ptr_array_add(test_args, "-lang");
+    g_ptr_array_add(test_args, args->mode);
     g_ptr_array_add(test_args, "-script");
     g_ptr_array_add(test_args, args->script);
     while (*argv) {
@@ -289,7 +297,6 @@ static int run_ff_systest(ArgData *args, gchar **argv) {
 
     retcode = run_executable(args, (gchar**)test_args->pdata);
     g_ptr_array_free(test_args, TRUE);
-    g_free(lang);
     return retcode;
 }
 

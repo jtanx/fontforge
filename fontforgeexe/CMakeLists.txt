@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 add_executable(fontforgeexe main.c)
 set_target_properties(fontforgeexe PROPERTIES OUTPUT_NAME "fontforge")
 

@@ -1,3 +1,5 @@
+# Distributed under the original FontForge BSD 3-clause license
+
 add_library(gutils OBJECT
   dlist.c
   fsys.c
