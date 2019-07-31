@@ -1,6 +1,6 @@
 # Distributed under the original FontForge BSD 3-clause license
 
-foreach(_lang de el en_GB es fr hr it ja ko ml pl pt ru uk vi zh_CN zh_TW)
+foreach(_lang ca de el en_GB es fr hr it ja ko ml pl pt ru uk vi zh_CN zh_TW)
   set(_input "${CMAKE_CURRENT_SOURCE_DIR}/${_lang}.po")
   set(_output "${CMAKE_CURRENT_BINARY_DIR}/${_lang}.mo")
   add_custom_command(OUTPUT "${_output}"
@@ -8,13 +8,14 @@ foreach(_lang de el en_GB es fr hr it ja ko ml pl pt ru uk vi zh_CN zh_TW)
     DEPENDS "${_input}"
     VERBATIM
   )
-  install(FILES "${_output}" DESTINATION "share/${_lang}/LC_MESSAGES" RENAME "FontForge.mo" COMPONENT pofiles)
+  install(FILES "${_output}" DESTINATION "share/locale/${_lang}/LC_MESSAGES" RENAME "FontForge.mo" COMPONENT pofiles)
   list(APPEND _outputs "${_output}")
 endforeach()
 
 add_custom_target(pofiles ALL DEPENDS ${_outputs})
 
 # Run this target to regenerate the potfile
+# TODO: Probably should add a FindXGettext or something
 add_custom_target(potfiles
   COMMAND xgettext
     --from-code=utf-8
