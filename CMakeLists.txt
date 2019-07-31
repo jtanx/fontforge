@@ -132,5 +132,8 @@ add_subdirectory(contrib)
 if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
+add_subdirectory(desktop)
+add_subdirectory(doc)
+add_subdirectory(share)
 
 print_build_options()
