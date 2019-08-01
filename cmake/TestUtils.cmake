@@ -24,7 +24,7 @@ function(add_download_target font url)
       -D DEST:FILEPATH="${CMAKE_CURRENT_BINARY_DIR}/fonts/${font}"
       -D SOURCE:FILEPATH="${CMAKE_CURRENT_SOURCE_DIR}/fonts/${font}"
       -D URL:STRING="${url}"
-      -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/DownloadIfMissing.cmake"
+      -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/scripts/DownloadIfMissing.cmake"
   )
 endfunction()
 
