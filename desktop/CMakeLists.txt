@@ -1,6 +1,6 @@
 # Distributed under the original FontForge BSD 3-clause license
 
-if(NOT WIN32 AND NOT APPLE)
+if(UNIX)
   install(FILES org.fontforge.FontForge.desktop DESTINATION share/applications)
   install(FILES org.fontforge.FontForge.appdata.xml org.fontforge.FontForge.metainfo.xml DESTINATION share/metainfo)
   install(FILES fontforge.xml DESTINATION share/mime/packages)
