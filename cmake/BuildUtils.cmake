@@ -1,11 +1,12 @@
 # Distributed under the original FontForge BSD 3-clause license
 
 #[=======================================================================[.rst:
-BuildOption
------------
+BuiltUtils
+----------
 
-Standardises the way in which to specify a build option. Supports any
-type that the ``set()`` function supports. Options are stored in the cache.
+``build_option`` standardises the way in which to specify a build option.
+Supports any type that the ``set()`` function supports. Options are
+stored in the cache.
 
 For ``BOOL`` options, passing in a 5th parameter (after the description)
 will lead to that parameter being evaluated. If it evaluates to false,
@@ -19,6 +20,16 @@ values. All arguments afer the description are treated as allowed values
 of the enumeration.
 
 All other types are passed directly to ``set()``.
+
+``print_build_options`` lists all build options, along with their
+current status.
+
+``set_default_build_type sets the default build type if none is
+explicitly specified.
+
+``set_default_rpath`` sets the default RPATH to be used on platforms
+that support it.
+
 #]=======================================================================]
 
 function(build_option variable type value description)
@@ -82,4 +93,15 @@ function(set_default_build_type default_build_type)
   if(NOT "CMAKE_BUILD_TYPE" IN_LIST BUILD_OPTIONS)
     set(BUILD_OPTIONS "${BUILD_OPTIONS};CMAKE_BUILD_TYPE" CACHE INTERNAL "List of build options")
   endif()
+endfunction()
+
+function(set_default_rpath)
+  list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" _is_system_dir)
+  if(_is_system_dir LESS 0)
+    list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  endif()
+  if(APPLE)
+    list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../lib")
+  endif()
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_RPATH} PARENT_SCOPE)
 endfunction()

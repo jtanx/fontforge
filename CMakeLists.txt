@@ -13,7 +13,7 @@ if(${CMAKE_VERSION} VERSION_LESS "3.14")
 endif()
 
 # Include any required modules
-include(BuildOption)
+include(BuildUtils)
 include(CheckIncludeFile)
 include(CTest)
 include(PackageUtils)
@@ -31,6 +31,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 set_default_build_type(RelWithDebInfo)
+set_default_rpath()
 
 # Options
 build_option(BUILD_SHARED_LIBS       BOOL ON  "Build libfontforge as a shared library")
@@ -138,6 +139,9 @@ add_subdirectory(desktop)
 add_subdirectory(doc)
 add_subdirectory(po)
 add_subdirectory(share)
+if(APPLE)
+  add_subdirectory(osx)
+endif()
 
 set(CPACK_SOURCE_GENERATOR "TXZ")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
