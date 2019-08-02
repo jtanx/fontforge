@@ -110,6 +110,8 @@ endif()
 
 target_link_libraries(fontforgeexe PRIVATE fontforge Iconv::Iconv MathLib::MathLib)
 install(TARGETS fontforgeexe RUNTIME DESTINATION bin)
+
+add_native_scripts(fontimage.pe fontlint.pe sfddiff.pe)
 install(FILES fontforge.1 sfddiff.1 fontlint.1 fontimage.1 DESTINATION share/man/man1)
 
 add_subdirectory(pixmaps)
