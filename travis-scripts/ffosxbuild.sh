@@ -5,9 +5,9 @@ SCRIPT_BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 INVOKE_BASE="$(pwd)"
 
 APPDIR=$(realpath $1)
-HASH=$2
+HASH=${2:0:7}
 
-if [ -z $APPDIR ]; then
+if [ -z "$APPDIR" ]; then
     echo "Usage: `basename $0` appdir hash"
     echo "  appdir is the location to the FontForge.app that cmake generated"
     echo "  hash is the version hash of this build"
