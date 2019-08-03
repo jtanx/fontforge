@@ -1,5 +1,12 @@
 # Distributed under the original FontForge BSD 3-clause license
 
+configure_file(resources.in resources)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/resources"
+  DESTINATION share/fontforge/pixmaps
+  COMPONENT theme
+)
+
 install(FILES
   changeweight.png check_off_disabled.png check_off.png check_on_disabled.png check_on.png
   chooseraudio.png chooserback.png chooserbookmark.png choosercid.png choosercompressed.png
@@ -79,7 +86,7 @@ install(FILES
   Cantarell-BoldOblique.ttf Cantarell-Bold.ttf Cantarell-Oblique.ttf Cantarell-Regular.ttf
   Inconsolata-Bold.ttf Inconsolata-Regular.ttf
 
-  OFL.txt resources
+  OFL.txt "${CMAKE_CURRENT_BINARY_DIR}/resources"
 
   DESTINATION share/fontforge/pixmaps
   COMPONENT theme
