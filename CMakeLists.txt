@@ -32,6 +32,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 set_default_build_type(RelWithDebInfo) # Sets CMAKE_BUILD_TYPE
 set_default_rpath()
+add_uninstall_target()
 
 # Options
 build_option(BUILD_SHARED_LIBS       BOOL ON  "Build libfontforge as a shared library")

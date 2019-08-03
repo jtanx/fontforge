@@ -27,6 +27,8 @@ object libraries.
 of flags are supported by the C compiler. Supported flags are stored
 into ``dst`` as a cache variable.
 
+``add_uninstall_target`` add an uninstall target
+
 #]=======================================================================]
 
 function(fixup_link_options dest)
@@ -94,5 +96,20 @@ function(set_supported_c_compiler_flags dst)
 
     set("${dst}" "${_supported_flags}" CACHE STRING "Supported compiler flags")
     cmake_pop_check_state()
+  endif()
+endfunction()
+
+# Based on https://gitlab.kitware.com/cmake/community/wikis/FAQ#can-i-do-make-uninstall-with-cmake
+function(add_uninstall_target)
+  if(NOT TARGET uninstall)
+    configure_file(
+        "${CMAKE_SOURCE_DIR}/cmake/scripts/Uninstall.cmake.in"
+        "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY
+    )
+    add_custom_target(uninstall
+        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
+        VERBATIM USES_TERMINAL
+    )
   endif()
 endfunction()
