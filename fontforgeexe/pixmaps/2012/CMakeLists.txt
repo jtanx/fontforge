@@ -1,5 +1,12 @@
 # Distributed under the original FontForge BSD 3-clause license
 
+configure_file(resources-georgd.in resources)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/resources"
+  DESTINATION share/fontforge/pixmaps
+  COMPONENT theme
+)
+
 install(FILES
   changeweight.png chooseraudio.png chooserback.png chooserbookmark.png choosercid.png
   choosercompressed.png chooserconfigtool.png choosercore.png chooserdir.png chooserforward.png
@@ -63,6 +70,12 @@ install(FILES
   viewprev.png viewreplace.png viewsmallersize.png viewzoomin.png viewzoomout.png wireframe.png
 
   charviewicon.xbm fontview2.xbm logo.xbm
+
+  ../tango/Cantarell-BoldOblique.ttf ../tango/Cantarell-Bold.ttf
+  ../tango/Cantarell-Oblique.ttf ../tango/Cantarell-Regular.ttf
+  ../tango/Inconsolata-Bold.ttf ../tango/Inconsolata-Regular.ttf
+
+  "${CMAKE_CURRENT_BINARY_DIR}/resources"
 
   DESTINATION share/fontforge/pixmaps
   COMPONENT theme
