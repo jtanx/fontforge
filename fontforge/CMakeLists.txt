@@ -223,10 +223,10 @@ target_link_libraries(fontforge
     Freetype::Freetype
     LibXml2::LibXml2
     GLIB::GLIB
+    Intl::Intl
   PRIVATE
     MathLib::MathLib
     Iconv::Iconv
-    Intl::Intl
     ZLIB::ZLIB
 )
 
