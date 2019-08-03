@@ -4,6 +4,13 @@
 TargetUtils
 -----------
 
+``fixup_link_options`` inspects link options and fixes link options,
+particularly those inferred from pkg-config. Specifically for MacOS,
+ -framework are fixed. target_link_options deduplicates flags,
+so ``-framework A -framework B`` becomes ``-framework A B``. This
+is incorrect syntax. To fix this, the list must be altered to specify
+framework options as ``SHELL:-framework A`` ``SHELL:-framework B``
+
 ``alias_imported_target` copies an imported target of name ``src` into
 a new imported target of name ``dest``. This is used because CMake
 currently does not support aliasing imported targets.
@@ -22,11 +29,32 @@ into ``dst`` as a cache variable.
 
 #]=======================================================================]
 
+function(fixup_link_options dest)
+  unset(_item_buffer)
+  foreach(_item ${ARGN})
+    if (APPLE AND "${_item}" STREQUAL "-framework")
+      set(_item_buffer "-framework")
+    elseif(DEFINED _item_buffer)
+      list(APPEND _items "SHELL:${_item_buffer} ${_item}")
+      unset(_item_buffer)
+    else()
+      list(APPEND _items "${_item}")
+    endif()
+  endforeach()
+  if(DEFINED _item_buffer)
+    message(FATAL_ERROR "Could not fixup/parse ${ARGN} --> stray argument ${_item_buffer}")
+  endif()
+  set(${dest} ${_items} PARENT_SCOPE)
+endfunction()
+
 function(alias_imported_target dest src)
   if(TARGET ${src} AND NOT TARGET ${dest})
     add_library(${dest} INTERFACE IMPORTED)
     foreach(prop INTERFACE_INCLUDE_DIRECTORIES INTERFACE_LINK_LIBRARIES INTERFACE_LINK_OPTIONS INTERFACE_COMPILE_OPTIONS)
       get_property(_prop_val TARGET ${src} PROPERTY ${prop})
+      if(APPLE AND prop STREQUAL INTERFACE_LINK_OPTIONS)
+        fixup_link_options(_prop_val ${_prop_val})
+      endif()
       set_property(TARGET ${dest} PROPERTY ${prop} ${_prop_val})
     endforeach()
   endif()

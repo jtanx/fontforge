@@ -19,21 +19,21 @@ endif()
 add_download_target("NotoSans-Regular.ttc" "https://github.com/fontforge/debugfonts/raw/master/NotoSans-Regular.ttc")
 add_download_target("MunhwaGothic-Bold" "https://github.com/fontforge/debugfonts/raw/master/MunhwaGothic-Bold")
 
-add_custom_target(test_dependencies
-  DEPENDS
-  "${CMAKE_CURRENT_BINARY_DIR}/fonts/NotoSans-Regular.ttc"
-  "${CMAKE_CURRENT_BINARY_DIR}/fonts/MunhwaGothic-Bold"
-)
-
 add_custom_target(check
   COMMAND "${CMAKE_CTEST_COMMAND}" "--output-on-failure" "--force-new-ctest-process"
   DEPENDS
-    test_dependencies
     fontforgeexe
     systestdriver
+    ${_check_optional_deps}
+    "${CMAKE_CURRENT_BINARY_DIR}/fonts/NotoSans-Regular.ttc"
+    "${CMAKE_CURRENT_BINARY_DIR}/fonts/MunhwaGothic-Bold"
   VERBATIM
   USES_TERMINAL
 )
+
+if(ENABLE_PYTHON_SCRIPTING_RESULT AND ENABLE_PYTHON_EXTENSION)
+  add_dependencies(check fontforge_pyhook psMat_pyhook)
+endif()
 
 if(ENABLE_NATIVE_SCRIPTING)
   add_ff_test(test001.pe "Caliban.sfd" "Zapfino-4.0d3.dfont" "Zapfino-4.1d6.dfont" "Generate a few font files")
