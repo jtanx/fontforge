@@ -111,7 +111,22 @@ endif()
 target_link_libraries(fontforgeexe PRIVATE fontforge Iconv::Iconv MathLib::MathLib)
 install(TARGETS fontforgeexe RUNTIME DESTINATION bin)
 
-add_native_scripts(fontimage.pe fontlint.pe sfddiff.pe)
+if(UNIX)
+  install(CODE "
+    foreach(_script fontimage.pe fontlint.pe sfddiff.pe)
+      get_filename_component(_output \"\${_script}\" NAME_WE)
+      file(READ \"${CMAKE_CURRENT_SOURCE_DIR}/\${_script}\" _input)
+      file(WRITE \"${CMAKE_CURRENT_BINARY_DIR}/\${_output}\" \"#!${CMAKE_INSTALL_PREFIX}/bin/fontforge -lang=ff\\n\${_input}\")
+    endforeach()
+  " COMPONENT nativescripts)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/fontimage" "${CMAKE_CURRENT_BINARY_DIR}/fontlint" "${CMAKE_CURRENT_BINARY_DIR}/sfddiff"
+    DESTINATION "bin"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    COMPONENT nativescripts
+  )
+else()
+  install(FILES fontimage.pe fontlint.pe sfddiff.pe DESTINATION share/fontforge/nativescripts COMPONENT nativescripts)
+endif()
 install(FILES fontforge.1 sfddiff.1 fontlint.1 fontimage.1 DESTINATION share/man/man1)
 
 add_subdirectory(pixmaps)
