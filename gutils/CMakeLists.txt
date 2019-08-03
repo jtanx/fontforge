@@ -64,7 +64,6 @@ else()
     PUBLIC
       fontforge_common_headers
       gunicode
-    PRIVATE
       ${gutils_LIBRARIES}
   )
 endif()

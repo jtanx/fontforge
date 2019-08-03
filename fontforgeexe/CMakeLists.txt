@@ -116,7 +116,7 @@ if(UNIX)
     foreach(_script fontimage.pe fontlint.pe sfddiff.pe)
       get_filename_component(_output \"\${_script}\" NAME_WE)
       file(READ \"${CMAKE_CURRENT_SOURCE_DIR}/\${_script}\" _input)
-      file(WRITE \"${CMAKE_CURRENT_BINARY_DIR}/\${_output}\" \"#!${CMAKE_INSTALL_PREFIX}/bin/fontforge -lang=ff\\n\${_input}\")
+      file(WRITE \"${CMAKE_CURRENT_BINARY_DIR}/\${_output}\" \"#!\${CMAKE_INSTALL_PREFIX}/bin/fontforge -lang=ff\\n\${_input}\")
     endforeach()
   " COMPONENT nativescripts)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/fontimage" "${CMAKE_CURRENT_BINARY_DIR}/fontlint" "${CMAKE_CURRENT_BINARY_DIR}/sfddiff"
