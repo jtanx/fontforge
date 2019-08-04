@@ -17,6 +17,7 @@ include(BuildUtils)
 include(CheckIncludeFile)
 include(CPackSetup)
 include(CTest)
+include(GNUInstallDirs)
 include(PackageUtils)
 include(TargetUtils)
 

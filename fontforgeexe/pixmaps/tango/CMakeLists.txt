@@ -3,7 +3,7 @@
 configure_file(resources.in resources)
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/resources"
-  DESTINATION share/fontforge/pixmaps
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/fontforge/pixmaps
   COMPONENT theme
 )
 
@@ -88,6 +88,6 @@ install(FILES
 
   OFL.txt "${CMAKE_CURRENT_BINARY_DIR}/resources"
 
-  DESTINATION share/fontforge/pixmaps
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/fontforge/pixmaps
   COMPONENT theme
 )

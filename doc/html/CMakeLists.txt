@@ -130,7 +130,7 @@ install(FILES
   validation.png VerticalMetrics.png viewmenu.html views.html vItalic.png vms-install.html wacom.html
   windowmenu.html wItalic.png x-height.png xim.html xItalic.png xres.html
 
-  DESTINATION share/doc/fontforge
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT docs
 )
 
@@ -138,8 +138,8 @@ install(FILES
   flags/BrasilFlag.png flags/English.gif flags/GermanFlag.png flags/Greece.png
   flags/Nisshoki-Japan.png flags/Polish.png flags/RussianFlag.png flags/StarsStripes.gif
   flags/Tricolor.gif flags/UnionJack.gif flags/VietnamFlag.png flags/taiwan.png
-  DESTINATION share/doc/fontforge/flags
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}/flags
   COMPONENT docs
 )
 
-install(FILES nonBMP/index.html DESTINATION share/doc/fontforge/nonBMP COMPONENT docs)
+install(FILES nonBMP/index.html DESTINATION ${CMAKE_INSTALL_DOCDIR}/nonBMP COMPONENT docs)

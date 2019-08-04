@@ -8,7 +8,7 @@ foreach(_lang ca de el en_GB es fr hr it ja ko ml pl pt ru uk vi zh_CN zh_TW)
     DEPENDS "${_input}"
     VERBATIM
   )
-  install(FILES "${_output}" DESTINATION "share/locale/${_lang}/LC_MESSAGES" RENAME "FontForge.mo" COMPONENT pofiles)
+  install(FILES "${_output}" DESTINATION "${CMAKE_INSTALL_LOCALEDIR}/${_lang}/LC_MESSAGES" RENAME "FontForge.mo" COMPONENT pofiles)
   list(APPEND _outputs "${_output}")
 endforeach()
 
