@@ -15,6 +15,7 @@ endif()
 # Include any required modules
 include(BuildUtils)
 include(CheckIncludeFile)
+include(CPackSetup)
 include(CTest)
 include(PackageUtils)
 include(TargetUtils)
@@ -144,10 +145,5 @@ if(APPLE)
   add_subdirectory(osx)
 endif()
 
-set(CPACK_SOURCE_GENERATOR "TXZ")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
-set(CPACK_SOURCE_IGNORE_FILES
-  "/build/;/.git/;~$;${CPACK_SOURCE_IGNORE_FILES}")
-include(CPack)
-
+setup_cpack()
 print_build_options()
