@@ -6434,7 +6434,7 @@ return( GGadgetDispatchEvent(cv->vsb,event));
 
 	    // X11 on Windows is broken, non-active windows
 	    // receive this event on mouseover
-#if !defined(_WIN32) || defined(FONTFORGE_CAN_USE_GDK)
+#if !defined(_WIN32) || defined(FONTFORGE_CAN_USE_GTK_COMMON)
 	    CVPaletteActivate(cv);
 #endif
 	}

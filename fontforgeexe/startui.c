@@ -32,7 +32,7 @@
 #include "bitmapchar.h"
 #include "clipnoui.h"
 #include "encoding.h"
-#include "ffgdk.h"
+#include "ffgtk.h"
 #include "ffglib.h"
 #include "fontforgeui.h"
 #include "gfile.h"
@@ -302,6 +302,8 @@ static void SplashLayout() {
 #endif
 #ifdef FONTFORGE_CAN_USE_GDK
     uc_strcat(pt, "-GDK3");
+#elif defined (FONTFORGE_CAN_USE_GTK)
+    uc_strcat(pt, "-GTK3");
 #else
     uc_strcat(pt,"-X11");
 #endif
@@ -422,9 +424,9 @@ static pascal OSErr OpenApplicationAE( const AppleEvent * theAppleEvent,
  fprintf( logfile, "OPENAPP event received.\n" ); fflush( logfile );
     if ( localsplash )
 	start_splash_screen();
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
     if ( fv_list==NULL )
 	_FVMenuOpen(NULL);
  fprintf( logfile, " event processed %d.\n", noErr ); fflush( logfile );
@@ -436,9 +438,9 @@ static pascal OSErr ReopenApplicationAE( const AppleEvent * theAppleEvent,
  fprintf( logfile, "ReOPEN event received.\n" ); fflush( logfile );
     if ( localsplash )
 	start_splash_screen();
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
     if ( fv_list==NULL )
 	_FVMenuOpen(NULL);
  fprintf( logfile, " event processed %d.\n", noErr ); fflush( logfile );
@@ -450,9 +452,9 @@ static pascal OSErr ShowPreferencesAE( const AppleEvent * theAppleEvent,
  fprintf( logfile, "PREFS event received.\n" ); fflush( logfile );
     if ( localsplash )
 	start_splash_screen();
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
     DoPrefs();
  fprintf( logfile, " event processed %d.\n", noErr ); fflush( logfile );
 return( noErr );
@@ -497,9 +499,9 @@ static pascal OSErr OpenDocumentsAE( const AppleEvent * theAppleEvent,
 	ViewPostScriptFont(buffer,0);
  fprintf( logfile, " file: %s\n", buffer );
     }
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
     system( "DYLD_LIBRARY_PATH=\"\"; osascript -e 'tell application \"X11\" to activate'" );
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
     AEDisposeDesc(&docList);
  fprintf( logfile, " event processed %d.\n", err ); fflush( logfile );
 
@@ -970,9 +972,10 @@ int fontforge_main( int argc, char **argv ) {
 #endif
 #ifdef FONTFORGE_CAN_USE_GDK
             "-GDK3"
-#endif
-#ifdef BUILT_WITH_XORG
-            "-Xorg"
+#elif defined(FONTFORGE_CAN_USE_GTK)
+            "-GTK3"
+#else
+            "-X11"
 #endif
 	        ".\n",
 	        FONTFORGE_MODTIME_STR );
@@ -982,7 +985,7 @@ int fontforge_main( int argc, char **argv ) {
         }
     }
 
-#if defined(__Mac) && !defined(FONTFORGE_CAN_USE_GDK)
+#if defined(__Mac) && !defined(FONTFORGE_CAN_USE_GTK_COMMON)
     /* Start X if they haven't already done so. Well... try anyway */
     /* Must be before we change DYLD_LIBRARY_PATH or X won't start */
     /* (osascript depends on a libjpeg which isn't found if we look in /sw/lib first */
@@ -1060,11 +1063,11 @@ int fontforge_main( int argc, char **argv ) {
     /*  or "POSIX". If they've mucked with the locale perhaps they know what  */
     /*  they are doing */
     {
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
 	int useCommandKey = get_mac_x11_prop("enable_key_equivalents") <= 0;
 
 	if ( local_x && useCommandKey )
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
 	{
 	    hotkeySystemSetCanUseMacCommand( 1 );
 
@@ -1190,9 +1193,13 @@ int fontforge_main( int argc, char **argv ) {
 	}
 #endif
     }
+
 #ifdef FONTFORGE_CAN_USE_GDK
     gdk_set_allowed_backends("win32,quartz,x11");
     gdk_init(&argc, &argv);
+#elif defined(FONTFORGE_CAN_USE_GTK)
+    gdk_set_allowed_backends("win32,quartz,x11");
+    gtk_init(&argc, &argv);
 #endif
     ensureDotFontForgeIsSetup();
 #if defined(__MINGW32__) && !defined(_NO_LIBCAIRO)
@@ -1263,7 +1270,7 @@ int fontforge_main( int argc, char **argv ) {
     wattrs.utf8_window_title = "FontForge";
     wattrs.border_width = 2;
     wattrs.background_color = 0xffffff;
-#ifdef FONTFORGE_CAN_USE_GDK
+#ifdef FONTFORGE_CAN_USE_GTK_COMMON
     wattrs.is_dlg = true;
 #else
     wattrs.is_dlg = !listen_to_apple_events;
@@ -1408,7 +1415,7 @@ exit( 0 );
 #if defined(__Mac)
     if ( listen_to_apple_events ) {
 	install_apple_event_handlers();
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
 	install_mac_timer();
 	setup_cocoa_app();
 	
@@ -1418,7 +1425,7 @@ exit( 0 );
     } else
 #else
     }
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
 #endif // __Mac
     if ( doopen || !any )
 	_FVMenuOpen(NULL);

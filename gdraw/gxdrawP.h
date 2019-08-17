@@ -56,7 +56,7 @@ capable of using composite.
 
 #include <fontforge-config.h>
 
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
 
 #include "gdrawP.h"
 
@@ -385,6 +385,6 @@ void _GXDraw_Wacom_TestEvents(GXDisplay *gdisp);
 # endif	/* Wacom fix */
 
 
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
 
 #endif /* FONTFORGE_XDRAW_H */

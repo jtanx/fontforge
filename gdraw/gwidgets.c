@@ -37,7 +37,7 @@ static GWindow pixmap, cairo_pixmap;
 /*  otherwise we create and destroy pixmaps */
 
 GWindow _GWidget_GetPixmap(GWindow gw,GRect *rect) {
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
     GWindow ours;
 
     if ( gw->display!=screen_display )
@@ -83,11 +83,11 @@ return( ours );
 #else
     GDrawFillRect(gw, rect, gw->ggc->bg);
     return gw;
-#endif /* FONTFORGE_CAN_USE_GDK */
+#endif /* FONTFORGE_CAN_USE_GTK_COMMON */
 }
 
 void _GWidget_RestorePixmap(GWindow gw, GWindow ours, GRect *rect) {
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
     GWidgetD *gd = (GWidgetD *) (gw->widget_data);
 
     if ( gw==ours )
@@ -116,5 +116,5 @@ return;				/* it wasn't a pixmap, all drawing was to real window */
 #ifdef UsingPThreads
     End critical section
 #endif
-#endif /* FONTFORGE_CAN_USE_GDK */
+#endif /* FONTFORGE_CAN_USE_GTK_COMMON */
 }

@@ -34,10 +34,10 @@
  *  This is based on gxcdraw.c, but modified to suit GDK.
  */
 
-#include "ggdkdrawP.h"
-
 #ifdef FONTFORGE_CAN_USE_GDK
 
+#include "fontP.h"
+#include "ggdkdrawP.h"
 #include "ustring.h"
 
 #include <assert.h>

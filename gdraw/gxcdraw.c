@@ -27,13 +27,13 @@
 
 #include <fontforge-config.h>
 
-#ifdef FONTFORGE_CAN_USE_GDK
+#ifdef FONTFORGE_CAN_USE_GTK_COMMON
 
 void GDrawEnableCairo(int on) {
     /* With GDK, Cairo is always enabled. */
 }
 
-#else // FONTFORGE_CAN_USE_GDK
+#else // FONTFORGE_CAN_USE_GTK_COMMON
 
 #include "fontP.h"
 #include "gxcdrawP.h"
@@ -1226,4 +1226,4 @@ return( -1 );
 return( line->start_index );
 }
 
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON

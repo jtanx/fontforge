@@ -82,7 +82,12 @@ function(fontforge_generate_config template destination)
   endif()
 
   if(ENABLE_GUI AND NOT ENABLE_X11)
-    set(FONTFORGE_CAN_USE_GDK 1)
+    if(ENABLE_GTK)
+      set(FONTFORGE_CAN_USE_GTK 1)
+    else()
+      set(FONTFORGE_CAN_USE_GDK 1)
+    endif()
+    set(FONTFORGE_CAN_USE_GTK_COMMON 1)
   endif()
 
   set(FONTFORGE_CAN_USE_WOFF2 ${ENABLE_WOFF2_RESULT})

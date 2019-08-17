@@ -27,7 +27,7 @@
 
 #include <fontforge-config.h>
 
-#if !defined(X_DISPLAY_MISSING) && !defined(FONTFORGE_CAN_USE_GDK)
+#if !defined(X_DISPLAY_MISSING) && !defined(FONTFORGE_CAN_USE_GTK_COMMON)
 
 #include "gxcdrawP.h"
 #include "gxdrawP.h"

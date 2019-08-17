@@ -34,9 +34,9 @@
 
 #ifdef FONTFORGE_CAN_USE_GDK
 
-#include "ffgdk.h"
-#include "fontP.h"
+#include "ffgtk.h"
 #include "gdrawP.h"
+#include "ggdkdrawloggerP.h"
 
 #if (((GDK_MAJOR_VERSION == 3) && (GDK_MINOR_VERSION >= 22)) || (GDK_MAJOR_VERSION > 3))
 #    define GGDKDRAW_GDK_3_22
@@ -58,18 +58,6 @@
         y(x); \
     } \
 } while(0)
-
-// Logging
-//To get around a 'pedantic' C99 rule that you must have at least 1 variadic arg, combine fmt into that.
-#define Log(level, ...) LogEx(level, __func__, __FILE__, __LINE__, __VA_ARGS__)
-
-/** An enum to make the severity of log messages human readable in code **/
-enum {LOGNONE = 0, LOGERR = 1, LOGWARN = 2, LOGINFO = 3, LOGDEBUG = 4};
-
-extern void LogInit(void);
-extern void LogEx(int level, const char *funct, const char *file, int line, const char *fmt,  ...) G_GNUC_PRINTF(5, 6);   // General function for printing log messages to stderr
-extern const char *GdkEventName(int code);
-// End logging
 
 // Astyle has issues with having 'enum visibility_state' in the function definition...
 typedef enum visibility_state VisibilityState;

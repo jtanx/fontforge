@@ -27,7 +27,7 @@
 
 #include <fontforge-config.h>
 
-#ifndef FONTFORGE_CAN_USE_GDK
+#ifndef FONTFORGE_CAN_USE_GTK_COMMON
  
 #include "fontP.h"
 #include "gresource.h"
@@ -4251,4 +4251,4 @@ void _XSyncScreen() {
 }
 #endif
 
-#endif // FONTFORGE_CAN_USE_GDK
+#endif // FONTFORGE_CAN_USE_GTK_COMMON

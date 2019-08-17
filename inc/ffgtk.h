@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2012 by George Williams */
+/* Copyright (C) 2016-2019 by Jeremy Tan */
 /*
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -25,33 +25,29 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FONTFORGE_FONTP_H
-#define FONTFORGE_FONTP_H
+#ifndef FONTFORGE_FFGTK_H
+#define FONTFORGE_FFGTK_H
 
 #include <fontforge-config.h>
 
-#include "charset.h"
-#include "gdrawP.h"
-#include "gxdrawP.h"
-#include "ggdkdrawP.h"
-#include "ggtkdrawP.h"
+#ifdef FONTFORGE_CAN_USE_GTK_COMMON
 
-#define em_uplane0     (em_max+1)
+// As gdk #includes glib, we must apply the same name mangling here.
+#define GTimer GTimer_GTK
+#define GList  GList_Glib
+#define GMenuItem GMenuItem_GIO
 
-struct font_instance {
-    FontRequest rq;		/* identification of this instance */
-    PangoFontDescription *pango_fd;
-#ifndef _NO_LIBCAIRO
-    PangoFontDescription *pangoc_fd;
+#include <gdk/gdk.h>
+#include <gdk/gdkkeysyms.h>
+
+#ifdef FONTFORGE_CAN_USE_GTK
+#  include <gtk/gtk.h>
 #endif
-};
 
-typedef struct font_state {
-    int res;
-    struct font_name *font_names[26];
-    unsigned int names_loaded: 1;
-} FState;
+#undef GMenuItem
+#undef GList
+#undef GTimer
 
-extern enum charset _GDraw_ParseMapping(unichar_t *setname);
+#endif // FONTFORGE_CAN_USE_GTK_COMMON
 
-#endif /* FONTFORGE_FONTP_H */
+#endif /* FONTFORGE_FFGTK_H */

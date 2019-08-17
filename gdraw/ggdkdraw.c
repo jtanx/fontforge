@@ -29,10 +29,10 @@
 *  \brief GDK drawing backend.
 */
 
-#include "ggdkdrawP.h"
-
 #ifdef FONTFORGE_CAN_USE_GDK
 
+#include "fontP.h"
+#include "ggdkdrawP.h"
 #include "gkeysym.h"
 #include "gresource.h"
 #include "ustring.h"

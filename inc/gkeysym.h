@@ -3,7 +3,7 @@
 
 #include <fontforge-config.h>
 
-#ifdef FONTFORGE_CAN_USE_GDK
+#ifdef FONTFORGE_CAN_USE_GTK_COMMON
 #include <gdk/gdkkeysyms.h>
 
 #define GK_Special         0xfe00   /* keysyms above this value aren't unicode */
@@ -130,7 +130,7 @@
 
 #define GK_Mode_switch     GDK_KEY_Mode_switch
 
-#else // FONTFORGE_CAN_USE_GDK
+#else // FONTFORGE_CAN_USE_GTK_COMMON
 
 #ifndef X_DISPLAY_MISSING
 #include <X11/keysym.h>
@@ -430,7 +430,7 @@ SOFTWARE.
 #define GK_Mode_switch 0xff7e
 #endif	/* No X */
 
-#endif /* FONTFORGE_CAN_USE_GDK */
+#endif /* FONTFORGE_CAN_USE_GTK_COMMON */
 
 int GKeysymIsModifier(uint16 keysym);
 
