@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+#export DH_VERBOSE=1
+
+export CONFIG_SHELL=/bin/bash
+export DEB_BUILD_MAINT_OPTIONS := hardening=+all
+
+%:
+	dh $@
+
+nox:
+	[ ! -f Makefile ] || $(MAKE) distclean
+	$(CURDIR)/bootstrap --force
+	$(CURDIR)/configure $(CROSS) ${CONFIG_OPTS} --without-x --disable-pyextension
+	$(MAKE); $(MAKE) install prefix=$(CURDIR)/debian/nox/usr
+	chrpath -d $(CURDIR)/debian/nox/usr/bin/fontforge
+	mv $(CURDIR)/debian/nox/usr/bin/* $(CURDIR)/debian/fontforge-nox/usr/bin/
+	touch @
