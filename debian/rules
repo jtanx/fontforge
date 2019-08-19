@@ -5,14 +5,23 @@
 export CONFIG_SHELL=/bin/bash
 export DEB_BUILD_MAINT_OPTIONS := hardening=+all
 
+DH_OPTS := --parallel --with python3 --builddirectory build
+
 %:
-	dh $@
+	dh $@ $(DH_OPTS)
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
 nox:
-	[ ! -f Makefile ] || $(MAKE) distclean
-	$(CURDIR)/bootstrap --force
-	$(CURDIR)/configure $(CROSS) ${CONFIG_OPTS} --without-x --disable-pyextension
-	$(MAKE); $(MAKE) install prefix=$(CURDIR)/debian/nox/usr
-	chrpath -d $(CURDIR)/debian/nox/usr/bin/fontforge
-	mv $(CURDIR)/debian/nox/usr/bin/* $(CURDIR)/debian/fontforge-nox/usr/bin/
-	touch @
+	dh_auto_configure -- -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=no
+	dh_auto_build
+	dh_auto_install --destdir debian/nox
+	mv debian/nox/usr/bin/* debian/fontforge-nox/usr/bin/
+
+override_dh_strip: nox 
+	dh_strip --dbg-package=fontforge-dbg
+
+override_dh_clean:
+	dh_clean
+	rm -rf debian/nox

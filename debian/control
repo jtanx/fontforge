@@ -12,7 +12,8 @@ Uploaders: Frank Trampe <frank.trampe@gmail.com>,
 XS-Python-Version: >= 3.3
 Build-Depends: bzip2,
                cmake (>= 3.5),
-               debhelper (>= 9),
+               debhelper (>= 9.20160114),
+               dh-python,
                git,
                libcairo2-dev,
                libfreetype6-dev,
@@ -26,7 +27,7 @@ Build-Depends: bzip2,
                libuninameslist-dev,
                libxml2-dev,
                python3-dev (>= 3.3)
-Standards-Version: 3.9.5
+Standards-Version: 3.9.7
 Homepage: http://fontforge.github.io/
 Vcs-Git: git://github.com/fontforge/fontforge/
 Vcs-Browser: http://github.com/fontforge/fontforge/
@@ -35,7 +36,7 @@ Package: fontforge
 Architecture: any
 Multi-Arch: foreign
 Depends: fontforge-common (= ${source:Version}),
-         libfontforge2 (= ${binary:Version}),
+         libfontforge4 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Conflicts: defoma, fontforge-nox
@@ -55,7 +56,7 @@ Package: fontforge-nox
 Architecture: any
 Multi-Arch: foreign
 Depends: fontforge-common (= ${source:Version}),
-         libfontforge2 (= ${binary:Version}),
+         libfontforge4 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Conflicts: defoma, fontforge
@@ -85,13 +86,14 @@ Description: font editor (common files)
  .
  This package contains common arch-independent files.
 
-Package: libfontforge2
+Package: libfontforge4
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Breaks: fontforge (<< ${binary:Version})
 Conflicts: libfontforge1,
-           libfontforge-dev
+           libfontforge2,
+           libfontforge3
 Replaces: fontforge (<< ${binary:Version})
 Description: font editor - runtime library
  Besides being a font editor, FontForge is also a font format
@@ -103,11 +105,11 @@ Description: font editor - runtime library
 
 Package: python-fontforge
 Architecture: any
-Depends: libfontforge2 (= ${binary:Version}),
+Depends: libfontforge4 (= ${binary:Version}),
          ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends}
-XB-Python-Version: ${python3:Versions}
+X-Python-Version: >= 3.3
 Provides: ${python3:Provides}
 Section: python
 Description: font editor - Python bindings
