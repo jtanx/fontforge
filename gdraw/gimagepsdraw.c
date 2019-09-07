@@ -30,6 +30,8 @@
 #include "colorP.h"
 #include "gpsdrawP.h"
 
+#include "ffglib.h"
+
 static void InitFilter(GPSWindow ps) {
     ps->ascii85encode = 0;
     ps->ascii85n = 0;
@@ -549,16 +551,19 @@ void _GPSDraw_Image(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
     PSDrawImage(ps,image,&dest,src);
 }
 
-void _GPSDraw_ImageMagnified(GWindow w, GImage *image, GRect *dest, int32 x, int32 y, int32 width, int32 height) {
+void _GPSDraw_ImageMagnified(GWindow w, GImage *image, GRect *dest, int32 x, int32 y, double xscale, double yscale) {
     GPSWindow ps = (GPSWindow) w;
     struct _GImage *base = image->list_len==0?image->u.image:image->u.images[0];
     GRect src,temp;
 
-    src.width = (dest->width/(double) width)*base->width;
-    src.height = (dest->height/(double) height)*base->height;
-    src.x = dest->x * (base->width/(double) width);
-    src.y = dest->y * (base->height/(double) height);
-    temp.x = x; temp.y = y; temp.width = dest->width; temp.height = dest->height;
+    src.x = dest->x / xscale;
+    src.y = dest->y / yscale;
+    src.width = MIN(base->width - src.x, dest->width / yscale);
+    src.height = MIN(base->height - src.y, dest->height / yscale);
+    if (src.width <= 0 || src.height <= 0) {
+        return;
+    }
+    temp.x = x; temp.y = y; temp.width = src.width * xscale; temp.height = src.height * yscale;
     PSDrawImage(ps,image,&temp,&src);
 }
 

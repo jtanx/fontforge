@@ -435,8 +435,7 @@ void KCD_DrawGlyph(GWindow pixmap,int x,int baseline,BDFChar *bdfc,int mag) {
 	GDrawDrawImage(pixmap,&gi,NULL,x,baseline-bdfc->ymax);
     else
 	GDrawDrawImageMagnified(pixmap, &gi, NULL,
-		x,baseline-mag*bdfc->ymax,
-		base.width*mag,base.height*mag);
+		x,baseline-mag*bdfc->ymax,mag,mag);
 }
 
 static int KCD_RightToLeft(KernClassDlg *kcd) {

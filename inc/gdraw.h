@@ -442,7 +442,7 @@ extern void GDrawDrawImage(GWindow w, GImage *img, GRect *src, int32 x, int32 y)
 extern void GDrawDrawGlyph(GWindow w, GImage *img, GRect *src, int32 x, int32 y);
 extern void GDrawDrawScaledImage(GWindow w, GImage *img, int32 x, int32 y);
 extern void GDrawDrawImageMagnified(GWindow w, GImage *img, GRect *src, int32 x, int32 y,
-	int32 width, int32 height);
+	double xscale, double yscale);
 extern void GDrawTileImage(GWindow w, GImage *img, GRect *src, int32 x, int32 y);
 extern void GDrawDrawPixmap(GWindow w, GWindow pixmap, GRect *src, int32 x, int32 y);
 extern void GDrawTilePixmap(GWindow w, GWindow pixmap, GRect *src, int32 x, int32 y);

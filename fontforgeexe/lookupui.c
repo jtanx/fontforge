@@ -3148,8 +3148,7 @@ static void PSTKern_DrawGlyph(GWindow pixmap,int x,int y, BDFChar *bc, int mag) 
 	GDrawDrawImage(pixmap,&gi,NULL,x,y);
     else
 	GDrawDrawImageMagnified(pixmap, &gi, NULL,
-		x*mag,y*mag,
-		base.width*mag,base.height*mag);
+		x*mag,y*mag,mag,mag);
 }
 
 static void PSTKern_Expose(GWindow pixmap, PSTKernDlg *pstkd) {

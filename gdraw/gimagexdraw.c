@@ -2195,7 +2195,7 @@ return;
 
 /* ******************************** Magnified ******************************* */
 
-GImage *_GImageExtract(struct _GImage *base,GRect *src,GRect *size,
+GImage *_GImageExtract(struct _GImage *base,GRect *size,
 	double xscale, double yscale) {
     static GImage temp;
     static struct _GImage tbase;
@@ -2259,59 +2259,50 @@ return( &temp );
 /* Given an image, magnify it so that its width/height are as specified */
 /*  then extract the given given rectangle (in magnified coords) and */
 /*  place it on the screen at x,y */
-void _GXDraw_ImageMagnified(GWindow _w, GImage *image, GRect *magsrc,
-	int32 x, int32 y, int32 width, int32 height) {
+void _GXDraw_ImageMagnified(GWindow _w, GImage *image, GRect *src,
+	int32 x, int32 y, double xscale, double yscale) {
     GXWindow gw = (GXWindow) _w;
-    GXDisplay *gdisp = gw->display;
     struct _GImage *base = image->list_len==0?image->u.image:image->u.images[0];
-    double xscale, yscale;
-    GRect full, viewable;
+    GRect bounds;
     GImage *temp;
-    GRect src;
 
 #ifndef _NO_LIBCAIRO
     if ( gw->usecairo ) {
-	_GXCDraw_ImageMagnified(gw,image,magsrc,x,y,width,height);
+	_GXCDraw_ImageMagnified(gw,image,src,x,y,xscale,yscale);
 return;
     }
 #endif
 
-    _GXDraw_SetClipFunc(gdisp,gw->ggc);
-    viewable = gw->ggc->clip;
-    if ( viewable.width > gw->pos.width-viewable.x )
-	viewable.width = gw->pos.width-viewable.x;
-    if ( viewable.height > gw->pos.height-viewable.y )
-	viewable.height = gw->pos.height-viewable.y;
+    _GXDraw_SetClipFunc(gw->display,gw->ggc);
 
-    xscale = (base->width>=1) ? ((double) (width))/(base->width) : 1;
-    yscale = (base->height>=1) ? ((double) (height))/(base->height) : 1;
-    /* Intersect the clip rectangle with the scaled image to find the */
-    /*  portion of screen that we want to draw */
-    if ( viewable.x<x ) {
-	viewable.width -= (x-viewable.x);
-	viewable.x = x;
+    // Compute the (scaled) bounds of the displayed portion of the image
+     bounds.x = MAX(0, src->x);
+    bounds.y = MAX(0, src->y);
+    bounds.width = MIN(src->width, (int32)rint(base->width * xscale) - bounds.x);
+    bounds.height = MIN(src->height, (int32)rint(base->height * yscale) - bounds.y);
+
+    // Now intersect that with the viewable region
+    if (gw->ggc->clip.x > x) {
+        bounds.x += gw->ggc->clip.x - x;
+        bounds.width -= gw->ggc->clip.x - x;
+        x = gw->ggc->clip.x;
     }
-    if ( viewable.y<y ) {
-	viewable.height -= (y-viewable.y);
-	viewable.y = y;
+    if (gw->ggc->clip.y > y) {
+        bounds.y += gw->ggc->clip.y - y;
+        bounds.height -= gw->ggc->clip.y - y;
+        y = gw->ggc->clip.y;
     }
-    if ( viewable.x+viewable.width > x+width ) viewable.width = x+width - viewable.x;
-    if ( viewable.y+viewable.height > y+height ) viewable.height = y+height - viewable.y;
-    if ( viewable.height<0 || viewable.width<0 )
-return;
 
-    /* Now find that same rectangle in the coordinates of the unscaled image */
-    /* (translation & scale) */
-    viewable.x -= x; viewable.y -= y;
-    full.x = viewable.x/xscale; full.y = viewable.y/yscale;
-    full.width = viewable.width/xscale; full.height = viewable.height/yscale;
-    if ( full.x+full.width>base->width ) full.width = base->width-full.x;	/* Rounding errors */
-    if ( full.y+full.height>base->height ) full.height = base->height-full.y;	/* Rounding errors */
-		/* Rounding errors */
+    bounds.width = MIN(bounds.width, gw->ggc->clip.x - x + MIN(gw->pos.width - gw->ggc->clip.x, gw->ggc->clip.width));
+    bounds.height = MIN(bounds.height, gw->ggc->clip.y - y + MIN(gw->pos.height - gw->ggc->clip.y, gw->ggc->clip.height));
 
-    temp = _GImageExtract(base,&full,&viewable,xscale,yscale);
-    src.x = src.y = 0; src.width = viewable.width; src.height = viewable.height;
-    _GXDraw_Image( _w, temp, &src, x+viewable.x, y+viewable.y);
+    if (bounds.width <= 0 || bounds.height <= 0) {
+        return;
+    }
+
+    temp = _GImageExtract(base, &bounds, xscale, yscale);
+    bounds.x = bounds.y = 0;
+    _GXDraw_Image(_w, temp, &bounds, x, y);
 }
 
 static GImage *xi1_to_gi1(GXDisplay *gdisp,XImage *xi) {

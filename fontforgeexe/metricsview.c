@@ -324,8 +324,7 @@ static void MVSubVExpose(MetricsView *mv, GWindow pixmap, GEvent *event) {
 		GDrawDrawGlyph(pixmap,&gi,NULL,x,y);
 	    else
 		GDrawDrawImageMagnified(pixmap, &gi, NULL, x,y,
-			(int) rint((width*mv_scales[mv->scale_index])),
-			(int) rint((height*mv_scales[mv->scale_index])));
+			mv_scales[mv->scale_index], mv_scales[mv->scale_index]);
 	}
 	if ( mv->bdf!=NULL ) BDFCharFree( bdfc );
     }
@@ -446,8 +445,7 @@ return;
 		GDrawDrawGlyph(pixmap,&gi,NULL,x,y);
 	    else
 		GDrawDrawImageMagnified(pixmap, &gi, NULL, x,y,
-			(int) rint((width*mv_scales[mv->scale_index])),
-			(int) rint((height*mv_scales[mv->scale_index])));
+			mv_scales[mv->scale_index], mv_scales[mv->scale_index]);
 	}
 	if ( mv->bdf!=NULL ) BDFCharFree( bdfc );
     }

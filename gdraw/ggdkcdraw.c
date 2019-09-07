@@ -255,7 +255,7 @@ static void _GGDKDraw_EllipsePath(cairo_t *cc, double cx, double cy, double widt
     cairo_close_path(cc);
 }
 
-static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
+static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image) {
     struct _GImage *base = (image->list_len == 0) ? image->u.image : image->u.images[0];
     cairo_format_t type;
     uint8 *pt;
@@ -285,22 +285,21 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
     /*  premultiply each channel by alpha. We can reuse it for non-transparent*/
     /*  rgb images */
     if (base->image_type == it_true && type == CAIRO_FORMAT_RGB24) {
-        idata = ((uint32 *)(base->data)) + src->y * base->bytes_per_line + src->x;
-        return cairo_image_surface_create_for_data((uint8 *) idata, type,
-                src->width, src->height,
+        return cairo_image_surface_create_for_data(base->data, type,
+                base->width, base->height,
                 base->bytes_per_line);
     }
 
-    cs = cairo_image_surface_create(type, src->width, src->height);
+    cs = cairo_image_surface_create(type, base->width, base->height);
     stride = cairo_image_surface_get_stride(cs);
     cairo_surface_flush(cs);
     idata = (uint32 *)cairo_image_surface_get_data(cs);
 
     if (base->image_type == it_rgba) {
-        ipt = ((uint32 *)(base->data + src->y * base->bytes_per_line)) + src->x;
+        ipt = (uint32 *)base->data;
         ito = idata;
-        for (i = 0; i < src->height; ++i) {
-            for (j = 0; j < src->width; ++j) {
+        for (i = 0; i < base->height; ++i) {
+            for (j = 0; j < base->width; ++j) {
                 uint32 orig = ipt[j];
                 int alpha = orig >> 24;
                 if (alpha == 0xff) {
@@ -318,10 +317,10 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
         }
     } else if (base->image_type == it_true && base->trans != COLOR_UNKNOWN) {
         Color trans = base->trans;
-        ipt = ((uint32 *)(base->data + src->y * base->bytes_per_line)) + src->x;
+        ipt = (uint32 *)base->data;
         ito = idata;
-        for (i = 0; i < src->height; ++i) {
-            for (j = 0; j < src->width; ++j) {
+        for (i = 0; i < base->height; ++i) {
+            for (j = 0; j < base->width; ++j) {
                 if (ipt[j] == trans) {
                     ito[j] = 0x00000000;
                 } else {
@@ -332,10 +331,10 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
             ito = (uint32 *)(((uint8 *) ito) + stride);
         }
     } else if (base->image_type == it_true) {
-        ipt = ((uint32 *)(base->data + src->y * base->bytes_per_line)) + src->x;
+        ipt = (uint32 *)base->data;
         ito = idata;
-        for (i = 0; i < src->height; ++i) {
-            for (j = 0; j < src->width; ++j) {
+        for (i = 0; i < base->height; ++i) {
+            for (j = 0; j < base->width; ++j) {
                 ito[j] = ipt[j] | 0xff000000;
             }
             ipt = (uint32 *)(((uint8 *) ipt) + base->bytes_per_line);
@@ -344,10 +343,10 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
     } else if (base->image_type == it_index && base->clut->trans_index != COLOR_UNKNOWN) {
         int trans = base->clut->trans_index;
         Color *clut = base->clut->clut;
-        pt = base->data + src->y * base->bytes_per_line + src->x;
+        pt = base->data;
         ito = idata;
-        for (i = 0; i < src->height; ++i) {
-            for (j = 0; j < src->width; ++j) {
+        for (i = 0; i < base->height; ++i) {
+            for (j = 0; j < base->width; ++j) {
                 int index = pt[j];
                 if (index == trans) {
                     ito[j] = 0x00000000;
@@ -363,10 +362,10 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
         }
     } else if (base->image_type == it_index) {
         Color *clut = base->clut->clut;
-        pt = base->data + src->y * base->bytes_per_line + src->x;
+        pt = base->data;
         ito = idata;
-        for (i = 0; i < src->height; ++i) {
-            for (j = 0; j < src->width; ++j) {
+        for (i = 0; i < base->height; ++i) {
+            for (j = 0; j < base->width; ++j) {
                 int index = pt[j];
                 ito[j] = clut[index] | 0xff000000;
             }
@@ -376,13 +375,13 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
 #ifdef WORDS_BIGENDIAN
     } else if (base->image_type == it_mono && base->clut != NULL &&
                base->clut->trans_index != COLOR_UNKNOWN) {
-        pt = base->data + src->y * base->bytes_per_line + (src->x >> 3);
+        pt = base->data;
         ito = idata;
         if (base->clut->trans_index == 0) {
-            for (i = 0; i < src->height; ++i) {
+            for (i = 0; i < base->height; ++i) {
                 bit = (0x80 >> (src->x & 0x7));
                 tobit = 0x80000000;
-                for (j = jj = tjj = 0; j < src->width; ++j) {
+                for (j = jj = tjj = 0; j < base->width; ++j) {
                     if (pt[jj]&bit) {
                         ito[tjj] |= tobit;
                     }
@@ -399,10 +398,10 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
                 ito = (uint32 *)(((uint8 *) ito) + stride);
             }
         } else {
-            for (i = 0; i < src->height; ++i) {
+            for (i = 0; i < base->height; ++i) {
                 bit = (0x80 >> (src->x & 0x7));
                 tobit = 0x80000000;
-                for (j = jj = tjj = 0; j < src->width; ++j) {
+                for (j = jj = tjj = 0; j < base->width; ++j) {
                     if (!(pt[jj]&bit)) {
                         ito[tjj] |= tobit;
                     }
@@ -422,13 +421,13 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
 #else
     } else if (base->image_type == it_mono && base->clut != NULL &&
                base->clut->trans_index != COLOR_UNKNOWN) {
-        pt = base->data + src->y * base->bytes_per_line + (src->x >> 3);
+        pt = base->data;
         ito = idata;
         if (base->clut->trans_index == 0) {
-            for (i = 0; i < src->height; ++i) {
-                bit = (0x80 >> (src->x & 0x7));
+            for (i = 0; i < base->height; ++i) {
+                bit = 0x80;
                 tobit = 1;
-                for (j = jj = tjj = 0; j < src->width; ++j) {
+                for (j = jj = tjj = 0; j < base->width; ++j) {
                     if (pt[jj]&bit) {
                         ito[tjj] |= tobit;
                     }
@@ -445,10 +444,10 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
                 ito = (uint32 *)(((uint8 *) ito) + stride);
             }
         } else {
-            for (i = 0; i < src->height; ++i) {
-                bit = (0x80 >> (src->x & 0x7));
+            for (i = 0; i < base->height; ++i) {
+                bit = 0x80;
                 tobit = 1;
-                for (j = jj = tjj = 0; j < src->width; ++j) {
+                for (j = jj = tjj = 0; j < base->width; ++j) {
                     if (!(pt[jj]&bit)) {
                         ito[tjj] |= tobit;
                     }
@@ -473,11 +472,11 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
         /*  but there is a bug in Cairo 1.2, and they do. */
         fg |= 0xff000000;
         bg |= 0xff000000;
-        pt = base->data + src->y * base->bytes_per_line + (src->x >> 3);
+        pt = base->data;
         ito = idata;
-        for (i = 0; i < src->height; ++i) {
-            bit = (0x80 >> (src->x & 0x7));
-            for (j = jj = 0; j < src->width; ++j) {
+        for (i = 0; i < base->height; ++i) {
+            bit = 0x80;
+            for (j = jj = 0; j < base->width; ++j) {
                 ito[j] = (pt[jj] & bit) ? fg : bg;
                 if ((bit >>= 1) == 0) {
                     bit = 0x80;
@@ -492,13 +491,17 @@ static cairo_surface_t *_GGDKDraw_GImage2Surface(GImage *image, GRect *src) {
     return cs;
 }
 
-static GImage *_GGDKDraw_GImageExtract(struct _GImage *base, GRect *src, GRect *size,
+// Uses nearest-neighour interpolation
+static GImage *_GGDKDraw_GImageExtract(struct _GImage *base, GRect *size,
                                        double xscale, double yscale) {
     static GImage temp;
     static struct _GImage tbase;
     static uint8 *data;
     static int dlen;
     int r, c;
+
+    assert(size->x + size->width <= (int)rint(base->width * xscale));
+    assert(size->y + size->height <= (int)rint(base->height * yscale));
 
     memset(&temp, 0, sizeof(temp));
     tbase = *base;
@@ -993,7 +996,7 @@ void GGDKDrawDrawImage(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
     GGDKWindow gw = (GGDKWindow)w;
     _GGDKDraw_CheckAutoPaint(gw);
 
-    cairo_surface_t *is = _GGDKDraw_GImage2Surface(image, src), *cs = is;
+    cairo_surface_t *is = _GGDKDraw_GImage2Surface(image), *cs = is;
     struct _GImage *base = (image->list_len == 0) ? image->u.image : image->u.images[0];
 
     if (cairo_image_surface_get_format(is) == CAIRO_FORMAT_A1) {
@@ -1009,13 +1012,13 @@ void GGDKDrawDrawImage(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
         cairo_destroy(cc);
 #else
         cairo_set_source_rgba(gw->cc, COLOR_RED(fg) / 255.0, COLOR_GREEN(fg) / 255.0, COLOR_BLUE(fg) / 255.0, 1.0);
-        cairo_mask_surface(gw->cc, cs, x, y);
+        cairo_mask_surface(gw->cc, cs, x - src->x, y - src->y);
         cs = NULL;
 #endif
     }
 
     if (cs != NULL) {
-        cairo_set_source_surface(gw->cc, cs, x, y);
+        cairo_set_source_surface(gw->cc, cs, x - src->x, y - src->y);
         cairo_rectangle(gw->cc, x, y, src->width, src->height);
         cairo_fill(gw->cc);
 
@@ -1076,71 +1079,44 @@ void GGDKDrawDrawGlyph(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
 
 }
 
-void GGDKDrawDrawImageMagnified(GWindow w, GImage *image, GRect *src, int32 x, int32 y, int32 width, int32 height) {
+void GGDKDrawDrawImageMagnified(GWindow w, GImage *image, GRect *src, int32 x, int32 y, double xscale, double yscale) {
     //Log(LOGDEBUG, " ");
-    GGDKWindow gw = (GGDKWindow)w;
-    _GGDKDraw_CheckAutoPaint(gw);
-
     struct _GImage *base = (image->list_len == 0) ? image->u.image : image->u.images[0];
-    GRect full;
-    double xscale, yscale;
-    GRect viewable;
-
-    viewable = gw->ggc->clip;
-    if (viewable.width > gw->pos.width - viewable.x) {
-        viewable.width = gw->pos.width - viewable.x;
-    }
-    if (viewable.height > gw->pos.height - viewable.y) {
-        viewable.height = gw->pos.height - viewable.y;
-    }
-
-    xscale = (base->width >= 1) ? ((double)(width)) / (base->width) : 1;
-    yscale = (base->height >= 1) ? ((double)(height)) / (base->height) : 1;
-    /* Intersect the clip rectangle with the scaled image to find the */
-    /*  portion of screen that we want to draw */
-    if (viewable.x < x) {
-        viewable.width -= (x - viewable.x);
-        viewable.x = x;
-    }
-    if (viewable.y < y) {
-        viewable.height -= (y - viewable.y);
-        viewable.y = y;
-    }
-    if (viewable.x + viewable.width > x + width) {
-        viewable.width = x + width - viewable.x;
-    }
-    if (viewable.y + viewable.height > y + height) {
-        viewable.height = y + height - viewable.y;
-    }
-    if (viewable.height < 0 || viewable.width < 0) {
-
+    if (base->width == src->width && base->height == src->height) {
+        Log(LOGINFO, "NOOP");
+        GGDKDrawDrawImage(w, image, src, x, y);
         return;
     }
 
-    /* Now find that same rectangle in the coordinates of the unscaled image */
-    /* (translation & scale) */
-    viewable.x -= x;
-    viewable.y -= y;
-    full.x = viewable.x / xscale;
-    full.y = viewable.y / yscale;
-    full.width = viewable.width / xscale;
-    full.height = viewable.height / yscale;
-    if (full.x + full.width > base->width) {
-        full.width = base->width - full.x;    /* Rounding errors */
+    // Compute the (scaled) bounds of the displayed portion of the image
+    GRect bounds;
+    bounds.x = MAX(0, src->x);
+    bounds.y = MAX(0, src->y);
+    bounds.width = MIN(src->width, (int32)rint(base->width * xscale) - bounds.x);
+    bounds.height = MIN(src->height, (int32)rint(base->height * yscale) - bounds.y);
+
+    // Now intersect that with the viewable region
+    if (w->ggc->clip.x > x) {
+        bounds.x += w->ggc->clip.x - x;
+        bounds.width -= w->ggc->clip.x - x;
+        x = w->ggc->clip.x;
     }
-    if (full.y + full.height > base->height) {
-        full.height = base->height - full.y;    /* Rounding errors */
-    }
-    /* Rounding errors */
-    {
-        GImage *temp = _GGDKDraw_GImageExtract(base, &full, &viewable, xscale, yscale);
-        GRect src;
-        src.x = src.y = 0;
-        src.width = viewable.width;
-        src.height = viewable.height;
-        GGDKDrawDrawImage(w, temp, &src, x + viewable.x, y + viewable.y);
+    if (w->ggc->clip.y > y) {
+        bounds.y += w->ggc->clip.y - y;
+        bounds.height -= w->ggc->clip.y - y;
+        y = w->ggc->clip.y;
     }
 
+    bounds.width = MIN(bounds.width, w->ggc->clip.x - x + MIN(w->pos.width - w->ggc->clip.x, w->ggc->clip.width));
+    bounds.height = MIN(bounds.height, w->ggc->clip.y - y + MIN(w->pos.height - w->ggc->clip.y, w->ggc->clip.height));
+
+    if (bounds.width <= 0 || bounds.height <= 0) {
+        return;
+    }
+
+    GImage *temp = _GGDKDraw_GImageExtract(base, &bounds, xscale, yscale);
+    bounds.x = bounds.y = 0;
+    GGDKDrawDrawImage(w, temp, &bounds, x, y);
 }
 
 void GGDKDrawDrawPixmap(GWindow w, GWindow pixmap, GRect *src, int32 x, int32 y) {

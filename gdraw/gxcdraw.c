@@ -462,7 +462,7 @@ void _GXCDraw_PathFillAndStroke(GWindow w,Color fillcol, Color strokecol) {
 /* ************************************************************************** */
 /* ****************************** Cairo Images ****************************** */
 /* ************************************************************************** */
-static cairo_surface_t *GImage2Surface(GImage *image, GRect *src, uint8 **_data) {
+static cairo_surface_t *GImage2Surface(GImage *image, uint8 **_data) {
     struct _GImage *base = image->list_len==0?image->u.image:image->u.images[0];
     cairo_format_t type;
     uint8 *data, *pt;
@@ -491,24 +491,24 @@ static cairo_surface_t *GImage2Surface(GImage *image, GRect *src, uint8 **_data)
     /*  premultiply each channel by alpha. We can reuse it for non-transparent*/
     /*  rgb images */
     if ( base->image_type == it_true && type == CAIRO_FORMAT_RGB24 ) {
-	idata = ((uint32 *) (base->data)) + src->y*base->bytes_per_line + src->x;
+	idata = (uint32 *) base->data;
 	*_data = NULL;		/* We can reuse the image's own data, don't need a copy */
 return( cairo_image_surface_create_for_data((uint8 *) idata,type,
-		src->width, src->height,
+		base->width, base->height,
 		base->bytes_per_line));
     }
 
-    stride = cairo_format_stride_for_width(type,src->width);
-    *_data = data = malloc(stride * src->height);
+    stride = cairo_format_stride_for_width(type,base->width);
+    *_data = data = malloc(stride * base->height);
     cs = cairo_image_surface_create_for_data(data,type,
-		src->width, src->height,   stride);
+		base->width, base->height,   stride);
     idata = (uint32 *) data;
 
     if ( base->image_type == it_rgba ) {
-	ipt = ((uint32 *) (base->data + src->y*base->bytes_per_line)) + src->x;
+	ipt = (uint32 *) base->data;
 	ito = idata;
-	for ( i=0; i<src->height; ++i ) {
-	   for ( j=0; j<src->width; ++j ) {
+	for ( i=0; i<base->height; ++i ) {
+	   for ( j=0; j<base->width; ++j ) {
 	       uint32 orig = ipt[j];
 	       int alpha = orig>>24;
 	       if ( alpha==0xff )
@@ -526,10 +526,10 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
        }
     } else if ( base->image_type == it_true && base->trans!=COLOR_UNKNOWN ) {
 	Color trans = base->trans;
-	ipt = ((uint32 *) (base->data + src->y*base->bytes_per_line)) + src->x;
+	ipt = (uint32 *)base->data;
 	ito = idata;
-	for ( i=0; i<src->height; ++i ) {
-	   for ( j=0; j<src->width; ++j ) {
+	for ( i=0; i<base->height; ++i ) {
+	   for ( j=0; j<base->width; ++j ) {
 	       if ( ipt[j]==trans )
 		   ito[j] = 0x00000000;
 	       else
@@ -539,10 +539,10 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
 	   ito = (uint32 *) (((uint8 *) ito) +stride);
        }
     } else if ( base->image_type == it_true ) {
-	ipt = ((uint32 *) (base->data + src->y*base->bytes_per_line)) + src->x;
+	ipt = (uint32 *)base->data;
 	ito = idata;
-	for ( i=0; i<src->height; ++i ) {
-	   for ( j=0; j<src->width; ++j ) {
+	for ( i=0; i<base->height; ++i ) {
+	   for ( j=0; j<base->width; ++j ) {
 	       ito[j] = ipt[j]|0xff000000;
 	   }
 	   ipt = (uint32 *) (((uint8 *) ipt) + base->bytes_per_line);
@@ -551,10 +551,10 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
     } else if ( base->image_type == it_index && base->clut->trans_index!=COLOR_UNKNOWN ) {
 	int trans = base->clut->trans_index;
 	Color *clut = base->clut->clut;
-	pt = base->data + src->y*base->bytes_per_line + src->x;
+	pt = base->data;
 	ito = idata;
-	for ( i=0; i<src->height; ++i ) {
-	   for ( j=0; j<src->width; ++j ) {
+	for ( i=0; i<base->height; ++i ) {
+	   for ( j=0; j<base->width; ++j ) {
 	       int index = pt[j];
 	       if ( index==trans )
 		   ito[j] = 0x00000000;
@@ -568,10 +568,10 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
        }
     } else if ( base->image_type == it_index ) {
 	Color *clut = base->clut->clut;
-	pt = base->data + src->y*base->bytes_per_line + src->x;
+	pt = base->data;
 	ito = idata;
-	for ( i=0; i<src->height; ++i ) {
-	   for ( j=0; j<src->width; ++j ) {
+	for ( i=0; i<base->height; ++i ) {
+	   for ( j=0; j<base->width; ++j ) {
 	       int index = pt[j];
 	       ito[j] = clut[index] | 0xff000000;
 	   }
@@ -581,14 +581,14 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
 #ifdef WORDS_BIGENDIAN
     } else if ( base->image_type == it_mono && base->clut!=NULL &&
 	    base->clut->trans_index!=COLOR_UNKNOWN ) {
-	pt = base->data + src->y*base->bytes_per_line + (src->x>>3);
+	pt = base->data;
 	ito = idata;
-	memset(data,0,src->height*stride);
+	memset(data,0,base->height*stride);
 	if ( base->clut->trans_index==0 ) {
-	    for ( i=0; i<src->height; ++i ) {
-		bit = (0x80>>(src->x&0x7));
+	    for ( i=0; i<base->height; ++i ) {
+		bit = 0x80;
 		tobit = 0x80000000;
-		for ( j=jj=tjj=0; j<src->width; ++j ) {
+		for ( j=jj=tjj=0; j<base->width; ++j ) {
 		    if ( pt[jj]&bit )
 			ito[tjj] |= tobit;
 		    if ( (bit>>=1)==0 ) {
@@ -604,10 +604,10 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
 		ito = (uint32 *) (((uint8 *) ito) +stride);
 	    }
 	} else {
-	    for ( i=0; i<src->height; ++i ) {
-		bit = (0x80>>(src->x&0x7));
+	    for ( i=0; i<base->height; ++i ) {
+		bit = 0x80;
 		tobit = 0x80000000;
-		for ( j=jj=tjj=0; j<src->width; ++j ) {
+		for ( j=jj=tjj=0; j<base->width; ++j ) {
 		    if ( !(pt[jj]&bit) )
 			ito[tjj] |= tobit;
 		    if ( (bit>>=1)==0 ) {
@@ -626,14 +626,14 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
 #else
     } else if ( base->image_type == it_mono && base->clut!=NULL &&
 	    base->clut->trans_index!=COLOR_UNKNOWN ) {
-	pt = base->data + src->y*base->bytes_per_line + (src->x>>3);
+	pt = base->data;
 	ito = idata;
-	memset(data,0,src->height*stride);
+	memset(data,0,base->height*stride);
 	if ( base->clut->trans_index==0 ) {
-	    for ( i=0; i<src->height; ++i ) {
-		bit = (0x80>>(src->x&0x7));
+	    for ( i=0; i<base->height; ++i ) {
+		bit = 0x80;
 		tobit = 1;
-		for ( j=jj=tjj=0; j<src->width; ++j ) {
+		for ( j=jj=tjj=0; j<base->width; ++j ) {
 		    if ( pt[jj]&bit )
 			ito[tjj] |= tobit;
 		    if ( (bit>>=1)==0 ) {
@@ -649,10 +649,10 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
 		ito = (uint32 *) (((uint8 *) ito) +stride);
 	    }
 	} else {
-	    for ( i=0; i<src->height; ++i ) {
-		bit = (0x80>>(src->x&0x7));
+	    for ( i=0; i<base->height; ++i ) {
+		bit = 0x80;
 		tobit = 1;
-		for ( j=jj=tjj=0; j<src->width; ++j ) {
+		for ( j=jj=tjj=0; j<base->width; ++j ) {
 		    if ( !(pt[jj]&bit) )
 			ito[tjj] |= tobit;
 		    if ( (bit>>=1)==0 ) {
@@ -675,11 +675,11 @@ return( cairo_image_surface_create_for_data((uint8 *) idata,type,
        /* In theory RGB24 images don't need the alpha channel set*/
        /*  but there is a bug in Cairo 1.2, and they do. */
 	fg |= 0xff000000; bg |= 0xff000000;
-	pt = base->data + src->y*base->bytes_per_line + (src->x>>3);
+	pt = base->data;
 	ito = idata;
-	for ( i=0; i<src->height; ++i ) {
-	    bit = (0x80>>(src->x&0x7));
-	    for ( j=jj=0; j<src->width; ++j ) {
+	for ( i=0; i<base->height; ++i ) {
+	    bit = 0x80;
+	    for ( j=jj=0; j<base->width; ++j ) {
 		ito[j] = (pt[jj]&bit) ? fg : bg;
 		if ( (bit>>=1)==0 ) {
 		    bit = 0x80;
@@ -695,16 +695,16 @@ return( cs );
 
 void _GXCDraw_Image( GXWindow gw, GImage *image, GRect *src, int32 x, int32 y) {
     uint8 *data;
-    cairo_surface_t *is = GImage2Surface(image,src,&data);
+    cairo_surface_t *is = GImage2Surface(image,&data);
     struct _GImage *base = image->list_len==0?image->u.image:image->u.images[0];
 
     if ( cairo_image_surface_get_format(is)==CAIRO_FORMAT_A1 ) {
 	/* No color info, just alpha channel */
 	Color fg = base->clut->trans_index==0 ? base->clut->clut[1] : base->clut->clut[0];
 	cairo_set_source_rgba(gw->cc,COLOR_RED(fg)/255.0,COLOR_GREEN(fg)/255.0,COLOR_BLUE(fg)/255.0,1.0);
-	cairo_mask_surface(gw->cc,is,x,y);
+	cairo_mask_surface(gw->cc,is,x-src->x,y-src->y);
     } else {
-	cairo_set_source_surface(gw->cc,is,x,y);
+	cairo_set_source_surface(gw->cc,is,x-src->x,y-src->y);
 	cairo_rectangle(gw->cc,x,y,src->width,src->height);
 	cairo_fill(gw->cc);
     }
@@ -761,50 +761,44 @@ void _GXCDraw_Glyph( GXWindow gw, GImage *image, GRect *src, int32 x, int32 y) {
     gw->cairo_state.fore_col = COLOR_UNKNOWN;
 }
 
-void _GXCDraw_ImageMagnified(GXWindow gw, GImage *image, GRect *magsrc,
-	int32 x, int32 y, int32 width, int32 height) {
-    struct _GImage *base = image->list_len==0?image->u.image:image->u.images[0];
-    GRect full;
-    double xscale, yscale;
-    GRect viewable;
+void _GXCDraw_ImageMagnified(GXWindow gw, GImage *image, GRect *src,
+	int32 x, int32 y, double xscale, double yscale) {
 
-    viewable = gw->ggc->clip;
-    if ( viewable.width > gw->pos.width-viewable.x )
-	viewable.width = gw->pos.width-viewable.x;
-    if ( viewable.height > gw->pos.height-viewable.y )
-	viewable.height = gw->pos.height-viewable.y;
-
-    xscale = (base->width>=1) ? ((double) (width))/(base->width) : 1;
-    yscale = (base->height>=1) ? ((double) (height))/(base->height) : 1;
-    /* Intersect the clip rectangle with the scaled image to find the */
-    /*  portion of screen that we want to draw */
-    if ( viewable.x<x ) {
-	viewable.width -= (x-viewable.x);
-	viewable.x = x;
+    struct _GImage *base = (image->list_len == 0) ? image->u.image : image->u.images[0];
+    if (base->width == src->width && base->height == src->height) {
+        _GXCDraw_Image(gw, image, src, x, y);
+        return;
     }
-    if ( viewable.y<y ) {
-	viewable.height -= (y-viewable.y);
-	viewable.y = y;
-    }
-    if ( viewable.x+viewable.width > x+width ) viewable.width = x+width - viewable.x;
-    if ( viewable.y+viewable.height > y+height ) viewable.height = y+height - viewable.y;
-    if ( viewable.height<0 || viewable.width<0 )
-return;
 
-    /* Now find that same rectangle in the coordinates of the unscaled image */
-    /* (translation & scale) */
-    viewable.x -= x; viewable.y -= y;
-    full.x = viewable.x/xscale; full.y = viewable.y/yscale;
-    full.width = viewable.width/xscale; full.height = viewable.height/yscale;
-    if ( full.x+full.width>base->width ) full.width = base->width-full.x;	/* Rounding errors */
-    if ( full.y+full.height>base->height ) full.height = base->height-full.y;	/* Rounding errors */
-		/* Rounding errors */
-  {
-    GImage *temp = _GImageExtract(base,&full,&viewable,xscale,yscale);
-    GRect src;
-    src.x = src.y = 0; src.width = viewable.width; src.height = viewable.height;
-    _GXCDraw_Image( gw, temp, &src, x+viewable.x, y+viewable.y);
-  }
+    // Compute the (scaled) bounds of the displayed portion of the image
+    GRect bounds;
+    bounds.x = MAX(0, src->x);
+    bounds.y = MAX(0, src->y);
+    bounds.width = MIN(src->width, (int32)rint(base->width * xscale) - bounds.x);
+    bounds.height = MIN(src->height, (int32)rint(base->height * yscale) - bounds.y);
+
+    // Now intersect that with the viewable region
+    if (gw->ggc->clip.x > x) {
+        bounds.x += gw->ggc->clip.x - x;
+        bounds.width -= gw->ggc->clip.x - x;
+        x = gw->ggc->clip.x;
+    }
+    if (gw->ggc->clip.y > y) {
+        bounds.y += gw->ggc->clip.y - y;
+        bounds.height -= gw->ggc->clip.y - y;
+        y = gw->ggc->clip.y;
+    }
+
+    bounds.width = MIN(bounds.width, gw->ggc->clip.x - x + MIN(gw->pos.width - gw->ggc->clip.x, gw->ggc->clip.width));
+    bounds.height = MIN(bounds.height, gw->ggc->clip.y - y + MIN(gw->pos.height - gw->ggc->clip.y, gw->ggc->clip.height));
+
+    if (bounds.width <= 0 || bounds.height <= 0) {
+        return;
+    }
+
+    GImage *temp = _GImageExtract(base, &bounds, xscale, yscale);
+    bounds.x = bounds.y = 0;
+    _GXCDraw_Image(gw, temp, &bounds, x, y);
 }
 
 /* ************************************************************************** */

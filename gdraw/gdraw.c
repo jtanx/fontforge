@@ -32,6 +32,8 @@
 #include "gkeysym.h"
 #include "ustring.h"
 
+#include <math.h>
+
 #if __Mac || __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __DragonFly__
 #  include <sys/select.h>
 #endif
@@ -530,65 +532,20 @@ void GDrawTilePixmap(GWindow w, GWindow pixmap, GRect *src, int32 x, int32 y) {
     (w->display->funcs->tilePixmap)(w,pixmap,src,x,y);
 }
 
-/* We assume the full image is drawn starting at (x,y) and scaled to (width,height) */
-/*  this routine updates the rectangle on the screen			 */
-/*		(x+src->x,y+src->y,x+src->width,y+src->height)		 */
-/* Ie. if you get an expose event in the middle of the image subtract off the */
-/*  image base (x,y) and pass in the exposed rectangle */
+/* dest specifies the subset (in scaled terms) of the image to show at position
+   (x,y). If NULL is specified, the whole image is shown.
+*/
 void GDrawDrawImageMagnified(GWindow w, GImage *img, GRect *dest, int32 x, int32 y,
-	int32 width, int32 height) {
-    GRect temp;
-    struct _GImage *base = img->list_len==0?img->u.image:img->u.images[0];
-
-    if ( base->width==width && base->height==height ) {
-	/* Not magnified after all */
-	if ( dest==NULL )
-	    GDrawDrawImage(w,img,NULL,x,y);
-	else {
-	    int old;
-	    temp = *dest; temp.x += x; temp.y += y;
-	    if ( temp.x<x ) {
-		temp.x = 0;
-		temp.width-=x;
-	    } else {
-		old = x;
-		x = temp.x;
-		temp.x -= old;
-		temp.width -= old;
-	    }
-	    if ( temp.y<y ) {
-		temp.y = 0;
-		temp.height-=y;
-	    } else {
-		old = y;
-		y = temp.y;
-		temp.y -= old;
-		temp.height -= old;
-	    }
-	    if ( temp.x>=base->width || temp.y>=base->height || temp.width<=0 || temp.height<=0 )
-return;
-	    if ( temp.x+temp.width>=base->width )
-		temp.width = base->width-temp.x;
-	    if ( temp.y+temp.height>=base->height )
-		temp.height = base->height-temp.y;
-	    GDrawDrawImage(w,img,&temp,x,y);
-	}
-return;
+	double xscale, double yscale) {
+    GRect r;
+    if (dest == NULL) {
+        struct _GImage *base = img->list_len==0?img->u.image:img->u.images[0];
+        r.x = r.y = 0;
+        r.width = (int)rint(base->width * xscale);
+        r.height = (int)rint(base->height * yscale);
+        dest = &r;
     }
-    if ( dest==NULL ) {
-	temp.x = temp.y = 0;
-	temp.width = width; temp.height = height;
-	dest = &temp;
-    } else if ( dest->x<0 || dest->y<0 ||
-	    dest->x+dest->width > width || dest->y+dest->height > height ) {
-	temp = *dest;
-	if ( temp.x<0 ) { temp.width += temp.x; temp.x = 0; }
-	if ( temp.y<0 ) { temp.height += temp.y; temp.y = 0; }
-	if ( temp.x+temp.width>width ) temp.width = width-temp.x;
-	if ( temp.y+temp.height>height ) temp.height = height-temp.y;
-	dest = &temp;
-    }
-    (w->display->funcs->drawImageMag)(w,img,dest,x,y, width, height);
+    (w->display->funcs->drawImageMag)(w, img, dest, x, y, xscale, yscale);
 }
 
 GImage *GDrawCopyScreenToImage(GWindow w, GRect *rect) {

@@ -250,7 +250,7 @@ struct displayfuncs {
     void (*drawImage)(GWindow, GImage *, GRect *src, int32 x, int32 y);
     void (*tileImage)(GWindow, GImage *, GRect *src, int32 x, int32 y);
     void (*drawGlyph)(GWindow, GImage *, GRect *src, int32 x, int32 y);
-    void (*drawImageMag)(GWindow, GImage *, GRect *src, int32 x, int32 y, int32 width, int32 height);
+    void (*drawImageMag)(GWindow, GImage *, GRect *src, int32 x, int32 y, double xscale, double yscale);
     GImage *(*copyScreenToImage)(GWindow, GRect *rect);
     void (*drawPixmap)(GWindow, GWindow, GRect *src, int32 x, int32 y);
     void (*tilePixmap)(GWindow, GWindow, GRect *src, int32 x, int32 y);
