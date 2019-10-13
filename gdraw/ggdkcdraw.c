@@ -162,6 +162,14 @@ static PangoFontDescription *_GGDKDraw_configfont(GWindow w, GFont *font) {
         return NULL;
     }
 
+    PangoContext *pc = pango_layout_get_context(gw->pango_layout);
+    if (font->rq.style & fs_vertical) {
+        pango_context_set_base_gravity(pc, PANGO_GRAVITY_WEST);
+    } else {
+        pango_context_set_base_gravity(pc, PANGO_GRAVITY_AUTO);
+    }
+    //pango_layout_context_changed(gw->pango_layout);
+
     PangoFontDescription **fdbase = &font->pangoc_fd;
     if (*fdbase != NULL) {
         return *fdbase;
@@ -188,11 +196,6 @@ static PangoFontDescription *_GGDKDraw_configfont(GWindow w, GFont *font) {
                                        (font->rq.style & fs_condensed) ? PANGO_STRETCH_CONDENSED :
                                        (font->rq.style & fs_extended) ? PANGO_STRETCH_EXPANDED  :
                                        PANGO_STRETCH_NORMAL);
-
-    if (font->rq.style & fs_vertical) {
-        //FIXME: not sure this is the right thing
-        pango_font_description_set_gravity(fd, PANGO_GRAVITY_WEST);
-    }
 
     if (font->rq.point_size <= 0) {
         // Any negative (pixel) values should be converted when font opened
