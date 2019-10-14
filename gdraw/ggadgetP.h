@@ -595,8 +595,8 @@ extern GResInfo *_GMenuRIHead(void), *_GTabSetRIHead(void), *_GHVBoxRIHead(void)
 extern GResInfo *_GListRIHead(void), *_GMatrixEditRIHead(void), *_GDrawableRIHead(void);
 extern GResInfo *_GProgressRIHead(void);
 
-#define SERIF_UI_FAMILIES	"dejavu serif,times,caslon,serif,clearlyu,unifont,unifont upper"
-#define SANS_UI_FAMILIES	"dejavu sans,helvetica,caliban,sans,clearlyu,unifont,unifont upper"
-#define MONO_UI_FAMILIES	"courier,monospace,clearlyu,unifont,unifont upper"
+#define SERIF_UI_FAMILIES	"dejavu serif,times,caslon,serif,clearlyu,unifont,unifont upper,system-ui,A-OTF Shin Go Pro R,ShinGoPro-Regular"
+#define SANS_UI_FAMILIES	"dejavu sans,helvetica,caliban,sans,clearlyu,unifont,unifont upper,system-ui,A-OTF Shin Go Pro R,ShinGoPro-Regular"
+#define MONO_UI_FAMILIES	"courier,monospace,clearlyu,unifont,unifont upper,system-ui,A-OTF Shin Go Pro R,ShinGoPro-Regular"
 
 #endif /* FONTFORGE_GGADGET_P_H */

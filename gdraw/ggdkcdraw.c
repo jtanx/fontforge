@@ -162,13 +162,18 @@ static PangoFontDescription *_GGDKDraw_configfont(GWindow w, GFont *font) {
         return NULL;
     }
 
-    PangoContext *pc = pango_layout_get_context(gw->pango_layout);
+    PangoGravity grav = pango_context_get_base_gravity(gw->display->pangoc_context);
     if (font->rq.style & fs_vertical) {
-        pango_context_set_base_gravity(pc, PANGO_GRAVITY_WEST);
-    } else {
-        pango_context_set_base_gravity(pc, PANGO_GRAVITY_AUTO);
+        if (grav != PANGO_GRAVITY_WEST) {
+            pango_context_set_base_gravity(gw->display->pangoc_context, PANGO_GRAVITY_WEST);
+            pango_context_set_gravity_hint(gw->display->pangoc_context, PANGO_GRAVITY_HINT_STRONG);
+            pango_layout_context_changed(gw->pango_layout);
+        }
+    } else if (grav != PANGO_GRAVITY_AUTO) {
+        pango_context_set_base_gravity(gw->display->pangoc_context, PANGO_GRAVITY_AUTO);
+        pango_context_set_gravity_hint(gw->display->pangoc_context, PANGO_GRAVITY_HINT_NATURAL);
+        pango_layout_context_changed(gw->pango_layout);
     }
-    //pango_layout_context_changed(gw->pango_layout);
 
     PangoFontDescription **fdbase = &font->pangoc_fd;
     if (*fdbase != NULL) {
