@@ -1,7 +1,7 @@
 #include "ggtkdrawP.h"
 #include "ggdkdrawloggerP.h"
 
-#ifdef FONTFORGE_CAN_USE_GTK    
+#ifdef FONTFORGE_CAN_USE_GTK
 
 struct _GGtkWindow
 {
@@ -136,7 +136,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
         cairo_destroy(ggw->offscreen_context);
         ggw->offscreen_context = NULL;
     }
-    
+
     if (!ggw->offscreen_surface || ggw->offscreen_width != alloc.width || ggw->offscreen_height != alloc.height) {
         GdkWindow* window = gtk_widget_get_window(widget);
 
@@ -171,7 +171,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
             ggw->background_color.red, ggw->background_color.green, ggw->background_color.blue, ggw->background_color.alpha);
         cairo_paint(ggw->offscreen_context);
 		cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_OVER);
-        
+
         if (ggw->repaint_all) {
             GdkEventConfigure configure = {
                 .type = GDK_CONFIGURE,
@@ -181,7 +181,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
                 .width = alloc.width,
                 .height = alloc.height,
             };
-            
+
             if (ggw->gw->is_toplevel) {
                 // hmmmm
                 int x, y;
@@ -201,10 +201,10 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
         event.area.y = extents.y;
         event.area.width = extents.width;
         event.area.height = extents.height;
-        
+
         Log(LOGWARN, "REFRESH ON [%d,%d,%d,%d]", extents.x, extents.y, extents.width, extents.height);
         ggw->eh(ggw, (GdkEvent*)&event);
-        
+
         cairo_destroy(ggw->offscreen_context);
         ggw->offscreen_context = NULL;
         ggw->repaint_all = false;
@@ -238,7 +238,7 @@ static gboolean ggtk_window_event(GtkWidget *widget, GdkEvent *event)
         default:
             Log(LOGVERBOSE, "Discarded event %s on %p", GdkEventName(event->type), widget);
     }
-    
+
     return false;
 }
 
@@ -264,7 +264,7 @@ static void ggtk_window_unmap(GtkWidget *widget)
         .send_event = true,
     };
     ggw->eh(ggw, (GdkEvent*)&map);
-    
+
     GTK_WIDGET_CLASS(ggtk_window_parent_class)->unmap(widget);
 }
 
@@ -272,7 +272,7 @@ static void ggtk_window_dispose(GObject *gobject)
 {
     GGtkWindow *ggw = GGTK_WINDOW(gobject);
     ggw->disposed = true;
-	
+
 	G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
 }
 
@@ -308,7 +308,7 @@ static void ggtk_window_class_init(GGtkWindowClass *ggwc)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(ggwc);
     GObjectClass *object_class = G_OBJECT_CLASS(ggwc);
-    
+
     widget_class->draw = ggtk_window_draw;
     widget_class->event = ggtk_window_event;
     widget_class->map = ggtk_window_map;
@@ -325,7 +325,6 @@ static void ggtk_window_init(GGtkWindow *ggw)
     GtkWidget *widget = GTK_WIDGET(ggw);
     gtk_widget_set_can_default(widget, true);
     gtk_widget_set_can_focus(widget, true);
-    gtk_widget_set_focus_on_click(widget, true);
 }
 
 #endif // FONTFORGE_CAN_USE_GTK

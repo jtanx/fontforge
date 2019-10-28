@@ -1565,6 +1565,8 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
     }
 
     // Yuck...
+    GdkRectangle geom;
+#ifdef GGTKDRAW_GDK_3_22
     GdkMonitor *monitor = gdk_display_get_primary_monitor(display);
     if (monitor == NULL) {
         monitor = gdk_display_get_monitor_at_window(display, gdk_display_get_default_group(display));
@@ -1576,6 +1578,12 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
             }
         }
     }
+    gdk_monitor_get_geometry(monitor, &geom);
+#else
+    geom.x = geom.y = 0;
+    geom.width = gdk_screen_get_width(gdk_display_get_default_screen(display));
+    geom.height = gdk_screen_get_height(gdk_display_get_default_screen(display));
+#endif
 
     gdisp = (GGTKDisplay *)calloc(1, sizeof(GGTKDisplay));
     if (gdisp == NULL) {
@@ -1590,7 +1598,7 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
     gdisp->display = display;
 
     // sigh, this is terrible, really it should get this wrt. each window
-    gdisp->default_pango_context = gdk_pango_context_get_for_display(display);
+    gdisp->default_pango_context = gdk_pango_context_get_for_screen(gdk_display_get_default_screen(display));
     gdisp->default_pango_layout = pango_layout_new(gdisp->default_pango_context);
     gdisp->res = pango_cairo_context_get_resolution(gdisp->default_pango_context);
     if (gdisp->res <= 0) {
@@ -1625,10 +1633,6 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
     groot->ggc = _GGTKDraw_NewGGC();
     groot->display = gdisp;
     groot->w = NULL; // Can't set this to anything meaningful...
-
-    // More yuck...
-    GdkRectangle geom;
-    gdk_monitor_get_geometry(monitor, &geom);
     groot->pos.width = geom.width;
     groot->pos.height = geom.height;
     groot->is_toplevel = true;

@@ -149,7 +149,6 @@ static int _GGTKDraw_SetLine(cairo_t *cr, GGC *mine) {
 
 // Pango text
 static PangoFontDescription *_GGTKDraw_ConfigFont(GWindow w, GFont *font) {
-    GGTKWindow gw = (GGTKWindow) w;
     PangoFontDescription *fd;
 
     PangoFontDescription **fdbase = &font->pangoc_fd;
@@ -939,7 +938,6 @@ void GGTKDrawDrawGlyph(GWindow w, GImage *image, GRect *src, int32 x, int32 y) {
 
 void GGTKDrawDrawImageMagnified(GWindow w, GImage *image, GRect *src, int32 x, int32 y, int32 width, int32 height) {
     //Log(LOGDEBUG, " ");
-    cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
 
     struct _GImage *base = (image->list_len == 0) ? image->u.image : image->u.images[0];
     GRect full;
