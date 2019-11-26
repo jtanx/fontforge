@@ -72,119 +72,39 @@ int snaptoint=0;
 # define RE_Factor	(1024.0*1024.0*4.0)	/* 23 bits => divide by 2^22 */
 #endif
 
-int Within4RoundingErrors(bigreal v1, bigreal v2) {
-    bigreal temp=v1*v2;
-    bigreal re;
+static bool WithinULPs(double v1, double v2, int ulps) {
+	int64_t a, b;
+	memcpy(&a, &v1, sizeof(int64_t));
+	memcpy(&b, &v2, sizeof(int64_t));
 
-    if ( temp<0 ) /* Ok, if the two values are on different sides of 0 there */
-return( false );	/* is no way they can be within a rounding error of each other */
-    else if ( temp==0 ) {
-	if ( v1==0 )
-return( v2<RE_NearZero && v2>-RE_NearZero );
-	else
-return( v1<RE_NearZero && v1>-RE_NearZero );
-    } else if ( v1>0 ) {
-	if ( v1>v2 ) {		/* Rounding error from the biggest absolute value */
-	    re = v1/ (RE_Factor/4);
-return( v1-v2 < re );
-	} else {
-	    re = v2/ (RE_Factor/4);
-return( v2-v1 < re );
+	a -= b;
+	if (a < 0) {
+		a = -a;
 	}
-    } else {
-	if ( v1<v2 ) {
-	    re = v1/ (RE_Factor/4);	/* This will be a negative number */
-return( v1-v2 > re );
-	} else {
-	    re = v2/ (RE_Factor/4);
-return( v2-v1 > re );
-	}
-    }
+	return a <= ulps;
+}
+
+int Within4RoundingErrors(bigreal v1, bigreal v2) {
+	return WithinULPs(v1, v2, 4);
 }
 
 int Within16RoundingErrors(bigreal v1, bigreal v2) {
-    bigreal temp=v1*v2;
-    bigreal re;
-
-    if ( temp<0 ) /* Ok, if the two values are on different sides of 0 there */
-return( false );	/* is no way they can be within a rounding error of each other */
-    else if ( temp==0 ) {
-	if ( v1==0 )
-return( v2<RE_NearZero && v2>-RE_NearZero );
-	else
-return( v1<RE_NearZero && v1>-RE_NearZero );
-    } else if ( v1>0 ) {
-	if ( v1>v2 ) {		/* Rounding error from the biggest absolute value */
-	    re = v1/ (RE_Factor/16);
-return( v1-v2 < re );
-	} else {
-	    re = v2/ (RE_Factor/16);
-return( v2-v1 < re );
-	}
-    } else {
-	if ( v1<v2 ) {
-	    re = v1/ (RE_Factor/16);	/* This will be a negative number */
-return( v1-v2 > re );
-	} else {
-	    re = v2/ (RE_Factor/16);
-return( v2-v1 > re );
-	}
-    }
+	return WithinULPs(v1, v2, 16);
 }
 
 int Within64RoundingErrors(bigreal v1, bigreal v2) {
-    bigreal temp=v1*v2;
-    bigreal re;
-
-    if ( temp<0 ) /* Ok, if the two values are on different sides of 0 there */
-return( false );	/* is no way they can be within a rounding error of each other */
-    else if ( temp==0 ) {
-	if ( v1==0 )
-return( v2<RE_NearZero && v2>-RE_NearZero );
-	else
-return( v1<RE_NearZero && v1>-RE_NearZero );
-    } else if ( v1>0 ) {
-	if ( v1>v2 ) {		/* Rounding error from the biggest absolute value */
-	    re = v1/ (RE_Factor/64);
-return( v1-v2 < re );
-	} else {
-	    re = v2/ (RE_Factor/64);
-return( v2-v1 < re );
-	}
-    } else {
-	if ( v1<v2 ) {
-	    re = v1/ (RE_Factor/64);	/* This will be a negative number */
-return( v1-v2 > re );
-	} else {
-	    re = v2/ (RE_Factor/64);
-return( v2-v1 > re );
-	}
-    }
+	return WithinULPs(v1, v2, 64);
 }
 
 int RealNear(real a,real b) {
-    real d;
-
-#ifdef FONTFORGE_CONFIG_USE_DOUBLE
-    if ( a==0 )
-return( b>-1e-8 && b<1e-8 );
-    if ( b==0 )
-return( a>-1e-8 && a<1e-8 );
-
-    d = a/(1024*1024.);
-#else		/* For floats */
-    if ( a==0 )
-return( b>-1e-5 && b<1e-5 );
-    if ( b==0 )
-return( a>-1e-5 && a<1e-5 );
-
-    d = a/(1024*64.);
-#endif
-    a-=b;
-    if ( d<0 )
-return( a>d && a<-d );
-    else
-return( a>-d && a<d );
+	double abs_diff = fabs(a-b);
+	if (abs_diff <= 1e-8) {
+		return true;
+	} else if (signbit(a) != signbit(b)) {
+		return false;
+	}
+	// 50 million ULPs at 1 ~ 1e-8
+	return WithinULPs(a, b, 50000000);
 }
 
 int RealNearish(real a,real b) {
