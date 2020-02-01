@@ -6,6 +6,7 @@ Welcome to FontForge's documentation!
    :caption: Contents:
 
    python
+   editspiro
 
 
 Indices and tables
