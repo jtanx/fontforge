@@ -3,6 +3,8 @@
 Command Line Arguments
 ======================
 
+.. highlight:: shell
+
 ::
 
    $ fontforge [-options] [filenames]
