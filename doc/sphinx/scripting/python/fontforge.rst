@@ -483,7 +483,7 @@ Not a very useful example.
 
 .. function:: registerMenuItem(menu_function, enable_function, data, which_window, shortcut_string, {submenu_names, } menu_name_string)
 
-   If FontForge has a user interface this will add this menu item to FontForge's :ref:`Tool <tools>`
+   If FontForge has a user interface this will add this menu item to FontForge's :ref:`Tool <toolsmenu.tools>`
    menu, either in the font or the outline glyph view (or both).
 
    .. object:: menu-function
@@ -735,7 +735,7 @@ quadratic bezier curve. However if there are two adjacent off-curve points then 
 will be interpolated between them. (This should be familiar to anyone who has read the truetype
 'glyf' table docs).
 
-For examples of what these splines can look like see the :ref:`section on bezier curves <bezier>`.
+For examples of what these splines can look like see the :doc:`section on bezier curves <bezier>`.
 
 A contour may be open in which case it is just a long wiggly line, or closed when it is more like
 a circle with an inside and an outside. Unless you are making stroked fonts all your contours
@@ -1189,7 +1189,7 @@ Layers may be compared to see if their contours are similar.
    (Current interface)
 
    Strokes the lines of each contour in the layer according to the supplied parameters. See the
-   corresponding :meth:`glyph.stroke()` for a description of the syntax and the :ref:`stroke <stroke>` documentation for
+   corresponding :meth:`glyph.stroke()` for a description of the syntax and the :doc:`stroke <stroke>` documentation for
    more general information.
 
 .. method:: layer.transform(matrix)
@@ -1200,7 +1200,7 @@ Layers may be compared to see if their contours are similar.
 
    xexpr and yexpr are strings specifying non-linear transformations that will be applied to all
    points in the layer (with xexpr being applied to x values, and yexpr to y values, of course). The
-   syntax for the expressions is explained in the :ref:`non-linear transform dialog <nltransform>`.
+   syntax for the expressions is explained in the :ref:`non-linear transform dialog <transform.Non-Linear>`.
 
 .. method:: layer.boundingBox()
 
@@ -1460,7 +1460,7 @@ the font.
 
    A tuple of tuples.
 
-   This allows :ref:`constructing <math.html#GlyphConstruction>` very large versions of the glyph by
+   This allows :ref:`constructing <math.GlyphConstruction>` very large versions of the glyph by
    stacking the componants together. Some components may be repeated so there is no bound on the
    size.
 
@@ -1477,7 +1477,7 @@ the font.
 
 .. attribute:: glyph.horizontalVariants
 
-   A string containing a list of glyph names. These are :ref:`alternate forms <math.html#Variants%3C/a>`
+   A string containing a list of glyph names. These are :ref:`alternate forms <math.Variants>`
    of the current glyph for use in typesetting math. Presumably the variants are of different sizes.
 
    Although ff will always return a string of glyph names, you may assign to it with a tuple of
@@ -1749,7 +1749,7 @@ the font.
 
    A tuple of tuples.
 
-   This allows :ref:`constructing <math.html#GlyphConstruction>` very large versions of the glyph by
+   This allows :ref:`constructing <math.GlyphConstruction>` very large versions of the glyph by
    stacking the componants together. Some components may be repeated so there is no bound on the
    size.
 
@@ -1766,7 +1766,7 @@ the font.
 
 .. attribute:: glyph.verticalVariants
 
-   A string containing a list of glyph names. These are :ref:`alternate forms <math.html#Variants%3C/a>`
+   A string containing a list of glyph names. These are :ref:`alternate forms <math.Variants>`
    of the current glyph for use in typesetting math. Presumably the variants are of different sizes.
 
 .. attribute:: glyph.width
@@ -1894,7 +1894,7 @@ the font.
 
 .. method:: glyph.changeWeight(stroke_width[, type, serif_height, serif_fuzz, counter_type, removeoverlap, custom_zones])
 
-   See the :ref:`Element->Style->Change Width <Styles.html#Embolden>` command for a more complete
+   See the :ref:`Element->Style->Change Width <Styles.Embolden>` command for a more complete
    description of these arguments.
 
    ``stroke_width`` is the amount by which all stems are expanded.
@@ -2163,7 +2163,7 @@ the font.
    (Current interface)
 
    Strokes the contours of the glyph according to the supplied parameters. See the
-   :ref:`stroke <stroke.html>` documentation for a more complete description of the facility and
+   :doc:`stroke <stroke>` documentation for a more complete description of the facility and
    its parameters.
 
    A ``"circular"`` nib just has a ``width`` (the diameter), while an ``"elliptical"`` nib has a
@@ -2282,7 +2282,7 @@ the font.
    xexpr and yexpr are strings specifying non-linear transformations that will be applied to all
    points in the current layer (with xexpr being applied to x values, and yexpr to y values, of
    course). The syntax for the expressions is explained in the
-   :ref:`non-linear transform dialog <transform.html#Non-Linear>`.
+   :ref:`non-linear transform dialog <transform.Non-Linear>`.
 
 .. method:: glyph.unlinkRef([ref_name])
 
@@ -3441,7 +3441,7 @@ This type may not be pickled.
 
 .. attribute:: font.texparameters
 
-   Returns a tuple of :ref:`TeX font parameters <fontinfo.html#TeX>`. TeX font type followed by 22
+   Returns a tuple of :ref:`TeX font parameters <fontinfo.TeX>`. TeX font type followed by 22
    parameters. Font type is one of:
 
      * ``text``
@@ -4146,7 +4146,7 @@ This type may not be pickled.
    Some keywords have abbreviations ("ia" for "italic_angle") you may use either.
 
    This function will attempt to italicize each selected glyph. For a detailed explanation of what
-   this entails please see the information on the :ref:`Italic dialog <Styles.html#Italic>`.
+   this entails please see the information on the :ref:`Italic dialog <Styles.Italic>`.
 
    The ``*_condense`` keywords should be 4 element tuples of floating point numbers; these numbers
    correspond to: Left side bearing condensation, stem condensation, counter condensation and right
@@ -4390,7 +4390,7 @@ See the :class:`selection` type for how to alter the selection.
 
 .. method:: font.changeWeight(stroke_width[, type, serif_height, serif_fuzz, counter_type, custom_zones])
 
-   See the :ref:`Element->Style->Change Width <Styles.html#Embolden>` command for a more complete
+   See the :ref:`Element->Style->Change Width <Styles.Embolden>` command for a more complete
    description of these arguments.
 
    Stroke_width is the amount by which all stems are expanded.
@@ -4542,7 +4542,7 @@ See the :class:`selection` type for how to alter the selection.
    (Current interface)
 
    Strokes the lines of the contours in all selected glyphs according to the supplied parameters.
-   See :meth:`glyph.stroke()` for a description of the syntax and the :ref:`stroke <stroke.html>`
+   See :meth:`glyph.stroke()` for a description of the syntax and the :doc:`stroke <stroke>`
    documentation for more general information.
 
 .. method:: font.transform(matrix)
@@ -4554,7 +4554,7 @@ See the :class:`selection` type for how to alter the selection.
    xexpr and yexpr are strings specifying non-linear transformations that will be applied to all
    points in the selected glyphs of the font (with xexpr being applied to x values, and yexpr to y
    values, of course). The syntax for the expressions is explained in the
-   :ref:`non-linear transform dialog <transform.html#Non-Linear>`.
+   :ref:`non-linear transform dialog <transform.Non-Linear>`.
 
 .. method:: font.unlinkReferences()
 

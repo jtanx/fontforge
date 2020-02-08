@@ -1,5 +1,3 @@
-.. _fontlint:
-
 fontlint
 ========
 
@@ -90,4 +88,4 @@ In any sfnt (True or OpenType font):
 See Also
 --------
 
-:ref:`FontForge <overview>`
+:doc:`fontforge <overview>`

@@ -1,5 +1,3 @@
-.. _ofl_faq_unofficial_fr:
-
 OFL FAQ (fra)
 =============
 

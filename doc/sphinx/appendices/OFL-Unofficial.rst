@@ -1,5 +1,3 @@
-.. _ofl_unofficial:
-
 Unofficial translations of the OFL
 ==================================
 
@@ -27,19 +25,19 @@ OFL 1.1
 
    Translator: Pierre Hanser
 
-   :doc:`License <./ofl/OFL-Unofficial-fr>`, :doc:`FAQ <./ofl/OFL-FAQ-Unofficial-fr>`
+   :doc:`License <ofl/OFL-Unofficial-fr>`, :doc:`FAQ <ofl/OFL-FAQ-Unofficial-fr>`
 
 .. object:: Greek
 
    Translator: Apostolos Syropolos
 
-   :doc:`License <./ofl/OFL-Unofficial-el>`
+   :doc:`License <ofl/OFL-Unofficial-el>`
 
 .. object:: Polish
 
    Translator: Michal Nowakowski
 
-   :doc:`License <./ofl/OFL-Unofficial-pl>`
+   :doc:`License <ofl/OFL-Unofficial-pl>`
 
 OFL 1.0
 -------
@@ -48,7 +46,7 @@ OFL 1.0
 
    Translator: Clytie Siddall
 
-   :doc:`License <./ofl/OFL-Unofficial-vi>`, :doc:`FAQ <./ofl/OFL-FAQ-Unofficial-vi>`
+   :doc:`License <ofl/OFL-Unofficial-vi>`, :doc:`FAQ <ofl/OFL-FAQ-Unofficial-vi>`
 
 -------------------------------------------------------------------------------
 
@@ -105,4 +103,4 @@ these translations in the font's 'name' table, but have been asked not to
 because of the possible legal ramifications.
 
 OFL version 1.1 has been released in February 2007 I have collected the
-:ref:`following unofficial translations <ofl_unofficial>`.
+:doc:`following unofficial translations <OFL-Unofficial>`.

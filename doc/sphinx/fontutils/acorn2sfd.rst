@@ -1,5 +1,3 @@
-.. _acorn2sfd:
-
 acorn2sfd
 =========
 
@@ -8,13 +6,13 @@ Converter from Acorn RISC/OS fonts ::
    acorn2sfd [-version] [-help] {acorndir ...}
 
 *acorn2sfd* will take several Acorn RISC/OS font directories and convert them
-into :ref:`FontForge <overview>`'s sfd files.
+into :doc:`FontForge <overview>`'s sfd files.
 
 An Acorn RISC/OS font directory should contain two or three files, one named
 ``Outlines*`` and one named ``Intmetric?`` (the ``Intmetrics`` file may be
 omitted, in which case the advance widths will not be known). *acorn2sfd* will
 read both files and generate an sfd file from them (which
-:ref:`FontForge <overview>` can turn into TrueType or PostScript).
+:doc:`fontforge <overview>` can turn into TrueType or PostScript).
 
 If the ``Outlines`` file ends in a digit (``Outlines0``) then a third file named
 ``Base<digit>*`` will be searched for in the directory (if not found there then
@@ -56,7 +54,7 @@ Bugs
 See Also
 --------
 
-:ref:`FontForge <overview>`
+:doc:`FontForge <overview>`
 
 `Acorn Font Documentation <http://www.poppyfields.net/acorn/tech/file.shtml>`_
 

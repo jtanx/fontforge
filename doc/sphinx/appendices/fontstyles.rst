@@ -1,5 +1,3 @@
-.. _fontstyles:
-
 Font Styles in various languages
 ================================
 
@@ -225,7 +223,7 @@ Font Styles in various languages
 
 (Any help in expanding/correcting the above table would be greatly appreciated).
 For more information on translating fontforge see the
-:ref:`UI Translation page <uitranslationnotes>`.
+:doc:`UI Translation page <uitranslationnotes>`.
 
 When you create a Style entry for an language in the
 :ref:`Element->Font Info->TTF Name <fontinfo.TTF-Names>` dialog, FontForge will

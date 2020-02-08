@@ -1,5 +1,3 @@
-.. _ofl_unofficial_fr:
-
 Open Font License in French
 ===========================
 

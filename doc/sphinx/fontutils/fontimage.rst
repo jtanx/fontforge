@@ -1,5 +1,3 @@
-.. _fontimage:
-
 fontimage
 =========
 
@@ -8,7 +6,7 @@ Generate a font thumbnail image ::
    fontimage [--o outfile] [--width num] [--height num] [--pixelsize num] [--fontname] [--text string] [--version] [--help] fontfile
 
 *Fontimage* produces a thumbnail image of a font (which may be in any format
-:ref:`fontforge <overview>` can read).
+:doc:`fontforge <overview>` can read).
 
 You may either explicitly specify text to be displayed in the font, or rely on
 fontimage's default behavior, which is to check for various scripts it knows
@@ -61,4 +59,4 @@ about and display something appropriate for each one present.
 See Also
 --------
 
-:ref:`FontForge <overview>`
+:doc:`fontforge <overview>`

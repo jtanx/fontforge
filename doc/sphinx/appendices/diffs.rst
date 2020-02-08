@@ -1,5 +1,3 @@
-.. _diffs:
-
 Differences from `Fontographer`_
 ================================
 

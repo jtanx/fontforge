@@ -1,5 +1,3 @@
-.. _bezier:
-
 Bézier Splines [#f1]_
 =====================
 
@@ -197,7 +195,7 @@ not require converting between PostScript and True Type.
 See Also
 ^^^^^^^^
 
-* :ref:`FontForge's math <pfaeditmath>`
+* :doc:`FontForge's math </techref/pfaeditmath>`
 
 
 .. rubric:: Footnotes

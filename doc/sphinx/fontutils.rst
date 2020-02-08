@@ -1,5 +1,3 @@
-.. _fontutils:
-
 Utilities for examining fonts
 =============================
 

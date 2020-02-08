@@ -1,5 +1,3 @@
-.. _files:
-
 Files used by FontForge
 =======================
 
@@ -47,7 +45,7 @@ Files used by FontForge
 .. object:: /usr/local/share/fontforge/*.cidmap
 
    "Encoding" files for Adobe's cid formats.
-   :ref:`You can pull down a compressed archive from here. <cidmaps>`
+   `You can pull down a compressed archive from here. <https://fontforge.org/cidmaps.tar.gz>`_
 
 .. object:: /usr/local/share/fontforge/python
 
@@ -57,4 +55,4 @@ Files used by FontForge
 .. object:: /usr/local/share/doc/fontforge/*.html
 
    Optional location for online documentation.
-   :ref:`You can pull down a compressed archive from here. <source_build.Documentation>`
+   :ref:`You can pull down a compressed archive from here. <source-build.Documentation>`

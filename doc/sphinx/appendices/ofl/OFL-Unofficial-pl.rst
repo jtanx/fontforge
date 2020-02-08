@@ -1,5 +1,3 @@
-.. _ofl_unofficial_pl:
-
 Open Font License in Polish
 ===========================
 

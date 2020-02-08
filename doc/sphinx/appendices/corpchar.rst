@@ -1,5 +1,3 @@
-.. _corpchar:
-
 Unicode Corporate Characters used by FontForge
 ==============================================
 

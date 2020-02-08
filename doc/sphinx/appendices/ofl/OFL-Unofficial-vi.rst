@@ -1,5 +1,3 @@
-.. _ofl_unofficial_vi:
-
 Open Font License in Vietnamese
 ===============================
 

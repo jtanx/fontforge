@@ -1,5 +1,3 @@
-.. _errrecovery:
-
 Error Recovery
 ==============
 

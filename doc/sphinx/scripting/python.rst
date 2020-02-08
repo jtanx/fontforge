@@ -8,7 +8,7 @@ time to write, and one tiny one called :py:mod:`psMat` which provides quick
 access to some useful transformations expressed as PostScript matrices.
 
 In python terms fontforge *embeds* python. It is possible to build
-fontforge so that it is also a :ref:`python extension <extension>`.
+fontforge so that it is also a :ref:`python extension <python.extension>`.
 
 FontForge Modules
 -----------------
@@ -53,7 +53,7 @@ Trivial example
    n.save("NewFont.sfd")                            #and save it.
 
 
-.. _extension:
+.. _python.extension:
 
 FontForge as a python extension
 -------------------------------

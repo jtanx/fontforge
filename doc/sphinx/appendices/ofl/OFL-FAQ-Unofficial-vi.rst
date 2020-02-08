@@ -1,5 +1,3 @@
-.. _ofl_faq_unofficial_vi:
-
 Hỏi Đáp OFL - phiên bản Mạng
 ============================
 

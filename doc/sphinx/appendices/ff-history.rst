@@ -1,5 +1,3 @@
-.. _ff_history:
-
 What on Earth Possessed me...
 =============================
 

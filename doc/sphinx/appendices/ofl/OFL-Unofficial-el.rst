@@ -1,5 +1,3 @@
-.. _ofl_unofficial_el:
-
 Open Font License in Greek
 ==========================
 
