@@ -5,9 +5,8 @@ Welcome to FontForge's documentation!
    :maxdepth: 3
    :caption: Contents:
 
-   python
-   editspiro
-
+   fontutils
+   appendices
 
 Indices and tables
 ==================

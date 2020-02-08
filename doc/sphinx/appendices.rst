@@ -1,0 +1,7 @@
+Appendices
+==========
+
+.. toctree::
+   :glob:
+
+   appendices/*

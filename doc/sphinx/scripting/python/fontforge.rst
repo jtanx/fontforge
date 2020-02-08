@@ -3853,11 +3853,11 @@ This type may not be pickled.
 .. method:: font.createChar(uni[, name])
 
    Create (and return) a character at the specified unicode codepoint in this font and optionally
-   name it. If you wish to create an glyph with no unicode codepoint set the first argument to -1
-   and specify a name. If there is already a character there, return it
+   name it. If you wish to create a glyph with no unicode codepoint, set the first argument to -1
+   and specify a name.
 
-   ..
-      (it will not be renamed) - this seems to be wrong.
+   If there is already a character at that (positive) codepoint then it is returned. If the optional
+   name parameter is included and differs from its current name then the character is also renamed.
 
 .. method:: font.createInterpolatedGlyph(glyph1, glyph2, amount)
 
