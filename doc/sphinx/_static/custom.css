@@ -1,3 +1,9 @@
 .small {
-    font-size: 0.7em;
+  font-size: 0.7em;
+}
+
+blockquote.epigraph {
+  float: right;
+  clear: right;
+  margin-left: 1em;
 }
