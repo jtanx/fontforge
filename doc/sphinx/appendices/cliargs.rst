@@ -78,8 +78,7 @@ FontForge recognizes the following options:
    Bring up a :ref:`browser <helpmenu>` looking at this documentation.
 
 .. option:: -lang={py|ff}
-
-.. option:: -lang {py|ff}
+            -lang {py|ff}
 
    Specifies whether the script should be interpretted as a python script or a
    fontforge script.
