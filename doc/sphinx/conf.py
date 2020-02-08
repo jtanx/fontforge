@@ -29,7 +29,7 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.mathjax',
 
-    'fixed_image',
+    'hacks',
 ]
 
 # interesting to see if it can be adapted: docutils.utils.math.math2html

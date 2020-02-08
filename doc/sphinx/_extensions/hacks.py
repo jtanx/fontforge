@@ -1,6 +1,6 @@
 import docutils.nodes
 
-def setup(app):
+def svg_image_workaround():
     '''
     Massive hack around https://github.com/sphinx-doc/sphinx/issues/7112
     app.add_node is not sufficient, as docutils directly imports and uses
@@ -18,6 +18,9 @@ def setup(app):
             return SpoofStr(val)
         return val
     docutils.nodes.image.__getitem__ = patched
+
+def setup(app):
+    svg_image_workaround()
 
     return {
         'version': '1.0.0',
