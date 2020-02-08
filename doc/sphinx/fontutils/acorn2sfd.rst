@@ -22,21 +22,23 @@ in ``<acorndir>/../Encodings``), and if found encoding information will be read
 from it. If not found then the font will be assumed to be an initial subset of
 Unicode.
 
-.. object:: -includestrokes
+.. program:: acorn2sfd
+
+.. option:: -includestrokes
 
    *acorn2sfd* normally throws out the secondary stroked
    version of the character, specifying this option will include it in the sfd file
    (you may then want to invoke FontForge's Expand Stroke command on it).
 
-.. object:: help
+.. option:: help
 
    will provide a mini description and will list the available options.
 
-.. object:: usage
+.. option:: usage
 
    will list the available options.
 
-.. object:: version
+.. option:: version
 
    will display the current version of *acorn2sfd* (a six digit string
    containing the date stamp of the source files).

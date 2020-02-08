@@ -14,44 +14,46 @@ You may either explicitly specify text to be displayed in the font, or rely on
 fontimage's default behavior, which is to check for various scripts it knows
 about and display something appropriate for each one present.
 
-.. object:: --help
+.. program:: fontimage
+
+.. option:: --help
 
    Displays a list of arguments and descriptions of each.
 
-.. object:: --width num
+.. option:: --width num
 
    Specifies the width (in pixels) of the output image. If omitted the image
    will be as wide as it needs to be to display the text.
 
-.. object:: --height num
+.. option:: --height num
 
    Specifies the height (in pixels) of the output image. If omitted the image
    will be as high as it needs to be to display the text.
 
-.. object:: --o outputfile
+.. option:: --o outputfile
 
    Specifies the name of the output image file. The format is determined by the
    extension. Currently only ".bmp" and ".png" are supported. If omitted,
    fontimage will choose a filename based on the fontname of the font.
 
-.. object:: --pixelsize num
+.. option:: --pixelsize num
 
    Specifies the pixelsize at which to display text. This may be specified
    multiple times. Each specification applies to any --text arguments which
    occur after it.
 
-.. object:: --fontname
+.. option:: --fontname
 
    Include the fontname as a line of text.
 
-.. object:: --text string
+.. option:: --text string
 
    Specifies a string to be displayed. The string *must* be in UTF-8. This
    option may be provided multiple times to supply more than one line of text.
    If omitted entirely, fontimage will examine the scripts it knows about in the
    font and will display text appropriate to each one present.
 
-.. object:: --version
+.. option:: --version
 
    Displays the fontimage version.
 

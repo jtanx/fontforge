@@ -27,7 +27,9 @@ It will notice:
 #. Any bitmap characters present in one font but not the other
 #. Any bitmap characters which differ
 
-.. object:: -merge <output>
+.. program:: sfddiff
+
+.. option:: -merge <output>
 
    If this flag is specified the following argument should be the name of an
    output file into which sfddiff will store a merged version of the two fonts.
@@ -37,19 +39,19 @@ It will notice:
    references, the background of the character will contain the splines from
    fontfile2 (sadly references can not be placed in the background).
 
-.. object:: -ignorehints
+.. option:: -ignorehints
 
    If specified, then no hint differences will be reported.
 
-.. object:: -help
+.. option:: -help
 
    Provides a mini description and will list the available options.
 
-.. object:: -usage
+.. option:: -usage
 
    Lists the available options.
 
-.. object:: -version
+.. option:: -version
 
    Displays the current version of *sfddiff*.
 
