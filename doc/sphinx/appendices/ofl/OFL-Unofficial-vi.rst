@@ -3,9 +3,9 @@
 Open Font License in Vietnamese
 ===============================
 
-.. note:: 
+.. note::
 
-   This is an unofficial translation of the SIL Open Font License into Greek. It
+   This is an unofficial translation of the SIL Open Font License into Vietnamese. It
    was not published by SIL International, and does not legally state the
    distribution terms for fonts that use the OFL. A release under the OFL is
    only valid when using the original English text. However, we recognize that
@@ -27,17 +27,13 @@ Xin hãy xem phiên bản chính thức và Hỏi Đáp tại http://scripts.sil
 
 --------------------------------------------------------------------------------
 
-Phần mềm phông chữ này có bản quyền tác giả © <ngày>, <tác giả> (<địa chỉ Mạng
-chính>).
+| Phần mềm phông chữ này có bản quyền tác giả © <ngày>, <tác giả> (<địa chỉ Mạng chính>).
+| Bảo Lưu Mọi Quyền.
+| Bản quyền © <ngày>, <tác giả thêm> (<địa chỉ Mạng chính>).
+|
+| <Tên phông chữ> là một Tên Phông Chữ Được Dành Riêng cho Phần Mềm Phông Chữ này.
+| <Tên phông chữ thêm> là một Tên Phông Chữ Được Dành Riêng cho Phần Mềm Phông Chữ này.
 
-Bảo Lưu Mọi Quyền.
-
-Bản quyền © <ngày>, <tác giả thêm> (<địa chỉ Mạng chính>).
-
-<Tên phông chữ> là một Tên Phông Chữ Được Dành Riêng cho Phần Mềm Phông Chữ này.
-
-<Tên phông chữ thêm> là một Tên Phông Chữ Được Dành Riêng cho Phần Mềm Phông Chữ
-này.
 
 Phần Mềm Phông Chữ này được cấp phép dưới Bản Quyền Phông Chữ Mở SIL, phiên bản
 1.0. Không cho phép sửa đổi bản quyền này, chỉ cho phép sao chép đúng nguyên

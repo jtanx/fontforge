@@ -5,7 +5,7 @@ Open Font License in French
 
 .. note::
 
-   This is an unofficial translation of the SIL Open Font License into Greek. It
+   This is an unofficial translation of the SIL Open Font License into French. It
    was not published by SIL International, and does not legally state the
    distribution terms for fonts that use the OFL. A release under the OFL is
    only valid when using the original English text. However, we recognize that

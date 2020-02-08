@@ -3,6 +3,17 @@
 Unofficial translations of the OFL
 ==================================
 
+.. toctree::
+  :maxdepth: 1
+
+  ofl/OFL-Unofficial-fr
+  ofl/OFL-FAQ-Unofficial-fr
+  ofl/OFL-Unofficial-el
+  ofl/OFL-Unofficial-pl
+  ofl/OFL-Unofficial-vi
+  ofl/OFL-FAQ-Unofficial-vi
+
+
 OFL 1.1
 -------
 
@@ -37,7 +48,7 @@ OFL 1.0
 
    Translator: Clytie Siddall
 
-   :ref:`License <OFL-Unofficial-vi>`, :doc:`FAQ <./ofl/OFL-FAQ-Unofficial-vi>`
+   :doc:`License <./ofl/OFL-Unofficial-vi>`, :doc:`FAQ <./ofl/OFL-FAQ-Unofficial-vi>`
 
 -------------------------------------------------------------------------------
 
