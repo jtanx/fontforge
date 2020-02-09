@@ -414,15 +414,11 @@ PostScript supports several variants on the theme of a circular pen, and
 FontForge tries to emulate them all. Basically PostScript "stroke"s a path at a
 certain width by:
 
-at every location on the curve
-
-find the normal vector at that location
-
-find the two points which are width/2 away from the curve
-
-filling in between those two points
-
-end
+| at every location on the curve
+|     find the normal vector at that location
+|     find the two points which are width/2 away from the curve
+|     filling in between those two points
+| end
 
 This is essentially what a circular pen does. The only aberrations appear at the
 end-points of a contour, or at points where two splines join but their slopes

@@ -618,7 +618,7 @@ Not a very useful example.
 
    Throws an exception if there is no user interface.
 
-.. function:: askChoices(title, question, answers, [def])
+.. function:: askChoices(title, question, answers[,default=,multiple=])
 
    Similar to the above allows you to ask the user a multiple choice question. It pops up a dialog
    posing the question with a scrollable list of choices -- one for each answer.
@@ -628,8 +628,15 @@ Not a very useful example.
    the fourth is the index in the answer array that will be the default answer (the one invoked if
    the user presses the [Return] key). If omitted the default answer will be the first.
 
+   The fifth argument means that multiple options can be selected. If true,
+   the fourth argument should be a tuple of Boolean values or a single integer
+   index into the answer tuple. So, if there are three options, it should look
+   like ``(True, False, True)``, which would select the first and last option.
+
    The function returns the index in the answer array of the answer chosen by the user. If the user
    cancels the dialog, a -1 is returned.
+
+   ``default`` and ``multiple`` may be passed by position if desired.
 
    Throws an exception if there is no user interface.
 
@@ -2230,8 +2237,8 @@ the font.
 
 
       When ``jlrelative`` is false the value is interpreted as a length in em-units. Otherwise the
-      value is interpreted as a multiple of "half-stroke-widths": half the span of the nib at the
-      angle half way between the incoming and outgoing join angles.
+      value is interpreted as a multiple of "stroke-widths": the average of the spans of the nib at
+      the incoming and outgoing join angles.
 
    .. object:: ecrelative (boolean, default=True)
 
@@ -2246,8 +2253,8 @@ the font.
 
 
       When ``ecrelative`` is false the value is interpreted as a length in em-units. Otherwise the
-      value is interpreted as a multiple of "half-stroke-widths": half the span of the stroked path
-      given the angle at the cap point.
+      value is interpreted as a multiple of "stroke-widths": the span of the stroked path at the
+      angle at the cap.
 
    .. object:: arcsclip (string, default="auto")
 
