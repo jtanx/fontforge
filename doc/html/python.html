@@ -8,7 +8,6 @@
   <LINK REL="stylesheet" TYPE="text/css" HREF="FontForge.css">
 </HEAD>
 <BODY>
-<DIV id="in">
   <H1 ALIGN=Center>
     Writing python scripts to change fonts in FontForge
   </H1>
@@ -365,8 +364,8 @@
 	listed in libuninameslist internal table that was corrected to a new name.
 	The internal table of Unicode values is of size UnicodeNames2GetCntFromLib().
 	If there is no libuninameslist ver 0.5 or later, then return NULL.</TD>
-    <TR>
     </TR>
+    <TR>
       <TD><CODE>UnicodeNames2FromLib</CODE></TD>
       <TD><CODE>(val)</CODE></TD>
       <TD>Errors and corrections happen, therefore names can be corrected in the
@@ -4276,7 +4275,7 @@ This type may not be pickled.
 	after the first glyph that forms the lookup (rather than the last) and
 	all glyphs that might make up the lookup should be in the match section.
 	So...<BR/>
-	<CODE>&nbsp;&nbsp;e | f @<ff-lig> f l | o</CODE><BR/>
+	<CODE>&nbsp;&nbsp;e | f @&lt;ff-lig&gt; f l | o</CODE><BR/>
 	would only apply the <CODE>ff-lig</CODE> lookup if the <CODE>ffl</CODE>
 	were preceeded by <CODE>e</CODE> and followed by <CODE>o</CODE>.
 	<DT>
@@ -5475,5 +5474,4 @@ n.save("NewFont.sfd")                            #and save it.
     <PRE><FONT COLOR="Gray">&gt;&gt;&gt; </FONT>import fontforge
 </PRE>
   </BLOCKQUOTE>
-</DIV>
 </BODY></HTML>

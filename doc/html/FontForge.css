@@ -18,6 +18,11 @@
  H1 { display: inline }
  TABLE.module { background: #ddf }
  TABLE.type { background: #ffd }
+ 
+ .warning {
+     background-color: red;
+     border: 1px solid black;
+ }
 
 .svgfig { 
 	display: block;
