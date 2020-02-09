@@ -5,6 +5,7 @@ Welcome to FontForge's documentation!
    :maxdepth: 1
    :caption: Contents:
 
+   scripting
    techref
    fontutils
    appendices
