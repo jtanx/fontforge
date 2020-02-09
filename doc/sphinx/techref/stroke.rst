@@ -7,14 +7,16 @@ enclose the area the nib "passed over". When the source contour is open the
 result is usually a single closed contour, and when the source contour is closed
 the result is usually two closed contours:
 
-.. image:: /images/stroke/typical.svg
-   :alt: Typical Examples
+.. figure:: /images/stroke/typical.svg
+
+   Typical Examples
 
 There are exceptions when the geometry of the nib and the source contour
 interact:
 
-.. image:: /images/stroke/exceptional.svg
-   :alt: Unusual Examples
+.. figure:: /images/stroke/exceptional.svg
+
+   Unusual Examples
 
 The "Expand Stroke..." dialog in the "Element" menu of a font view or outline
 view window is the primary interactive interface for the facility. In the font
@@ -22,14 +24,15 @@ view it traces all foreground contours in all selected glyphs. In the outline
 view it traces all contours with at least one point selected, or every contour
 if no points are selected on any contour. The dialog looks like this:
 
-.. image:: /images/stroke/dialog_1x.png
+.. figure:: /images/stroke/dialog_1x.png
    :alt: Expand Stroke Dialog
 
 The :ref:`Freehand Tool <charview.freehand>` also uses the facility and has a
-similar dialog, and there are interfaces for both :meth:`Python <fontforge.glyph.stroke>`
-and :ref:`FontForge's native scripting language <scripting-alpha.ExpandStroke>`.
+similar dialog, and there are interfaces for both
+:ref:`Python <python.glyph-stroke>` and
+:ref:`FontForge's native scripting language <scripting-alpha.ExpandStroke>`.
 
-This guide is arranged into three sections. The :ref:`first <stroke.offsetting>`
+This guide is arranged into four sections. The :ref:`first <stroke.offsetting>`
 discusses the common case of tracing a circular nib, which is also called
 "offsetting". It includes a description of the ":ref:`cap <stroke.cap>`" and
 ":ref:`join <stroke.join>`" options for offset curves.
@@ -40,9 +43,13 @@ elliptical nibs, and general convex nibs designed by the user. All nibs support
 the same cap and join options listed in the first section, but some have
 slightly different behaviors and effects.
 
-The :ref:`last section <stroke.parameters>` discusses additional parameters that
-address special cases, influence the geometric accuracy of the generated
+The :ref:`third section <stroke.parameters>` discusses additional parameters
+that address special cases, influence the geometric accuracy of the generated
 contours, or that can aid in debugging potential problems.
+
+The :ref:`last section <stroke.troubleshooting>` is an overview of problems a
+user may encounter using the system and some potential work-arounds. Please read
+this section prior to filing a GitHub issue.
 
 
 .. _stroke.offsetting:
@@ -54,8 +61,9 @@ Tracing a contour with a circular nib of radius *r* is equivalent to
 "offsetting"-creating parallel contours on each side at distance *r* for a total
 line thickness of *2r* (source contour shown in green):
 
-.. image:: /images/stroke/offsets.svg
-   :alt: Offset Curves
+.. figure:: /images/stroke/offsets.svg
+
+   Offset Curves
 
 In FontForge you specify a circular nib in the UI dialog by choosing the
 "Circular/Elliptical" nib type and making the Major and Minor Axis lengths
@@ -75,14 +83,16 @@ The parallel lines determined by the contour and offset radius alone will not
 necessarily connect. They will all connect in the case of a source contour that
 is closed and has only "smooth" points:
 
-.. image:: /images/stroke/offset_smooth.svg
-   :alt: Offsets of a smooth contour
+.. figure:: /images/stroke/offset_smooth.svg
+
+   Offsets of a smooth contour
 
 They will not connect where the source contour is open or has "corner" points
 where the angle changes:
 
-.. image:: /images/stroke/offset_other.svg
-   :alt: Offsets of angled and open contour
+.. figure:: /images/stroke/offset_other.svg
+
+   Offsets of angled and open contour
 
 
 .. _stroke.cap:
@@ -99,20 +109,22 @@ and "Round" are both equivalent to PS/SVG "Round", and the options "Butt" and
 "Bevel" are both equivalent to PS/SVG "Butt". (These options differ when used
 with other nib shapes.)
 
-.. image:: /images/stroke/caps.svg
-   :alt: Butt and Round Caps
+.. figure:: /images/stroke/caps.svg
+
+   Butt and Round Caps
 
 A PS/SVG "Square" cap is a Butt cap extended by the length of the offset radius,
 and therefore half the width of the traced line. The FontForge "Extend Cap"
 parameter generalizes this feature by allowing the user to specify the distance
 between the end of the source contour and the cap line either as an absolute
-length or in units of half-stroke-width. The parameter works with the "Round"
-and "Butt" cap styles but not the "Nib" and "Bevel" styles. A PS/SVG Square cap
-is therefore equivalent to a Butt cap with "Extend Cap" set to 1 in
-half-stroke-width units.
+length or in units of stroke-width. The parameter works with the "Round" and
+"Butt" cap styles but not the "Nib" and "Bevel" styles. A PS/SVG Square cap is
+therefore equivalent to a Butt cap with "Extend Cap" set to 0.5 in stroke-width
+units.
 
-.. image:: /images/stroke/extend_cap.svg
-   :alt: Extend Cap Examples
+.. figure:: /images/stroke/extend_cap.svg
+
+   Extend Cap Examples
 
 
 .. _stroke.join:
@@ -125,8 +137,9 @@ one angle of less than 180 degrees and one greater than 180 degrees. The offset
 lines on the side with the smaller angle will intersect, and the easy solution
 is to trim off the parts of the line past the intersection:
 
-.. image:: /images/stroke/join_trimmed.svg
-   :alt: Offset Trimmed At Join
+.. figure:: /images/stroke/join_trimmed.svg
+
+   Offset Trimmed At Join
 
 The offset lines at the larger "reflex" angle do not meet. The line closing the
 gap between those is called a "join". PostScript specified three join styles:
@@ -144,23 +157,25 @@ round nib this is equivalent to the PS/SVG "Round" join option, which connects
 the offset lines with an arc of the offset radius. FontForge's "Round" join
 option is also equivalent when using a circular nib:
 
-.. image:: /images/stroke/joins.svg
-   :alt: Join Examples
+.. figure:: /images/stroke/joins.svg
+
+   Join Examples
 
 The difference between Miter and Miter Clip is in how "long" joins are handled.
 The "Join Limit" parameter specifies the maximum "length" of a miter join. This
-limit can be specified either in em-units or (when the nib is circular) in
-offset radii. The term "join length" is a bit misleading because the limit is
-actually calculated based on the angle of the join, and the "length" is how long
-the join *would* be if the offset curves were straight lines. There is a more
-complete explanation in the
+limit can be specified either in em-units or (when the nib is circular)
+nib-widths (e.g. the diameter of the circle). The term "join length" is a bit
+misleading because the limit is actually calculated based on the angle of the
+join, and the "length" is how long the join *would* be if the offset curves were
+straight lines. There is a more complete explanation in the
 `stroke-miterlimit" section of the SVG specification <https://www.w3.org/TR/SVG2/painting.html#LineJoin>`__.
 With the Miter style a join that exceeds the join limit "falls back" to a Bevel
 join, while with the Miter Clip such a join is clipped at the join limit by a
 line parallel to the Bevel line:
 
-.. image:: /images/stroke/miters.svg
-   :alt: Miter and Miter Clip
+.. figure:: /images/stroke/miters.svg
+
+   Miter and Miter Clip
 
 Note, however, that the term "limit" is also somewhat misleading, in that a
 Miter join is *never* shortened past the Bevel line, which therefore restricts
@@ -189,8 +204,9 @@ support for "Calligraphic" (rectangular) and Elliptical nibs. These nibs are
 described by Width and Height (called the Major and Minor Axes in the case of an
 ellipse) and a rotation Angle:
 
-.. image:: /images/stroke/paramnibs.svg
-   :alt: Calligraphic and Elliptical Nibs
+.. figure:: /images/stroke/paramnibs.svg
+
+   Calligraphic and Elliptical Nibs
 
 
 General convex nibs
@@ -226,8 +242,9 @@ polygon*, which is a non-self-intersecting (i.e. "simple") polygon of at least 3
 points/edges, where all interior angles at the points are less than 180 degrees.
 These points must be in the form of a closed, *clockwise* contour:
 
-.. image:: /images/stroke/convexpoly.svg
-   :alt: Convex Polygons and Exceptions
+.. figure:: /images/stroke/convexpoly.svg
+
+   Convex Polygons and Exceptions
 
 The second group of rules restrict the relative positions of the control points:
 
@@ -243,16 +260,18 @@ The second group of rules restrict the relative positions of the control points:
 These three rules typically define a triangle (with one excluded edge) where one
 control point can be positioned given the positions of the other points:
 
-.. image:: /images/stroke/convexcontrol.svg
-   :alt: Control Point Rules for Convex Shapes
+.. figure:: /images/stroke/convexcontrol.svg
+
+   Control Point Rules for Convex Shapes
 
 Aside from the shape, the position of a convex nib relative to the origin has an
 effect on the output. Parameterized nibs are always centered on the origin,
 which leaves the output in the "same place" as the source contour. A nib offset
 from the origin will cause the output to be offset by that amount:
 
-.. image:: /images/stroke/uncentered.svg
-   :alt: Centered and Uncentered Convex Nib Output
+.. figure:: /images/stroke/uncentered.svg
+
+   Centered and Uncentered Convex Nib Output
 
 
 Caps and Joins With Other Nibs
@@ -265,8 +284,9 @@ shape-equivalent to the current "Nib" cap and join styles. Given that the Nib
 options produce the shape that would be created by inking and tracing the nib on
 paper, "Nib" is a good default choice:
 
-.. image:: /images/stroke/nibnib.svg
-   :alt: Calligraphic nib with Nib Cap and Join
+.. figure:: /images/stroke/nibnib.svg
+
+   Calligraphic nib with Nib Cap and Join
 
 The other cap and join options now also work with all nibs. Although some
 "behave" differently with different nib geometries, in general you can choose a
@@ -278,16 +298,18 @@ are always perpendicular to the line from source contour point. This is not true
 for other nibs. The difference lead to unexpected results with Bevel and clipped
 Miter Clip joins, although both are constructed according to the same rules.
 
-.. image:: /images/stroke/customjoinbevel.svg
-   :alt: Join Bevel Angle of Custom Nib
+.. figure:: /images/stroke/customjoinbevel.svg
+
+   Join Bevel Angle of Custom Nib
 
 For similar reasons it is often impossible to close an arbitrary join with a
 smooth circular arc. When the Round join is specified in such cases FontForge
 will instead choose the smooth arc of the least eccentric compatible ellipse
 (which might still be noticeably eccentric).
 
-.. image:: /images/stroke/customround.svg
-   :alt: Round Join of Custom Nib
+.. figure:: /images/stroke/customround.svg
+
+   Round Join of Custom Nib
 
 No matter what nib you use, at the end of any open contour the tangent angle of
 the left and right lines will be the same as the tangent angle of the end of the
@@ -295,12 +317,13 @@ source contour. However, the *length* of these lines will vary. With a circular
 nib a Bevel Cap is the same as a Butt Cap; with other nibs the Bevel angle
 differs and the Bevel will often not touch the end of the traced contour. (The
 Bevel cap option just draws a line between the ends of the two trace lines. This
-option is an unusual choice for a final cap style, but may be useful to see
-where the trace lines end in a given case or as the simplest option for later
-editing stages.)
+option is an :ref:`unusual choice <stroke.bevelcaps>` for a final cap style but
+may be useful to see where the trace lines end in a given case or as the
+simplest option for later editing stages.)
 
-.. image:: /images/stroke/customcapbevel.svg
-   :alt: Cap Angle of Custom Nib
+.. figure:: /images/stroke/customcapbevel.svg
+
+   Cap Angle of Custom Nib
 
 FontForge will not trim a trace line to make a Butt or Round cap; instead it
 extends one of the lines to match the other. This means that Butt and Round caps
@@ -311,10 +334,11 @@ of the source contour, so higher values will tend to even out the lengths. At
 some value-the particular amount depends on the nib and the source contours-all
 cap distances will be the same.
 
-.. image:: /images/stroke/extendcapfix.svg
-   :alt: Standardizing Cap Length with Extend Cap
+.. figure:: /images/stroke/extendcapfix.svg
 
-With a circular nib the em-unit and half-span ways of specifying a Join Limit or
+   Standardizing Cap Length with Extend Cap
+
+With a circular nib the em-unit and nib-span ways of specifying a Join Limit or
 Extend Cap length are basically equivalent: for every value expressed one way
 there is a value expressed the other way that has the same effect. With other
 nibs the width of the curve varies by angle, breaking this equivalence. In the
@@ -325,8 +349,9 @@ spans at the starting and ending angles of the join. The result is that when
 using Width/Span-relative values the result will tend to scale with the stroke
 width at the join or cap.
 
-.. image:: /images/stroke/extendcapdiff.svg
-   :alt: Relative and Length-based Extend Cap with Custom Nibs
+.. figure:: /images/stroke/extendcapdiff.svg
+
+   Relative and Length-based Extend Cap with Custom Nibs
 
 Unclipped, the Arcs join style should work the same way for other nibs as it
 does with circular nibs. However, with shorter Join Limits (less than 4 in
@@ -369,19 +394,20 @@ or even higher may well depending on your needs. Given that the Expand Stroke
 algorithms are generally fast, the benefit of lower accuracy is not speed but
 fewer points/splines in the output.
 
-.. image:: /images/stroke/accuracytarget.svg
-   :alt: Outputs with Different Accuracy Targets
+.. figure:: /images/stroke/accuracytarget.svg
+
+   Outputs with Different Accuracy Targets
 
 
 Remove Overlap
 ^^^^^^^^^^^^^^
 
 The core algorithm of Expand Stroke calculates the "generalized offset curves"
-of the source contour and the nib. Its output can therefore include "cusps" and
-other artifacts of offsetting. These are typically removed by passing the
-initial output through the Remove Overlap algorithm. By default Remove Overlap
-is run on the whole layer, but you can also choose to run it independently on
-the output of each source contour.
+of the source contour and the nib. Its output can therefore include
+:ref:`"cusps" <stroke.cusps>` and other artifacts of offsetting. These are
+typically removed by passing the initial output through the Remove Overlap
+algorithm. By default Remove Overlap is run on the whole layer, but you can also
+choose to run it independently on the output of each source contour.
 
 The third option is to skip the Remove Overlap pass entirely. This option is
 provided mostly for debugging purposes. In rare cases the Remove Overlap
@@ -391,8 +417,9 @@ Overlap to see what the problem might be. (And you may be able to fix the
 problem area by hand and then run Remove Overlap on the rest, and get your
 output without having to wait for a software fix.)
 
-.. image:: /images/stroke/removeoverlap.svg
-   :alt: Outputs with Different Remove Overlap Settings
+.. figure:: /images/stroke/removeoverlap.svg
+
+   Outputs with Different Remove Overlap Settings
 
 
 External Only and Internal Only
@@ -416,8 +443,9 @@ counterclockwise contour. This increases the "weight" of the character by
 weight by *2r*, assuming it is thicker than that at all points. (FontForge's
 Change Weight facility uses Expand Stroke with these options.)
 
-.. image:: /images/stroke/intext.svg
-   :alt: Example of External Only and External Only
+.. figure:: /images/stroke/intext.svg
+
+   Example of External Only and External Only
 
 
 Add Extrema and Simplify
@@ -451,3 +479,109 @@ Join Limit is relative to Nib Span and less than 4, in which case it uses the
 Ratio algorithm. (With a custom convex nib it uses Ratio when the Join Limit is
 relative and less than 4 regardless of nib dimension.) This heuristic works in
 many cases but is not foolproof.
+
+
+.. _stroke.troubleshooting:
+
+Troubleshooting
+---------------
+
+There are some known problems with and limitations of the Expand Stroke system.
+Many of these have simple workarounds, others may be easiest to address by
+editing the output contours. One advantage of the new system over the old is
+that it will almost always provide accurate contour edges if the additional
+processing steps (Remove Overlap, Simplify, etc.) are disabled.
+
+
+.. _stroke.gentrouble:
+
+General Guidance
+^^^^^^^^^^^^^^^^
+
+If the system produces unexpected or bad looking contours that are still roughly
+right a good first step is to try disabling Simplify and Add Extrema. These
+algorithms occasionally produce inaccurate output and both can be run
+selectively "by hand" on parts of a contour as needed.
+
+If instead the output has more contours than expected or is badly misshapen the
+problem may be with Remove Overlap. Complex input contours with tight curves
+often lead to complex output contours with many self-intersections that can
+occasionally confuse the overlap removal algorithm. In such cases it may be
+easiest to first edit the contour by hand to reduce the number of intersections
+and then run Remove Overlap on the simpler contour.
+
+Some special use cases, such as stroking with an unusually large nib to create
+an "outline background", can result in undesirable artifacts that Remove Overlap
+(correctly) reduces to counterclockwise contours or "holes". While these are
+difficult to identify algorithmically they are easy to delete by hand.
+
+
+.. _stroke.cusps:
+
+Cusps and Inverted Curvature
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Where the curvature of the "tracing" point on the nib is less than the curvature
+of the source contour, the curvature of the output contour inverts. The
+transition point where the two curvatures are equal is called a "cusp" and that
+term is sometimes used to refer to the whole inverted portion. The Expand Stroke
+algorithm does not accurately trace these areas because they are almost always
+eliminated by Remove Overlap, but when set to "None" a traced cusp will look
+something like the contour portion on the right:
+
+.. figure:: /images/stroke/cusps.svg
+
+   Cusp and Inverted Curvature
+
+A cusp can appear in the final, non-overlapping output of the algorithm in
+certain unusual cases, such as a sharp turn in an open contour just before a
+Butt cap:
+
+.. figure:: /images/stroke/buttcusp.svg
+
+   Visible Cusp Near a Butt Cap
+
+The usual remedy for this problem is a different choice of source contour shape
+or cap, but post-processing is another option. Here is a more obscure case that
+came up in practice when the source contour was stroked with a very eccentric
+ellipse (shown on the left) and a round cap. The distortion, which is just
+barely visible on the lower-left of the output contour on the right, is shown
+magnified in the center:
+
+.. figure:: /images/stroke/roundcusp.svg
+
+   Visible Cusp Portion Near a Round Cap
+
+This output contour was produced without Simplify, which removes most but not
+all of the distortion. If this contour had instead been stroked using the Nib
+cap style there would be no visible cusp; all cusps are, in a sense, traced out
+"under the nib". However, in this case the round cap turns out to be not quite
+long enough to obscure the cusp resulting from the very eccentric nib.
+
+Cusps are fundamental to the offsetting algorithm of the Expand Stroke system,
+and therefore any user combining tight curves, large nibs, and "short" caps
+should keep an eye out for them. The best remedies may vary. Slightly altering
+the source contour geometry is one approach. The user who encountered the round
+cap problem pictured above just reused Simplify on that part of the contour with
+a larger error parameter to smooth out the distortion.
+
+
+.. _stroke.bevelcaps:
+
+Bevel Caps and Flat Nibs
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+As noted above, Bevel caps were included as the simplest cap choice in some
+situations. A Bevel cap just joins the ends of each offset contour - wherever
+the two sides of the nib leave them - with a straight line. This can yield
+counter-intuitive results in some cases, particularly with nibs that have flat
+edges such as Calligraphic nibs:
+
+.. figure:: /images/stroke/bevelcap.svg
+
+   A Bevel Cap Produced by a Nib Line
+
+Both the jutting portion at the bottom left and the strange triangle structure
+on the right are due to a flat line on the nib aligning with the cap angle.
+Although these results are unusual and probably undesirable they are not
+*wrong*, and the straightforward "solution" is to choose a different cap style.
