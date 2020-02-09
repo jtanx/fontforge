@@ -5,16 +5,19 @@ What on Earth Possessed me...
    :align: right
    :width: 200px
 
-| **MALVOLIO**
-|
-| By my life, this is my lady's hand, these be her
-| very C's, her U's and her T's and thus she makes her
-| great P's. It is, in contempt of question, her hand.
-|
-| **Sir ANDREW**
-| Her C's, her U's and her T's: why that?
-|
-| -- Shakespeare -- Twelfth Night, II, v
+.. epigraph::
+
+  | **MALVOLIO**
+  |
+  | By my life, this is my lady's hand, these be her
+  | very C's, her U's and her T's and thus she makes her
+  | great P's. It is, in contempt of question, her hand.
+  |
+  | **Sir ANDREW**
+  | Her C's, her U's and her T's: why that?
+
+  -- Twelfth Night, II, v
+  -- Shakespeare
 
 I have always been interested in calligraphy, especially the eccentricities of
 the swash and black letter capitals.

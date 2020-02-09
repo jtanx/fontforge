@@ -20,7 +20,8 @@ Spline Font Database
    | That's the most relevant
    | Question in the world.
 
-   -- Christopher Fry -- *The Lady's not for Burning*
+   -- *The Lady's not for Burning*
+   -- Christopher Fry
 
 The sfd format evolves over time. I hope the current parser can handle old sfd
 formats. Most changes have been small, but in Feb 2008 I allowed multiple layers
