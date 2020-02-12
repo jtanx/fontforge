@@ -1,37 +1,11 @@
-Tutorial #2
-===========
+More on glyphs
+==============
 
-.. 
-  * :ref:`Font Creation <editexample.FontCreate>`
-  * :ref:`Creating a glyph (tracing outlines) <editexample.CharCreate>`
-  * :doc:`Create glyph outlines using spiro points <editspiro>`
-  * :doc:`Importing a glyph from Inkscape (or Illustrator, or some other vector editor) <importexample>`
-  * :ref:`Navigating to other glyphs <editexample2.Navigating>`
-  * :ref:`On to the next glyph (consistent directions) <editexample2.Creating-o>`
-  * :ref:`Consistent serifs and stem widths <editexample3.consistent-stems>`
-  * :ref:`Building accented glyphs <editexample4.accents>`
-  * :ref:`Building a ligature <editexample4.ligature>`
-  * :ref:`Lookups and features <editexample4.lookups>`
-  * :ref:`Examining metrics <editexample5.metrics>`
-  * :ref:`Kerning <editexample5.Kerning>`
-  * :ref:`Glyph variants <editexample6.Variants>`
-  * :ref:`Anchoring marks <editexample6.Marks>`
-  * :ref:`Conditional features <editexample6-5.Conditional>`
-  * :ref:`Checking your font <editexample7.checking>`
-  * :ref:`Generating it <editexample7.generating>`
-  * :ref:`Font Families <editexample7.Families>`
-  * :ref:`Final Summary <editexample7.summary>`
-  * :doc:`Bitmap strikes <editexample8>`
-  * :doc:`Scripting Tutorial <scripting-tutorial>`
-  * :ref:`Notes on various scripts <scriptnotes.Special>`
-
-
-.. _editexample2.Navigating:
 
 Navigating to glyphs.
 ---------------------
 
-The font view provides one way of navigating around the glyphs in a font. Simple
+The font view provides one way of navigating around the glyphs in a font. Simply
 scroll around it until you find the glyph you need and then double click on it
 to open a window looking at that glyph.
 
@@ -48,8 +22,6 @@ The simplest way to navigate is just to go to the next or previous glyph. And
 :menuselection:`View --> Next Char` and :menuselection:`View --> Prev Char` will
 do exactly that.
 
-
-.. _editexample2.Creating-o:
 
 Creating the letter "o" -- consistent directions
 ------------------------------------------------
@@ -83,13 +55,11 @@ annoyance), within FontForge all outer boundaries must be drawn clockwise, while
 all inner boundaries must be drawn counter-clockwise.
 
 If you fail to alternate directions between outer and inner boundaries you may
-get results like the one on the left
+get results like the one on the left |o-baddir|. If you fail to draw the outer
+contour in a clockwise fashion the errors are more subtle, but will generally
+result in a less pleasing result once the glyph has been rasterized.
 
-.. image:: /images/o-baddir.png
-
-. If you fail to draw the outer contour in a clockwise fashion the errors are
-more subtle, but will generally result in a less pleasing result once the glyph
-has been rasterized.
+.. |o-baddir| image:: /images/o-baddir.png
 
 .. note::
   **TECHNICAL AND CONFUSING**

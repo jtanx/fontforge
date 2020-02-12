@@ -1,34 +1,5 @@
-Spiro Tutorial
-==============
-
-.. 
-   -  :ref:`Font Creation <editexample.html#FontCreate>`
-   -  :ref:`Creating a glyph (tracing outlines) <editexample.html#CharCreate>`
-   -  :ref:`Create glyph outlines using spiro points <editspiro.html>`
-   -  :ref:`Importing a glyph from Inkscape (or Illustrator, or some other vector editor) <importexample.html>`
-   -  :ref:`Navigating to other glyphs <editexample2.html#Navigating>`
-   -  :ref:`On to the next glyph (consistent directions) <editexample2.html#Creating-o>`
-   -  :ref:`Consistent serifs and stem widths <editexample3.html#consistent-stems>`
-   -  :ref:`Building accented glyphs <editexample4.html#accents>`
-   -  :ref:`Building a ligature <editexample4.html#ligature>`
-   -  :ref:`Lookups and features <editexample4.html#lookups>`
-   -  :ref:`Examining metrics <editexample5.html#metrics>`
-   -  :ref:`Kerning <editexample5.html#Kerning>`
-   -  :ref:`Glyph variants <editexample6.html#Variants>`
-   -  :ref:`Anchoring marks <editexample6.html#Marks>`
-   -  :ref:`Conditional features <editexample6-5.html#Conditional>`
-   -  :ref:`Checking your font <editexample7.html#checking>`
-   -  :ref:`Generating it <editexample7.html#generating>`
-   -  :ref:`Font Families <editexample7.html#Families>`
-   -  :ref:`Final Summary <editexample7.html#summary>`
-   -  :ref:`Bitmap strikes <editexample8.html>`
-   -  :ref:`Scripting Tutorial <scripting-tutorial.html>`
-   -  :ref:`Notes on various scripts <scriptnotes.html#Special>`
-
-
-
 Creating a glyph using spiros
------------------------------
+=============================
 
 Spiro is the work of `Raph Levien <https://levien.com/spiro/>`_, it
 provides an alternate method of designing a glyph using a set of

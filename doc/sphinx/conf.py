@@ -27,9 +27,7 @@ release = '20190101'
 # ones.
 extensions = [
     'sphinx.ext.githubpages',
-    'sphinx.ext.mathjax',
-
-    'hacks',
+    'sphinx.ext.mathjax'
 ]
 
 # interesting to see if it can be adapted: docutils.utils.math.math2html

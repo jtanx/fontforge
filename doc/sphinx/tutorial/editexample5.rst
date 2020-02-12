@@ -1,34 +1,6 @@
-Tutorial #5
-===========
+Metrics, spacing and kerning
+============================
 
-.. 
-   * :ref:`Font Creation <editexample.FontCreate>`
-   * :ref:`Creating a glyph (tracing outlines) <editexample.CharCreate>`
-   * :doc:`Create glyph outlines using spiro points <editspiro>`
-   * :doc:`Importing a glyph from Inkscape (or Illustrator, or some other vector editor) <importexample>`
-   * :ref:`Navigating to other glyphs <editexample2.Navigating>`
-   * :ref:`On to the next glyph (consistent directions) <editexample2.Creating-o>`
-   * :ref:`Consistent serifs and stem widths <editexample3.consistent-stems>`
-   * :ref:`Building accented glyphs <editexample4.accents>`
-   * :ref:`Building a ligature <editexample4.ligature>`
-   * :ref:`Lookups and features <editexample4.lookups>`
-   * :ref:`Examining metrics <editexample5.metrics>`
-   * :ref:`Vertical metrics <editexample5.Vertical>`
-   * :ref:`Setting the baseline to baseline spacing of a font <editexample5.baseline>`
-   * :ref:`Kerning <editexample5.Kerning>`
-   * :ref:`Glyph variants <editexample6.Variants>`
-   * :ref:`Anchoring marks <editexample6.Marks>`
-   * :ref:`Conditional features <editexample6-5.Conditional>`
-   * :ref:`Checking your font <editexample7.checking>`
-   * :ref:`Generating it <editexample7.generating>`
-   * :ref:`Font Families <editexample7.Families>`
-   * :ref:`Final Summary <editexample7.summary>`
-   * :doc:`Bitmap strikes <editexample8>`
-   * :doc:`Scripting Tutorial <scripting-tutorial>`
-   * :ref:`Notes on various scripts <scriptnotes.Special>`
-
-
-.. _editexample5.metrics:
 
 Examining and controlling metrics
 ---------------------------------
@@ -79,8 +51,10 @@ If all this manual operation seems too complicated, try
 widths to glyphs. These widths are not up to professional standards, but they
 are generally reasonable approximations.
 
+.. container:: clearer
 
-.. _editexample5.Vertical:
+   ..
+
 
 Vertical Metrics
 ^^^^^^^^^^^^^^^^
@@ -94,8 +68,6 @@ Then in each outline glyph enable VMetrics in the Layers palette.
 You should now see a vertical advance line somewhere underneath your glyph. You
 may drag this line just as you would the horizontal advance (width) line.
 
-
-.. _editexample5.baseline:
 
 Setting the baseline to baseline spacing of a font.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -149,8 +121,6 @@ important quantity. Unfortunately there is not.
 Typographically ept applications will allow users to adjust baseline to baseline
 spacing, so the default value may not be all that relevant.
 
-
-.. _editexample5.Kerning:
 
 Kerning
 -------
@@ -208,8 +178,10 @@ view myself because you can see more glyphs and so get a better feel for the
 (Some glyph combinations are better treated by
 :ref:`creating a ligature <editexample4.ligature>` than by kerning the letters)
 
+.. container:: clearer
 
-.. _editexample5.VKern:
+   ..
+
 
 Vertical Kerning
 ^^^^^^^^^^^^^^^^

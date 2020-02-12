@@ -1,39 +1,11 @@
-Tutorial
-========
+Font creation and creating a glyph
+==================================
 
-This tutorial is also available as a
-:download:`pdf version <fontforge-tutorial.pdf>`. If you wish to follow along
-with the tutorial, :download:`this bundle <tutorial.tgz>` should provide you
-with the basic files you need.
+If you wish to follow along with the tutorial, :download:`this bundle <tutorial.tgz>`
+should provide you with the basic files you need.
 
 I shall not presume to teach aesthetics, I concentrate solely on the mechanics
 here.
-
-.. 
-  * :ref:`Font Creation <editexample.FontCreate>`
-  * :ref:`Creating a glyph (tracing outlines) <editexample.CharCreate>`
-  * :doc:`Create glyph outlines using spiro points <editspiro>`
-  * :doc:`Importing a glyph from Inkscape (or Illustrator, or some other vector editor) <importexample>`
-  * :ref:`Navigating to other glyphs <editexample2.Navigating>`
-  * :ref:`On to the next glyph (consistent directions) <editexample2.Creating-o>`
-  * :ref:`Consistent serifs and stem widths <editexample3.consistent-stems>`
-  * :ref:`Building accented glyphs <editexample4.accents>`
-  * :ref:`Building a ligature <editexample4.ligature>`
-  * :ref:`Lookups and features <editexample4.lookups>`
-  * :ref:`Examining metrics <editexample5.metrics>`
-    * :ref:`Setting the baseline to baseline spacing of a font <editexample5.baseline>`
-  * :ref:`Kerning <editexample5.Kerning>`
-  * :ref:`Glyph variants <editexample6.Variants>`
-  * :ref:`Anchoring marks <editexample6.Marks>`
-  * :ref:`Conditional features <editexample6-5.Conditional>`
-  * :ref:`Checking your font <editexample7.checking>`
-  * :ref:`Bitmaps <editexample7.Bitmaps>`
-  * :ref:`Generating it <editexample7.generating>`
-  * :ref:`Font Families <editexample7.Families>`
-  * :ref:`Final Summary <editexample7.summary>`
-  * :doc:`Bitmap strikes <editexample8>`
-  * :doc:`Scripting Tutorial <scripting-tutorial>`
-  * :ref:`Notes on various scripts <scriptnotes.Special>`
 
 .. epigraph::
 
@@ -46,9 +18,6 @@ here.
    | -- Saint Joan, Scene IV
    | George Bernard Shaw, 1924
 
-
-
-.. _editexample.FontCreate:
 
 Font creation
 -------------
@@ -74,8 +43,6 @@ characters are available in your font. FontForge generally creates new fonts
 with an ISO-8859-1, which contains (most of) the characters needed for Western
 Europe (the latin letters, some accented letters, digits, and symbols).
 
-
-.. _editexample.CharCreate:
 
 Creating a glyph
 ----------------
