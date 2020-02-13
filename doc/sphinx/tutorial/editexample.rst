@@ -1,5 +1,5 @@
-Font creation and creating a glyph
-==================================
+Font and glyph creation
+=======================
 
 If you wish to follow along with the tutorial, :download:`this bundle <tutorial.tgz>`
 should provide you with the basic files you need.

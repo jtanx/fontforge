@@ -27,7 +27,9 @@ release = '20190101'
 # ones.
 extensions = [
     'sphinx.ext.githubpages',
-    'sphinx.ext.mathjax'
+    'sphinx.ext.mathjax',
+
+    'flex_grid'
 ]
 
 # interesting to see if it can be adapted: docutils.utils.math.math2html

@@ -259,6 +259,17 @@ Module functions
    version. This function returns the Names2 or ``None`` based on the unicode value given. If there is
    no libuninameslist ver 0.5 or later, then return ``None``.
 
+.. function:: scriptFromUnicode(n)
+
+   Return the script tag for the given Unicode codepoint. So, for ``ord('Q')``, it would return ``latn``.
+   This is most useful with :meth:`font.addLookup()`, like: ::
+
+      # Add a `mark` lookup for an arbitrary glyph...
+      script = fontforge.scriptFromUnicode(glyph.unicode)
+      font.addLookup("l1", "gpos_mark2base", None, (("mark",((script,("dflt")),)),))
+      font.addLookupSubtable("l1", "l1-1")
+      font.addAnchorClass("l1-1", "top")
+
 .. function:: IsFraction(n)
 
    Return 1 if n is a unicode fraction (either a vulgar fraction or other fraction) as described by
@@ -3600,8 +3611,8 @@ This type may not be pickled.
    * ``gpos_contextchain``
    * ``kern_statemachine``
 
-   The flags argument is a tuple of strings. At most one of these strings may be the name of a mark
-   class. The others are:
+   The flags argument is a tuple of strings, or ``None``. At most one of these strings may be the
+   name of a mark class. The others are:
 
    * ``right_to_left``
    * ``ignore_bases``

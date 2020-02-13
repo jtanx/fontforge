@@ -13,6 +13,10 @@ blockquote.epigraph {
   font-size: 0.7em;
 }
 
+div.body {
+  min-width: inherit !important;
+}
+
 /*Workaround for https://github.com/sphinx-doc/sphinx/issues/7112
   Can be removed once Sphinx 2.4.0 is released*/
 div.align-left>img {
@@ -24,4 +28,17 @@ div.align-right>img {
     clear: right;
     float: right;
     margin-left: 1em;
+}
+
+.flex-row { display: flex; }
+.flex-col {
+  flex: 1;
+  margin: 0 0.25em;
+}
+.flex-col.flex-2 { flex: 2; }
+.flex-col.flex-3 { flex: 3; }
+.flex-col.flex-4 { flex: 4; }
+.flex-col.flex-5 { flex: 5; }
+@media (max-width: 599px) {
+  .flex-row { display: block; }
 }
