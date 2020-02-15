@@ -1,12 +1,8 @@
 Bitmap Glyph View
 =================
 
-.. figure:: /images/BitmapReference.png
-   :align: right
-
-   A bitmap glyph composed of two bitmap references
-
 .. image:: /images/BitmapView.png
+   :align: right
 
 The bitmap view is vaguely similar to the :doc:`outline view <charview>`. It is
 also designed for editing glyph shapes, but here bitmap glyph shapes.
@@ -23,6 +19,10 @@ place the result in the window for editing).
 Underneath is the main display, showing the bits in the image, the outline of
 the glyph and a grid.
 
+.. figure:: /images/BitmapReference.png
+
+   A bitmap glyph composed of two bitmap references
+
 As in the outline view you may choose to make the palettes free floating windows
 by unchecking :menuselection:`View --> Palettes --> Dock Palettes`.
 
@@ -33,6 +33,7 @@ Layers
 ------
 
 .. image:: /images/bvlayers.png
+   :align: left
 
 There are three layers to the bitmap view, the bitmap itself, the outline glyph
 and the grid lines. You are always editing in the bitmap layer so there is no
@@ -45,6 +46,7 @@ Tools
 -----
 
 .. image:: /images/bvtools.png
+   :align: left
 
 There are only six tools on the bitmap palette (there are some others available
 by right clicking in the view, this generates a popup menu.
@@ -124,7 +126,7 @@ There are two ways to select the drawing color:
 Shades
 ------
 
-.. list-table:: 
+.. flex-grid:: 
 
    * - .. figure:: /images/Shades.png
 

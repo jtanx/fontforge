@@ -35,12 +35,12 @@ div.align-right>img {
   flex: 1;
   margin: 0 0.25em;
 }
-.flex-container.flex-left .flex-row { justify-content: left; }
-.flex-container.flex-center .flex-row { justify-content: center; }
-.flex-container.flex-right .flex-row { justify-content: right; }
-.flex-container.flex-top .flex-row { align-items: start; }
-.flex-container.flex-middle .flex-row { align-items: center; }
-.flex-container.flex-bottom .flex-row { align-items: end; }
+.flex-container.flex-left>.flex-row { justify-content: left; }
+.flex-container.flex-center>.flex-row { justify-content: center; }
+.flex-container.flex-right>.flex-row { justify-content: right; }
+.flex-container.flex-top>.flex-row { align-items: start; }
+.flex-container.flex-middle>.flex-row { align-items: center; }
+.flex-container.flex-bottom>.flex-row { align-items: end; }
 .flex-col.flex-2 { flex: 2; }
 .flex-col.flex-3 { flex: 3; }
 .flex-col.flex-4 { flex: 4; }
