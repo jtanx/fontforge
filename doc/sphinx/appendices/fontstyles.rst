@@ -7,6 +7,7 @@ Font Styles in various languages
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
+   :class: compact
 
    * - English
      - Regular

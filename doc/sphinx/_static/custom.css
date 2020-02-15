@@ -48,7 +48,20 @@ div.align-right>img {
 .flex-col.flex-4 { flex: 4; }
 .flex-col.flex-5 { flex: 5; }
 .flex-col.flex-none { flex: none; }
+.flex-col>figure {
+  margin: auto;
+  padding: auto;
+}
+
 @media (max-width: 599px) {
   .flex-row { display: block; }
   .flex-container.flex-nobreak .flex-row { display: flex; }
+}
+
+.compact {
+  font-size: 0.75em;
+}
+
+table.compact th {
+  padding: 0;
 }
