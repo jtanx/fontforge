@@ -37,14 +37,13 @@ white-space around them to fit perfectly in an em.
 For the next example double click on the square in the font view that should
 contain "o", and import "o_Ambrosia.png" into it.
 
-.. list-table:: Stages in editing "o"
+.. rubric:: Stages in editing "o"
+
+.. flex-grid::
 
    * - .. image:: /images/o1.png
-
      - .. image:: /images/o2.png
-
      - .. image:: /images/o3.png
-
      - .. image:: /images/o4.png
 
 Notice that the first outline is drawn clockwise and the second

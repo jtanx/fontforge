@@ -269,120 +269,135 @@ pane is important because that is the order in which the rules they contain will
 be executed. We must insure that that final rule which actually invokes the
 ligature is the last one executed (and the last one in the list).
 
-.. list-table:: 
+.. rubric:: Steps
 
-   * - .. image:: /images/hligbyclasses.png
+.. image:: /images/hligbyclasses.png
 
-       Since we are planning on using the class of all greek letters we will want to
-       use a class format for this feature. Then we press the ``[Next>]`` button.
-     - .. image:: /images/emptyhlig.png
+Since we are planning on using the class of all greek letters we will want to
+use a class format for this feature. Then we press the ``[Next>]`` button.
 
-       The main match will be on the letters kappa and iota in all three rules, so
-       we need one class for each of them. So in the Match Classes area we press the
-       ``[New]`` button...
-   * - .. image:: /images/hligkappaclass.png
+.. image:: /images/emptyhlig.png
 
-       And type in the word "kappa" and press ``[Next>]``
-     - .. image:: /images/hligkappa.png
+The main match will be on the letters kappa and iota in all three rules, so
+we need one class for each of them. So in the Match Classes area we press the
+``[New]`` button...
 
-       Now we have a class containing the single glyph "kappa". We want to do the
-       same thing for "iota" so we press ``[New]`` again.
-   * - .. image:: /images/hligiotaclass.png
+.. image:: /images/hligkappaclass.png
 
-       Again type in "iota" and press ``[Next>]``
-     - .. image:: /images/hligkappaiota.png
+And type in the word "kappa" and press ``[Next>]``
 
-       Now we have all the classes we need here. We still need to create classes for
-       the lookahead and backtrack. We only need one class for these groups and that
-       class will consist of all greek letters.
-   * - .. image:: /images/hligback.png
+.. image:: /images/hligkappa.png
 
-       The check box ``[*] Same as Match Classes`` is set, but we don't want that,
-       we want our own classes here. So uncheck it.
-     - .. image:: /images/hligbacknomatch.png
+Now we have a class containing the single glyph "kappa". We want to do the
+same thing for "iota" so we press ``[New]`` again.
 
-       Now the buttons become active and we can create a new class by pressing
-       ``[New]``
-   * - .. image:: /images/allgreek.png
+.. image:: /images/hligiotaclass.png
 
-       Now you could go back to the font view and select all of the greek letters,
-       and then press the [Set From Font] button in the class dialog.
-     - .. image:: /images/hliggreekclass.png
+Again type in "iota" and press ``[Next>]``
 
-       But in this case the class we are interested in (all the greek letters) is
-       built it, and you can select it from the Standard Class pulldown list
-       (Letters in script(s)) Then press ``[Next>]``.
+.. image:: /images/hligkappaiota.png
+
+Now we have all the classes we need here. We still need to create classes for
+the lookahead and backtrack. We only need one class for these groups and that
+class will consist of all greek letters.
+
+.. image:: /images/hligback.png
+
+The check box ``[*] Same as Match Classes`` is set, but we don't want that,
+we want our own classes here. So uncheck it.
+
+.. image:: /images/hligbacknomatch.png
+
+Now the buttons become active and we can create a new class by pressing
+``[New]``
+
+.. image:: /images/allgreek.png
+
+Now you could go back to the font view and select all of the greek letters,
+and then press the [Set From Font] button in the class dialog.
+
+.. image:: /images/hliggreekclass.png
+
+But in this case the class we are interested in (all the greek letters) is
+built it, and you can select it from the Standard Class pulldown list
+(Letters in script(s)) Then press ``[Next>]``.
+
+.. flex-grid::
+
    * - .. image:: /images/hliggreekback.png
-
      - .. image:: /images/hliggreekahead.png
 
-       Then go through the same process for the look ahead classes (adding one class
-       which consists of all the greek letters.
-   * - Now we have all our classes defined and are finally ready to create the
-       patterns for our rules. So underneath "List of lists of class numbers" press
-       the ``[New]`` button.
+Then go through the same process for the look ahead classes (adding one class
+which consists of all the greek letters.
 
-       .. image:: /images/hlignewrule.png
+.. image:: /images/hlignewrule.png
 
-     - The first rule begins with all the greek letters in the backtrack area, so
-       click on the "Backtrack" tab, and then press on the class consisting of all
-       the greek letters. This puts the class number into the pattern area (the List
-       of class numbers)
+Now we have all our classes defined and are finally ready to create the
+patterns for our rules. So underneath "List of lists of class numbers" press
+the ``[New]`` button.
 
-       .. image:: /images/hligbackrule.png
+.. image:: /images/hligbackrule.png
 
-   * - In the match area we want to match kappa and then iota, so click on the Match
-       tab, and then on the entries for "kappa" and "iota".
+The first rule begins with all the greek letters in the backtrack area, so
+click on the "Backtrack" tab, and then press on the class consisting of all
+the greek letters. This puts the class number into the pattern area (the List
+of class numbers)
 
-       .. image:: /images/hligrule.png
+.. image:: /images/hligrule.png
 
-       This rule has no substitutions, so leave the bottom area blank and press
-       ``[Next>]``.
-     - We are done with the first rule. It says:
+In the match area we want to match kappa and then iota, so click on the Match
+tab, and then on the entries for "kappa" and "iota".
 
-       * The previous character should match class 1 of the backtrack classes (and
-         that class contains all greek letters, which is what we want)
-       * The current character should match class 1 of the match classes (and that
-         class contains "kappa")
-       * The next character should match class 2 of the match classes (which is iota)
-       * And if the match is successful, do absolutely nothing.
+This rule has no substitutions, so leave the bottom area blank and press
+``[Next>]``.
 
-       .. image:: /images/hligbackruledone.png
+.. image:: /images/hligbackruledone.png
 
-       We've got two more rules though, so press ``[OK]`` and then
-       ``[Add Subtable]``. Then go through the process of adding all the classes,
-       and then add the match string for this rule.
-   * - We are done with the second rule. It says:
+We are done with the first rule. It says:
 
-       * The current character should match class 1 of the match classes (and that
-         class contains "kappa")
-       * The next character should match class 2 of the match classes (which is iota)
-       * The character after that should match class 1 of the lookahead classes (and
-         that class contains all the greek letters)
-       * And if the match is successful, do absolutely nothing.
+* The previous character should match class 1 of the backtrack classes (and
+  that class contains all greek letters, which is what we want)
+* The current character should match class 1 of the match classes (and that
+  class contains "kappa")
+* The next character should match class 2 of the match classes (which is iota)
+* And if the match is successful, do absolutely nothing.
 
-       .. image:: /images/hligaheadruledone.png
+We've got two more rules though, so press ``[OK]`` and then
+``[Add Subtable]``. Then go through the process of adding all the classes,
+and then add the match string for this rule.
 
-       Press ``[OK]`` and ``[Add Subtable]`` for the final rule.
-     - .. image:: /images/hligrule.png
+.. image:: /images/hligaheadruledone.png
 
-       This rule does have substitutions -- we want to take the two characters and
-       convert them into a ligature. So Press ``[New]`` under the sequence position
-       list, we want to start at the first character (sequence position 0) and apply
-       the ligature we called "WORD":
+We are done with the second rule. It says:
 
-       .. image:: /images/hligseqdlg.png
+* The current character should match class 1 of the match classes (and that
+  class contains "kappa")
+* The next character should match class 2 of the match classes (which is iota)
+* The character after that should match class 1 of the lookahead classes (and
+  that class contains all the greek letters)
+* And if the match is successful, do absolutely nothing.
 
-   * - So if anything doesn't match the first two rules, and does contain a kappa
-       followed by an iota, it must be a two letter stand-alone greek word. And we
-       want to apply our ligature to it.
+Press ``[OK]`` and ``[Add Subtable]`` for the final rule.
 
-       .. image:: /images/hligallrulesdone.png
+.. image:: /images/hligrule.png
 
-     - Now we are done. Press a series of ``[OK]``\ s until all the dialogs have been
-       accepted.
+This rule does have substitutions -- we want to take the two characters and
+convert them into a ligature. So Press ``[New]`` under the sequence position
+list, we want to start at the first character (sequence position 0) and apply
+the ligature we called "WORD":
 
-       .. image:: /images/kappaiota-lookups.png
+.. image:: /images/hligseqdlg.png
+
+So if anything doesn't match the first two rules, and does contain a kappa
+followed by an iota, it must be a two letter stand-alone greek word. And we
+want to apply our ligature to it.
+
+.. image:: /images/hligallrulesdone.png
+
+Now we are done. Press a series of ``[OK]``\ s until all the dialogs have been
+accepted.
+
+.. image:: /images/kappaiota-lookups.png
 
 Once you have created your lookups you may test the result in the
 :doc:`metrics view <metricsview>`.

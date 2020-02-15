@@ -13,14 +13,13 @@ points used for bezier splines.
    call for a G4.
 -  Corner Points
 -  Prev Constraint points (to be used when the contour changes from a
-   curve to a straight line)
-
-   .. image:: /images/spiroprevconstraint.png
-
+   curve to a straight line) |spiroprevconstraint|
 -  Next Constraint points (to be used when the contour changes from a
-   straight line to a curve)
+   straight line to a curve) |spironextconstraint|
 
-   .. image:: /images/spironextconstraint.png
+.. |spiroprevconstraint| image:: /images/spiroprevconstraint.png
+.. |spironextconstraint| image:: /images/spironextconstraint.png
+
 
 Step 1
 ******

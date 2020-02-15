@@ -1,5 +1,5 @@
 Importing Outline Glyphs
-=======================
+========================
 
 
 You may be more comfortable designing your glyph outlines in some other vector

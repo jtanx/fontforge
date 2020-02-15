@@ -90,13 +90,14 @@ accents one could put another anchor so that when the two glyphs are adjacent in
 the text the word-processor will know where to place the accent so that it rides
 above the "a".
 
-.. list-table:: 
+.. flex-grid::
+   :class: flex-nobreak flex-middle
 
-   * - .. image:: /images/a_with_anchor.png
+   * :flex-widths: 0 0 0 0 0
 
-     - +
+     - .. image:: /images/a_with_anchor.png
+     - \+
      - .. image:: /images/grave_with_anchor.png
-
      - =>
      - .. image:: /images/agrave_anchored.png
 
@@ -125,7 +126,7 @@ at the point where the anchor is to be created and then bring up the
 You can examine (and correct) how a glyph fits to any others that combine with
 it by using the :ref:`View->Anchor Control... <viewmenu.AnchorControl>` command.
 
-.. warning:: 
+.. warning::
 
    **A warning about mark attachments:** Not all software supports them. And
    even more confusing software may support them for some scripts and not for
