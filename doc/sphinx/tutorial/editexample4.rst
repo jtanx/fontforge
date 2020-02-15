@@ -61,34 +61,36 @@ the components of the ligature into the glyph with
 :ref:`Element->Build->Build Composite <elementmenu.Accented>`. This makes it
 slightly easier (at least in latin) to design a ligature.
 
-.. list-table:: Steps to building a ligature
+.. rubric:: Steps to building a ligature
+
+.. flex-grid::
 
    * - .. image:: /images/ffi-refs.png
           :alt: ffi ligature as references
 
-     - .. image:: /images/ffi-unlink.png
-          :alt: ffi after unlinking references
-
-     - .. image:: /images/ffi-moved.png
-          :alt: ffi after lowering first f
-
-     - .. image:: /images/ffi-rmoverlap.png
-          :alt: ffi after doing remove overlap
-
-     - .. image:: /images/ffi-caret.png
-          :alt: ffi after adjusting ligature carets
-
-   * - Use the :ref:`Element -> Glyph Info <elementmenu.CharInfo>` dialog to name
+       Use the :ref:`Element -> Glyph Info <elementmenu.CharInfo>` dialog to name
        the glyph and mark it as a ligature. Then use
        :ref:`Element -> Build -> Build Composite <elementmenu.Accented>` to insert
        references to the ligature components.
-     - Use the :ref:`Edit-> Unlink References <editmenu.Unlink>` command to turn the
+     - .. image:: /images/ffi-unlink.png
+          :alt: ffi after unlinking references
+
+       Use the :ref:`Edit-> Unlink References <editmenu.Unlink>` command to turn the
        references into a set of contours.
-     - Adjust the components so that they will look better together. Here the stem
+     - .. image:: /images/ffi-moved.png
+          :alt: ffi after lowering first f
+
+       Adjust the components so that they will look better together. Here the stem
        of the first f has been lowered.
-     - Use the :ref:`Element -> Remove Overlap <elementmenu.Remove>` command to
+     - .. image:: /images/ffi-rmoverlap.png
+          :alt: ffi after doing remove overlap
+
+       Use the :ref:`Element -> Remove Overlap <elementmenu.Remove>` command to
        clean up the glyph.
-     - Finally drag the ligature caret lines from the origin to more appropriate
+     - .. image:: /images/ffi-caret.png
+          :alt: ffi after adjusting ligature carets
+
+       Finally drag the ligature caret lines from the origin to more appropriate
        places between the components.
 
 Some word processors will allow the editing caret to be placed inside a ligature
@@ -193,7 +195,7 @@ Select the lookup line (in the Lookups pane of Font Info) and press
 for the sub-table, and then another dialog will pop up and you will (finally) be
 able to store your ligature information.
 
-.. warning:: 
+.. warning::
 
    OpenType engines will only apply features which they believe are appropriate
    for the current script (in Latin scripts, Uniscribe will apply 'liga'). Even

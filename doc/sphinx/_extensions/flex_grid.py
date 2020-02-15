@@ -28,7 +28,8 @@ The flex-widths parameter is specified on a per-row basis. It should be a list
 of numbers whose length is equal to the number of columns in that row. It
 represents the ratio of space taken by that column. For example, with two
 columns and a flex-widths of '1 2', the proportion of space taken is 1:2
-between the first and second columns.
+between the first and second columns. A value of 0 disables flexing that
+column.
 '''
 
 from docutils import nodes, statemachine
@@ -47,7 +48,7 @@ class FlexGrid(Directive):
     final_argument_whitespace = True
     option_spec = {'class': directives.class_option}
     has_content = True
-    valid_flexes = set((1, 2, 3, 4, 5))
+    valid_flexes = set((0, 1, 2, 3, 4, 5))
 
     def run(self):
         if not self.content:
@@ -66,7 +67,6 @@ class FlexGrid(Directive):
             return [detail.args[0]]
 
         grid_node = self.build_grid_node(grid_data)
-        grid_node['classes'] += self.options.get('class', [])
         return [grid_node]
 
     def get_grid(self, node):
@@ -138,35 +138,30 @@ class FlexGrid(Directive):
 
     def build_grid_node(self, grid_data):
         grid = flex_grid()
+        grid['classes'] += ['flex-container']
+        grid['classes'] += self.options.get('class', [])
         for row_opts, row in grid_data:
             row_node = flex_row()
+            row_node['classes'] += ['flex-row']
             widths = row_opts.get('flex-widths')
 
             for i, cell in enumerate(row):
                 entry = flex_col()
+                entry['classes'] += ['flex-col']
                 if widths:
-                    entry.attributes['flex-width'] = widths[i]
+                    width = widths[i]
+                    if width == 0:
+                        entry['classes'] += ['flex-none']
+                    elif width != 1:
+                        entry['classes'] += ['flex-{}'.format(width)]
                 entry += cell
                 row_node += entry
             grid += row_node
         return grid
 
 
-def visit_flex_grid(self, node):
-    self.body.append(self.starttag(node, 'div', CLASS='flex-container'))
-
-
-def visit_flex_row(self, node):
-    self.body.append(self.starttag(node, 'div', CLASS='flex-row'))
-
-
-def visit_flex_col(self, node):
-    classes = 'flex-col'
-    cw = node.get('flex-width', None)
-    if cw and cw != 1:
-        classes += ' flex-{}'.format(cw)
-    self.body.append(self.starttag(node, 'div', CLASS=classes))
-
+def visit_flex_node(self, node):
+    self.body.append(self.starttag(node, 'div'))
 
 def depart_flex_node(self, node):
     self.body.append('</div>\n')
@@ -174,9 +169,9 @@ def depart_flex_node(self, node):
 
 def setup(app):
     app.add_directive('flex-grid', FlexGrid)
-    app.add_node(flex_grid, html=(visit_flex_grid, depart_flex_node))
-    app.add_node(flex_row, html=(visit_flex_row, depart_flex_node))
-    app.add_node(flex_col, html=(visit_flex_col, depart_flex_node))
+    app.add_node(flex_grid, html=(visit_flex_node, depart_flex_node))
+    app.add_node(flex_row, html=(visit_flex_node, depart_flex_node))
+    app.add_node(flex_col, html=(visit_flex_node, depart_flex_node))
 
     return {
         'version': '1.0.0',

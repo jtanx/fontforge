@@ -134,10 +134,14 @@ Consider "``To``" or "``Av``" here the standard choices are inappropriate. The
 top bar of the "``T``". This is called kerning, and it is used to control
 inter-glyph spacing on a pair-by-pair basis.
 
-.. list-table:: Kerning
+.. rubric:: Kerning comparison
 
-   * - .. image:: /images/To-unkerned.png
+.. flex-grid::
+   :class: flex-center
 
+   * :flex-widths: 0 0
+
+     - .. image:: /images/To-unkerned.png
      - .. image:: /images/To-kerned.png
 
 .. image:: /images/addlookup-kern.png

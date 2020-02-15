@@ -31,14 +31,18 @@ div.align-right>img {
 }
 
 .flex-row { display: flex; }
-.flex-col {
+.flex-row .flex-col {
   flex: 1;
   margin: 0 0.25em;
 }
+.flex-container.flex-left .flex-row { justify-content: left; }
+.flex-container.flex-center .flex-row { justify-content: center; }
+.flex-container.flex-right .flex-row { justify-content: right; }
 .flex-col.flex-2 { flex: 2; }
 .flex-col.flex-3 { flex: 3; }
 .flex-col.flex-4 { flex: 4; }
 .flex-col.flex-5 { flex: 5; }
+.flex-col.flex-none { flex: none; }
 @media (max-width: 599px) {
   .flex-row { display: block; }
 }
