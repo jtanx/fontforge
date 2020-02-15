@@ -7,3 +7,4 @@ User Interface Documentation
    ui/*
    ui/menus/*
    ui/dialogs/*
+   ui/dialogs/info/*
