@@ -5,3 +5,4 @@ User Interface Documentation
    :glob:
 
    ui/*
+   ui/menus/*
