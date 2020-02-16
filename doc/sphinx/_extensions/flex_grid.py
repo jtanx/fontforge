@@ -46,7 +46,7 @@ class flex_col(nodes.Part, nodes.Element): pass
 class FlexGrid(Directive):
 
     final_argument_whitespace = True
-    option_spec = {'class': directives.class_option}
+    option_spec = {'class': directives.class_option, 'name': directives.unchanged}
     has_content = True
     valid_flexes = set((0, 1, 2, 3, 4, 5))
 
@@ -138,6 +138,7 @@ class FlexGrid(Directive):
 
     def build_grid_node(self, grid_data):
         grid = flex_grid()
+        self.add_name(grid)
         grid['classes'] += ['flex-container']
         grid['classes'] += self.options.get('class', [])
         for row_opts, row in grid_data:

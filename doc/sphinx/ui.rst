@@ -8,3 +8,4 @@ User Interface Documentation
    ui/menus/*
    ui/dialogs/*
    ui/dialogs/info/*
+   ui/dialogs/lookups/*
