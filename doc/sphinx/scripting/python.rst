@@ -1,6 +1,8 @@
 Python Scripting
 ================
 
+.. default-domain:: py
+
 I assume you have a working knowledge of `Python <http://www.python.org/doc/>`_.
 FontForge implements two Python modules -- one great huge one called :py:mod:`fontforge`
 which provides access to as much of FontForge's functionality as I've had

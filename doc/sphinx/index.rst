@@ -7,7 +7,7 @@ Welcome to FontForge's documentation!
 
    tutorial
    ui
-   scripting
+   scripting/scripting
    techref
    fontutils
    appendices

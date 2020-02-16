@@ -29,7 +29,8 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.mathjax',
 
-    'flex_grid'
+    'flex_grid',
+    'fontforge_scripting_domain'
 ]
 
 # interesting to see if it can be adapted: docutils.utils.math.math2html
