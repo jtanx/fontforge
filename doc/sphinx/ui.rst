@@ -9,3 +9,4 @@ User Interface Documentation
    ui/dialogs/*
    ui/dialogs/info/*
    ui/dialogs/lookups/*
+   ui/dialogs/validation/*
