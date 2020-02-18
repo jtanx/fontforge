@@ -6,7 +6,7 @@
   clear: both;
 }
 
-blockquote.epigraph {
+.float-right, blockquote.epigraph {
   float: right;
   clear: right;
   margin-left: 1em;

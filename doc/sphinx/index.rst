@@ -10,7 +10,9 @@ Welcome to FontForge's documentation!
    scripting/scripting
    techref
    fontutils
+   faq
    appendices
+   glossary
 
 Indices and tables
 ==================
