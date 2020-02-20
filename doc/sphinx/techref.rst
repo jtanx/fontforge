@@ -1,5 +1,5 @@
-Technical References and Specifications
-=======================================
+Technical References
+====================
 
 .. toctree::
    :glob:

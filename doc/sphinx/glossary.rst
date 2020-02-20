@@ -74,10 +74,8 @@ Typographical glossary
       A stem on a lower case letter which extends above the x-height. "l" has an
       ascender.
 
-      See also :term:`X-height`,
-      :term:`Cap-height`,
-      :term:`Descender`, :term:`Overshoot`,
-      :term:`Baseline`
+      See also :term:`X-height`, :term:`Cap-height`, :term:`Descender`,
+      :term:`Overshoot`, :term:`Baseline`
 
    Anchor Class
       Used to specify mark-to-base and cursive GPOS subtables. See
@@ -102,8 +100,7 @@ Typographical glossary
       you to specify how the baselines of different scripts should be aligned with
       respect to each other.
 
-      See also :term:`X-height`,
-      :term:`Cap-height`, :term:`Ascender`,
+      See also :term:`X-height`, :term:`Cap-height`, :term:`Ascender`,
       :term:`Descender`, :term:`Overshoot`
 
    Bézier curve
@@ -173,8 +170,7 @@ Typographical glossary
       The height of a capital letter above the baseline (a letter with a flat top
       like "I" as opposed to one with a curved one like "O").
 
-      See also :term:`X-height`,
-      :term:`Ascender`, :term:`Descender`,
+      See also :term:`X-height`, :term:`Ascender`, :term:`Descender`,
       :term:`Overshoot`, :term:`Baseline`
 
    CFF
@@ -231,8 +227,7 @@ Typographical glossary
       A stem on a lower case letter which extends below the baseline. "p" has a
       descender.
 
-      See also :term:`X-height`,
-      :term:`Cap-height`, :term:`Ascender`,
+      See also :term:`X-height`, :term:`Cap-height`, :term:`Ascender`,
       :term:`Overshoot`, :term:`Baseline`
 
    Descent
@@ -653,8 +648,7 @@ Typographical glossary
       faces for the different point-sizes, and in such a case the overshoot will
       probably vary from face to face.
 
-      See also :term:`X-height`,
-      :term:`Cap-height`, :term:`Ascender`,
+      See also :term:`X-height`,:term:`Cap-height`, :term:`Ascender`,
       :term:`Descender`, :term:`Baseline`
 
    PANOSE
@@ -805,7 +799,7 @@ Typographical glossary
          :class: float-right
 
          * - latin
-             
+
              greek
 
              cyrillic
@@ -821,7 +815,7 @@ Typographical glossary
              bet serif
            - .. image:: /images/BethSans.png
 
-             sans serif 
+             sans serif
 
       Back two thousand years ago when the Romans were carving their letters on
       stone monuments, they discovered that they could reduce the chance of the
@@ -953,8 +947,7 @@ Typographical glossary
       tend to be bigger than alphabets (Japanese KataKana requires about 60
       different characters, while the Korean Hangul requires tens of thousands).
 
-      See Also: :term:`abjad`, :term:`abugida`,
-      :term:`alphabet` and the relevant
+      See Also: :term:`abjad`, :term:`abugida`, :term:`alphabet` and the relevant
       `Wikipedia article <http://en.wikipedia.org/wiki/S%20yllabary>`__.
 
    TeX
@@ -975,8 +968,7 @@ Typographical glossary
 
       Apple and Adobe/MicroSoft have expanded these tables in different ways to
       include for advanced typographic features needed for non-latin scripts (or
-      for complex latin scripts). See
-      :term:`Apple Advanced Typography` and
+      for complex latin scripts). See :term:`Apple Advanced Typography` and
       :term:`OpenType`.
 
    TrueType Tables
@@ -988,12 +980,10 @@ Typographical glossary
       A type of :term:`PostScript` font which see.
 
    Type 2
-      A type of :term:`PostScript` font, used within
-      :term:`OpenType` font wrappers.
+      A type of :term:`PostScript` font, used within :term:`OpenType` font wrappers.
 
    Type 3
-      A very general type of :term:`PostScript` font, which
-      see.
+      A very general type of :term:`PostScript` font, which see.
 
    Type 0
       A type of :term:`PostScript` font, which see.
@@ -1085,8 +1075,7 @@ Typographical glossary
       "x" or "z" or "v" as opposed to one with a curved top like "o" or one with an
       ascender like "l") .
 
-      See also :term:`Cap-height`,
-      :term:`Ascender`, :term:`Descender`,
+      See also :term:`Cap-height`, :term:`Ascender`, :term:`Descender`,
       :term:`Overshoot`, :term:`Baseline`
 
    XUID

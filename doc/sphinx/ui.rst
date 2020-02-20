@@ -1,11 +1,10 @@
-User Interface Documentation
-============================
+FontForge's User Interface
+==========================
 
 .. toctree::
    :glob:
 
    ui/*
-   ui/menus/*
    ui/dialogs/*
    ui/dialogs/info/*
    ui/dialogs/lookups/*
