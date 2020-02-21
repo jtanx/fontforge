@@ -126,9 +126,7 @@ After a lot of algebra this boils down to the quadratic in t:
 
 .. math::
 
-   3\left( a_x b_y - a_y b_x \right) t^2 +
-   3\left( c_x a_y - c_y a_x \right) t +
-   c_x b_y - c_y b_x = 0
+   3(a_x b_y - a_y b_x)t^2 + 3(c_x a_y - c_y a_x)t + c_x b_y - c_y b_x = 0
 
 If you examine this closely you will note that a quadratic spline
 (:math:`a_y = a_x = 0`) can never have a point of inflection.
@@ -201,7 +199,7 @@ Now we want to minimize the sum of the squares of the difference between the
 value we approximate with the new spline, :math:`S(t_i)`, and the actual value we
 were given, :math:`P_i`.
 
-.. math:: \sum \left[ S(t_i) - P_i \right]^2
+.. math:: \sum [ S(t_i) - P_i ]^2
 
 Now we have four unknown variables, the x and y coordinates of the two control
 points. To find the minimum of the above error term we must take the derivative
@@ -210,18 +208,18 @@ with four unknowns and we can solve for each variable.
 
 .. math::
 
-   \sum 2 \left( -3t^3 + 3t^2 \right) \left[ S_x(t_i) - P_{i_x} \right] = 0 \\
-   \sum 2 \left( -3t^3 + 3t^2 \right) \left[ S_y(t_i) - P_{i_y} \right] = 0 \\
-   \sum 2 \left( 3t^3 - 6t^2  + 3t \right) \left[ S_x(t_i) - P_{i_x} \right] \\
-   \sum 2 \left( 3t^3 - 6t^2  + 3t \right) \left[ S_y(t_i) - P_{i_y} \right]
+   \sum 2 ( -3t^3 + 3t^2 ) [ S_x(t_i) - P_{i_x} ] = 0 \\
+   \sum 2 ( -3t^3 + 3t^2 ) [ S_y(t_i) - P_{i_y} ] = 0 \\
+   \sum 2 ( 3t^3 - 6t^2  + 3t ) [ S_x(t_i) - P_{i_x} ] = 0 \\
+   \sum 2 ( 3t^3 - 6t^2  + 3t ) [ S_y(t_i) - P_{i_y} ] = 0 
 
 Happily for us, the x and y terms do not interact and my be solved separately.
 The procedure is the same for each coordinate, so I shall only show one:
 
 .. math::
 
-   \sum 2 \left( -3t^3 + 3t^2 \right) \left[ S_x(t_i) - P_{i_x} \right] = 0 \\
-   \sum 2 \left( 3t^3 - 6t^2  + 3t \right) \left[ S_x(t_i) - P_{i_x} \right] \\
+   \sum 2 ( -3t^3 + 3t^2 ) [ S_x(t_i) - P_{i_x} ] = 0 \\
+   \sum 2 ( 3t^3 - 6t^2  + 3t ) [ S_x(t_i) - P_{i_x} ] = 0\\
    \Rightarrow
 
 .. math::
@@ -234,35 +232,35 @@ The procedure is the same for each coordinate, so I shall only show one:
 
 .. math::
 
-   CP_{1_x} \sum \left( -3t^3 + 3t^2 \right) \left( -3t^3 + 3t^2 \right) = \\
-   -\sum \left( -3t^3 + 3t^2 \right)
-   \left[
-      \left( 3t^3 - 6t^2 + 3t \right) CP_{0_x} + \\
-      \left( P_{1_x} - P_{0_x} \right) t^3 + 3P_{0_x}t^2 - 3P_{0_x}t + P_{0_x} - P_{i_x}
-   \right]
+   CP_{1_x} \sum ( -3t^3 + 3t^2 ) ( -3t^3 + 3t^2 ) = \\
+   -\sum ( -3t^3 + 3t^2 )
+   [
+      ( 3t^3 - 6t^2 + 3t ) CP_{0_x} + \\
+      ( P_{1_x} - P_{0_x} ) t^3 + 3P_{0_x}t^2 - 3P_{0_x}t + P_{0_x} - P_{i_x}
+   ]
 
 .. math::
 
    CP_{1_x} = -\frac{
-      \sum \left( -3t^3 + 3t^2 \right)
-      \left[
-         \left( 3t^3 - 6t^2 + 3t \right) CP_{0_x} + \\
-         \left( P_{1_x} - P_{0_x} \right) t^3 + 3P_{0_x}t^2 - 3P_{0_x}t + P_{0_x} - P_{i_x}
-      \right]
+      \sum ( -3t^3 + 3t^2 )
+      [
+         ( 3t^3 - 6t^2 + 3t ) CP_{0_x} + \\
+         ( P_{1_x} - P_{0_x} ) t^3 + 3P_{0_x}t^2 - 3P_{0_x}t + P_{0_x} - P_{i_x}
+      ]
    }{
-      \sum \left( -3t^3 + 3t^2 \right) \left( -3t^3 + 3t^2 \right)
+      \sum ( -3t^3 + 3t^2 ) ( -3t^3 + 3t^2 )
    }
 
 Now this can be plugged into the other equation
 
 .. math::
 
-   \sum \left( 3t^3 - 6t^2 + 3t \right)
-   \left[
-      \left( -3t^3 + 3t^2 \right) CP_{1_x} + \\
-      \left( 3t^3 - 6t^2 + 3t \right) CP_{0_x} + \\
-      \left( P_{1_x} - P_{0_x} \right) t^3 + 3P_{0_x}t^2 - 3P_{0_x}t + P_{0_x} - P_{i_x}
-   \right]
+   \sum ( 3t^3 - 6t^2 + 3t )
+   [
+      ( -3t^3 + 3t^2 ) CP_{1_x} + \\
+      ( 3t^3 - 6t^2 + 3t ) CP_{0_x} + \\
+      ( P_{1_x} - P_{0_x} ) t^3 + 3P_{0_x}t^2 - 3P_{0_x}t + P_{0_x} - P_{i_x}
+   ]
    = 0
 
 And we can solve for :math:`CP_{0_x}` and then :math:`CP_{1_x}`. The algebra
@@ -319,8 +317,8 @@ Substituting we get
 .. math::
    d &= P_0 \\
    c &= 3r_0 \Delta_0 \\
-   b &= 3\left( P_1 - P_0 + r_1 \Delta_1 - 2r_0 \Delta_0 \right) \\
-   a &= 2\left( P_0 - P_1 \right) + 3 \left( r_0 \Delta_0 - r_1 \Delta_1 \right)
+   b &= 3( P_1 - P_0 + r_1 \Delta_1 - 2r_0 \Delta_0 ) \\
+   a &= 2( P_0 - P_1 ) + 3 ( r_0 \Delta_0 - r_1 \Delta_1 )
 
 For least squares we want to minimize :math:`\sum(S(t_i) - P_i)^2`. Taking
 derivatives with both :math:`r_0` and :math:`r_1`, we get:
