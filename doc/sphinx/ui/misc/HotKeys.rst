@@ -276,8 +276,8 @@ control+S this will be interpreted as control being held while the 's' key is
 pressed. If you are wanting the Shift key to be held too, you need to explicitly
 specify that as with control+shift+s as the key definition.
 
-FontForge recognizes the following standard modifiers: Alt, Esc Ctrl, Control,
-Ctrl, Shift, Shift, CapsLock, Opt (the last corresponds to the Option key on the
+FontForge recognizes the following standard modifiers: Alt, Esc Ctl, Control,
+Ctrl, Shft, Shift, CapsLock, Opt (the last corresponds to the Option key on the
 mac keyboard, Cmd+ for the mac Command key Note: This can only be used by an X
 program if the X11 application does not appropriate it -- this can be configured
 in the X11 Preferences).

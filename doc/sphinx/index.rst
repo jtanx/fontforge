@@ -27,11 +27,10 @@ Font design can be a Trap, but I find it a rather pleasant one. *Caveat utor*.
 
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :hidden:
    :includehidden:
 
-   overview
    tutorial
    ui
    scripting/scripting

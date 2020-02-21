@@ -55,7 +55,7 @@ You can download the
 .. _uitranslationnotes.Modifying:
 
 Creating and Modifying a "po" file
-==================================
+----------------------------------
 
 .. epigraph::
 
@@ -264,7 +264,7 @@ Obviously, in a language with three forms there would be additional
 .. _uitranslationnotes.Updating:
 
 Updating an already existing "po" file
---------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 After a few months, you will probably find that I've added some additional
 strings to FontForge, and you may want to update your original po file.
@@ -286,7 +286,7 @@ checking these easy).
 .. _uitranslationnotes.Testing:
 
 Testing a "po" file
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Once you have completed your po file you will want to test it.
 

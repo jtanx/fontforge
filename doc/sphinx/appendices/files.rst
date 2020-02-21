@@ -6,7 +6,7 @@ Files used by FontForge
    FontForge creates this directory the first time it starts up. It contains
    various files FontForge uses to hold context across invocations.
 
-   --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
    .. object:: ~/.FontForge/prefs
 

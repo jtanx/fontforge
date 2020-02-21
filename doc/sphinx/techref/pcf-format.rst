@@ -1,5 +1,5 @@
-Format for X11 pcf bitmap font files
-====================================
+The X11 PCF bitmap font file format
+===================================
 
 This file is based on the
 `X11 sources <http://ftp.x.org/pub/R6.4/xc/lib/font/bitmap/>`__. If something

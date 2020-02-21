@@ -13,6 +13,10 @@
   font-size: 0.7em;
 }
 
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
 div.body {
   min-width: inherit !important;
 }

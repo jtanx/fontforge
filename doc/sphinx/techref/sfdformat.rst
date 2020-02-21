@@ -23,7 +23,7 @@ Spline Font Database
    -- *The Lady's not for Burning*
    -- Christopher Fry
 
-The sfd format evolves over time. I hope the current parser can handle old sfd
+The sfd [#sfdext]_ format evolves over time. I hope the current parser can handle old sfd
 formats. Most changes have been small, but in Feb 2008 I allowed multiple layers
 in fonts and this turned out to be an incompatible change and I raised the sfd
 version number to 3, and in March of 2007 the way fontforge handled lookups and
@@ -32,7 +32,7 @@ first time) and sfd files created before then are better understood if you look
 at an
 `older version of this document <https://github.com/fontforge/fontforge/commits/master/htdocs/sfdformat.html>`_.
 
-FontForge's :doc:`sfd <sfd>` files are ASCII files (so they can be copied easily
+FontForge's sfd files are ASCII files (so they can be copied easily
 across the internet and so that diffs are somewhat meaningful). They contain a
 full description of your font. As of 14 May 2008 there is a registered (with
 IANA) MIME type for them
@@ -576,9 +576,9 @@ remind people what each cvt entry is supposed to do. They are totally optional.
    ...
 
 FontForge will also store tables it doesn't understand, these will be stored in
-uninterpreted binary which is packed using the ASCII85Encode [#f1]_ encoding
+uninterpreted binary which is packed using the ASCII85Encode [#ascii85]_ encoding
 filter. The first line says that the 'LILY' table is 4360 bytes long.
-Subsequent lines will provide those 4360 bytes of data ASCII85Encode [#f1]_. See
+Subsequent lines will provide those 4360 bytes of data ASCII85Encode [#ascii85]_. See
 the PostScript Reference Manual (3rd edition, pages 131-132) for a description
 of this packing, or ``$ man btoa``).
 
@@ -1242,7 +1242,7 @@ are distinguished by the initial keyword ``TtInstrs`` vs. ``Tt\ *f*Instrs``)
    $pP.r$uZOWNsl$t"H>'?EW%CM&Cer:&f3P>eEnad5<Qq=rQYuk3AE2g>q7E*
    EndTtf
 
-This is 107 bytes of ASCII85Encode [#f1]_ encoded binary data.
+This is 107 bytes of ASCII85Encode [#ascii85]_ encoded binary data.
 
 If the character contains Anchor Points these will be included:
 
@@ -1753,7 +1753,18 @@ Bitmaps are not preserved. Grid changes are not preserved.
 
 .. rubric:: Footnotes
 
-.. [#f1]
+.. [#sfdext]
+
+   **The SFD extension**
+
+   Yes, I know it stands for sub-file directory on the dear old PDP-10s.
+
+   But they aren't really around any more, so I'll reuse it. And probably nobody
+   else remembers them...
+
+   Oh, it's also used by TeX for Sub Font Definition files (see ttf2afm).
+
+.. [#ascii85]
 
    **ASCII85Encode**
 

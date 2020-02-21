@@ -1,6 +1,11 @@
 Font Info
 =========
 
+.. toctree::
+   :hidden:
+
+   histogram
+
 .. figure:: /images/fontinfo.png
 
 The Font Info dialog is available from all views. It allows you to name your

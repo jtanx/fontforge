@@ -384,7 +384,7 @@ glyphs.
 .. _Styles.Italic:
 
 Italic dialog
-=============
+-------------
 
 Let me reiterate that the italic transformation is quite different and much more
 complex than the oblique transformation. Oblique fonts are made by the same
@@ -691,7 +691,7 @@ So in the example at right, if you selected all the digits, then FontForge would
 create a new set of glyphs named "zero.superior", "one.superior" ...
 "nine.superior". It would create a new lookup bound to the feature "sups" which
 would map "zero" to "zero.superior", etc. By default each new glyph will be
-scaled down to be 2/3:sup:`rd`s the original size, but the stems would only be
+scaled down to be 2/3\ :sup:`rd`\ s the original size, but the stems would only be
 scaled by 3/4 (so the glyph will look proportionately darker). Finally each new
 glyph will be moved up by 450 em-units. Again if you don't like these defaults
 you have all the options of the :ref:`Change Glyphs <Styles.changeglyph>` dialog

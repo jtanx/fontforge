@@ -2,10 +2,12 @@ FontForge's User Interface
 ==========================
 
 .. toctree::
-   :glob:
+   :maxdepth: 2
 
-   ui/*
-   ui/dialogs/*
-   ui/dialogs/info/*
-   ui/dialogs/lookups/*
-   ui/dialogs/validation/*
+   ui/mainviews
+   ui/menus
+   ui/dialogs
+   ui/misc/HotKeys
+   ui/misc/fontforge-themes
+   ui/misc/resedit
+   ui/misc/xim

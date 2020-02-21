@@ -67,12 +67,10 @@ disabled controls. The border has four different colors, for the brightest, mid
 bright, mid dark and darkest edges of the control. Where each of the border
 colors is used depends on the border type.
 
-The peculiar button,
+The peculiar button, |colorbutton|, is a color button. It displays the current
+color in a rectangle, and, if pressed, invokes a color picker dialog.
 
-.. image:: /images/colorbutton.png
-
-, is a color button. It displays the current color in a rectangle, and, if
-pressed, invokes a color picker dialog.
+.. |colorbutton| image:: /images/colorbutton.png
 
 .. image:: /images/colorpicker.jpeg
    :align: right

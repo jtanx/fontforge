@@ -1,5 +1,5 @@
-The Insert Text Dialog
-======================
+Insert Text Dialog
+==================
 
 .. image:: /images/InsertTxtDlg.png
    :align: right

@@ -289,19 +289,10 @@ support).
 --------------------------------------------------------------------------------
 
 
-Uploads to `Open Font Library <http://openfontlibrary.org/>`__
---------------------------------------------------------------
-
-It is possible to upload a font to the Open Font Library, please see
-:ref:`that section <oflib.Uploading>` for more information.
-
---------------------------------------------------------------------------------
-
-
 .. _generate.Mac-Family:
 
 Generate Mac Family
-===================
+-------------------
 
 .. image:: /images/GenerateFamily.png
    :align: right
