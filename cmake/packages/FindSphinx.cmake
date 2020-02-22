@@ -55,13 +55,13 @@ function(_sphinx_from_venv)
       "${CMAKE_BINARY_DIR}/sphinx-venv/bin"
   )
   if(NOT _venv_bin)
-    message(WARN "could not make venv")
+    message(WARNING "could not make venv")
     return()
   endif()
 
   execute_process(COMMAND "${_venv_bin}" -m pip install sphinx RESULT_VARIABLE _pip_result)
   if(_pip_result)
-    message(WARN "could not install sphinx")
+    message(WARNING "could not install sphinx")
     return()
   endif()
 
