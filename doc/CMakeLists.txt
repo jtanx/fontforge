@@ -21,7 +21,7 @@ file(STRINGS manifest.txt _manifest)
 configure_file(manifest.txt manifest.txt COPYONLY)
 
 add_custom_command(OUTPUT sphinx-docs
-  COMMAND "${Sphinx_BUILD_BINARY}" -n -W -b html -d doctrees "${CMAKE_CURRENT_SOURCE_DIR}/sphinx" sphinx-docs
+  COMMAND "${Sphinx_BUILD_BINARY}" -q -n -W -b html -d doctrees "${CMAKE_CURRENT_SOURCE_DIR}/sphinx" sphinx-docs
   DEPENDS ${_manifest}
 )
 
