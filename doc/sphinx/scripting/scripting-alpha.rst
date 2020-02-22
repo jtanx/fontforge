@@ -1462,6 +1462,13 @@ the fourth argument you must specify the second and third arguments too.
    described by www.unicode.org. Return 0 if there is no fraction for this
    value. It can execute with no current font.
 
+.. function:: IsSpace(val)
+
+   Returns whether val is a space. Val may be either an integer, a
+   unicode or a string. The first two cases are treated as unicode code points,
+   the third looks at the first (utf8) character in the string. It can execute
+   with no current font.
+
 .. function:: IsUpper(val)
 
    Returns whether val is an upper case letter. Val may be either an integer, a

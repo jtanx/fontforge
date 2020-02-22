@@ -183,6 +183,7 @@ of the dlg, you must also specify a default value for the axis, and a
 translatable name.
 
 .. figure:: /images/mmnamedstyles.png
+
 Apple allows coordinates in design space to be named. Here the name "Black" is
 given to the location where Weight=3.2 (the darkest value) and
 

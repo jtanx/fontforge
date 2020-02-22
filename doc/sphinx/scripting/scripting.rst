@@ -776,7 +776,7 @@ Built-in procedures that handle Advanced Typography
 * :func:`GetAnchorPoints()`
 * :func:`GetLookupInfo()`
 * :func:`GetLookups()`
-* :func:`GetLookupSubtable()`
+* :func:`GetLookupSubtables()`
 * :func:`GetLookupOfSubtable()`
 * :func:`GetPosSub()`
 * :func:`GetSubtableOfAnchor()`
@@ -1243,7 +1243,7 @@ the [Filter] button). After you have selected your script the appropriate text
 to text to invoke it will be placed in the text area.
 
 The current font of the script will be set to whatever font you invoked it from
-(in python this is :py:func:`fontforge.activeFontInUI()`).
+(in python this is :py:func:`fontforge.activeFont()`).
 
 Note that if you try to print from a script the output will go to stdout. If you
 have invoked fontforge from a window manager's menu stdout will often be bound

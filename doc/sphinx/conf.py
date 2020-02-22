@@ -59,9 +59,14 @@ html_static_path = ['_static']
 # Don't make images clickable to the original if they're scaled
 html_scaled_image_link = False
 
+# Set the favicon
 html_favicon = 'images/fftype16.png'
 
+# Include the old Japanese/German docs
 html_extra_path = ['olddocs']
+
+# Don't copy source rst files into the output
+html_copy_source = False
 
 # Custom roles must be in the prolog, not the epilog!
 rst_prolog = '''

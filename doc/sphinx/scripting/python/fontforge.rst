@@ -140,7 +140,7 @@ Module functions
 
 .. function:: printSetup(type[, printer|cmd|file, width, height])
 
-   Prepare to :func:`print a font sample<printSample>`.
+   Prepare to :func:`print a font sample <font.printSample>`.
    The first argument may be one of:
 
    .. object:: lp
@@ -1363,7 +1363,7 @@ Layers may be compared to see if their contours are similar.
 
 .. method:: layer.draw(pen)
 
-   Draw the layer to the :class:`pen` argument.
+   Draw the layer to the :class:`pen <glyphPen>` argument.
 
 
 .. rubric:: Sequence Protocol
