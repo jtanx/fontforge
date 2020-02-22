@@ -29,9 +29,9 @@ can't just rasterize them and redistribute them).
 If anyone would like to submit glyphs to this font (or to putative similar ones
 for planes 2&14) I'll try and coordinate that process.
 
-* :download:`PlaneOne.sfd <PlaneOne.sfd.bz2>`
-* :download:`PlaneOne-13.bdf <PlaneOne-13.bdf.bz2>`
-* :download:`toplane.c <toplane.c.bz2>`
+* `PlaneOne.sfd <https://fontforge.org/downloads/PlaneOne.sfd.bz2>`__
+* `PlaneOne-13.bdf <https://fontforge.org/downloads/PlaneOne-13.bdf.bz2>`__
+* `toplane.c <https://fontforge.org/downloads/toplane.c.bz2>`__
 
 The sfd file is encoded with a "full unicode" encoding. The program toplane.c
 will take a bdf containing one Unicode plane, figure out which plane it is, and

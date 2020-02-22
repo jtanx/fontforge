@@ -283,7 +283,7 @@ font.
 The ``Remove Encoding`` menu item brings up a list showing all the custom
 encodings and allows you to delete them.
 
-Here's an :download:`example of a postscript encoding file <Encodings.ps.gz>`.
+Here's an `example of a postscript encoding file <https://fontforge.org/downloads/Encodings.ps.gz>`__.
 It contains:
 
 * TeXMathItalicEncoding
@@ -407,8 +407,8 @@ if you go to
 :menuselection:`File --> Preferences --> Generic --> UnicodeGlyphNames` and set
 it on you can use unicode.
 
-I've created a :download:`french namelist <ListeDesGlyphs.nam>` which uses
-accented letters. This will work fine within fontforge, and most rasterizers
+I've created a `french namelist <https://fontforge.org/downloads/ListeDesGlyphs.nam>`__
+which uses accented letters. This will work fine within fontforge, and most rasterizers
 will parse fonts generated using such names -- but they are non-standard and may
 cause problems. Best to do a rename just before generating your font.
 

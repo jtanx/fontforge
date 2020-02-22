@@ -1047,7 +1047,7 @@ the fourth argument you must specify the second and third arguments too.
    If the filename contains a "%s" and has either a ".pf[ab]" extension then a
    "mult-sfd-file" may be present. This is the filename of a file containing the
    mapping from the current encoding into the subfonts.
-   :download:`Here is an example <Big5.txt>`. If this file is not present
+   `Here is an example <https://fontforge.org/downloads/Big5.txt>`__. If this file is not present
    FontForge will go through its default search process to find a file for the
    encoding, and if it fails the fonts will not be saved.
 

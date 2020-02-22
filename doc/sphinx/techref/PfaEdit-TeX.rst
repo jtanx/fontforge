@@ -13,7 +13,7 @@ autotrace it and generate an outline font.
 It can read ligature, kerning information from a ".tfm" file. It can create a
 tfm file.
 
-The :download:`encodings <Encodings.ps.gz>` file has a number of standard TeX
+The `encodings <https://fontforge.org/downloads/Encodings.ps.gz>`__ file has a number of standard TeX
 encodings built in to it.
 
 For large CJK truetype fonts it can read a sub-font definition file as defined

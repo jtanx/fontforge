@@ -1048,7 +1048,7 @@ Examples
 
 * `FontForge's testsuite in the test subdirectory <https://github.com/fontforge/fontforge/tree/master/test>`__
   (such as it is)
-* :download:`Directory of donated scripts <scripts/>`
+* `Directory of donated scripts <https://github.com/fontforge/fontforge/tree/master/pycontrib>`__
 * Scripts used in other projects
 
   * `x-symbol <http://sourceforge.net/projects/x-symbol/>`__

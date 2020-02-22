@@ -42,7 +42,7 @@ The outline types are:
   with a two byte encoding into a series of smaller pfb (or pfa) files with 256
   glyphs in each. You may be prompted for a file to specify the conversion. See
   the ttf2tfm man page for a description of these SUBFONT DEFINITION FILES.
-  :download:`Here is an example of what the file should look like <Big5.txt>`)
+  `Here is an example of what the file should look like <https://fontforge.org/downloads/Big5.txt>`__)
 * PostScript Type3 font (a .pt3 font, this is also used by printers and is not
   encrypted)
 * PostScript Type0 font, this is only available if you have a font encoded with

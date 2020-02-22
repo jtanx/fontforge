@@ -1,7 +1,8 @@
 Font and glyph creation
 =======================
 
-If you wish to follow along with the tutorial, :download:`this bundle <tutorial.tgz>`
+If you wish to follow along with the tutorial,
+`this bundle <https://fontforge.org/downloads/tutorial.tgz>`__
 should provide you with the basic files you need.
 
 I shall not presume to teach aesthetics, I concentrate solely on the mechanics

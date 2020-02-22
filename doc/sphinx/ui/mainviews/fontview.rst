@@ -304,7 +304,7 @@ glyph set that works for Unicode, but it is called "Identity" instead. FontForge
 does not have these glyph sets built in to it, each must be loaded the first
 time it is used. I provide one file for each of the above glyph sets, they have
 an extension of ".cidmap", and you may download them all
-:download:`from here <cidmaps.tgz>`.
+`from here <https://fontforge.org/downloads/cidmaps.tgz>`__.
 
 (There are also many other character sets floating around feel free to install
 them yourself).
