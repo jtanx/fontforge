@@ -12,3 +12,8 @@ Appendices
    appendices/fontstyles
    appendices/OFL-Unofficial
    appendices/bibliography
+
+`Japanese documentation (outdated) <old/ja>`__
+----------------------------------------------
+
+* `Overview <old/ja/overview.html>`__

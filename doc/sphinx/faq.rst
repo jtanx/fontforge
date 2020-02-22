@@ -87,7 +87,7 @@ Questions about Hints and TrueType Instructions
 
 
 Questions about :doc:`Font Formats </appendices/bibliography>`
---------------------------------------------------
+--------------------------------------------------------------
 
 * :ref:`What's the difference between OpenType and PostScript (or TrueType) fonts? <faq.Open-difference>`
 * :ref:`What is the difference between AAT (Apple Advanced Typography) and OpenType? <faq.AAT-Open>`

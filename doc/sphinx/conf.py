@@ -59,6 +59,10 @@ html_static_path = ['_static']
 # Don't make images clickable to the original if they're scaled
 html_scaled_image_link = False
 
+html_favicon = 'images/fftype16.png'
+
+html_extra_path = ['olddocs']
+
 # Custom roles must be in the prolog, not the epilog!
 rst_prolog = '''
 .. role:: small
