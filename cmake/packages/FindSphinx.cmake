@@ -71,7 +71,7 @@ endfunction()
 
 _find_sphinx()
 
-if(NOT Sphinx_BUILD_BINARY AND SPHINX_USE_VIRTUALENV AND NOT EXISTS "${CMAKE_BINARY_DIR}/sphinx-venv")
+if(NOT Sphinx_BUILD_BINARY AND SPHINX_USE_VENV AND NOT EXISTS "${CMAKE_BINARY_DIR}/sphinx-venv")
   message(STATUS "sphinx-build not found, attempting to install it into a venv...")
   _sphinx_from_venv()
 endif()
