@@ -64,7 +64,7 @@ curve to a straight line.
 If you pick the wrong constraint (and I often do -- it will become obvious
 later when the contour looks distorted here), then select the constraint
 point and use :ref:`Element->Get Info <getinfo.Spiro>` to change the
-point type -- or use the :doc:`Point menu <pointinfo>`.
+point type -- or use the :doc:`Point menu </ui/menus/pointmenu>`.
 
 Step 4
 ******

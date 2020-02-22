@@ -371,7 +371,7 @@ and you drag it to the end point of another open path then the two paths will be
 joined.
 
 If you double click then a point will be added as above and a
-:doc:`Point Info <getinfo>` dlg will appear to give you fine control over the
+:doc:`Point Info </ui/dialogs/getinfo>` dlg will appear to give you fine control over the
 location of the point and its control points.
 
 The four different point types are
@@ -976,6 +976,6 @@ Multiple Layer Editing
 .. image:: /images/charview-multilayer.png
    :align: right
 
-If you wish to :doc:`edit type3 fonts <multilayer>`, FontForge can display a
+If you wish to :doc:`edit type3 fonts </ui/dialogs/multilayer>`, FontForge can display a
 glyph broken down into a series of strokes and fills and allow you to edit each
 one.

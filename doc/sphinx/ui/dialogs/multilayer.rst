@@ -24,7 +24,7 @@ its points are editable. The other layer is shown as a dashed line.
 The Layer palette looks a little different here. There is no hinting information
 (hints are irrelevant in type3 fonts), instead there are two named layers
 (background and grid) which behave pretty much as they
-:doc:`normally <charview>` do. They may be made active by clicking on their
+:doc:`normally </ui/mainviews/charview>` do. They may be made active by clicking on their
 names. They may be made invisible by turning off the check box associated with
 them.
 

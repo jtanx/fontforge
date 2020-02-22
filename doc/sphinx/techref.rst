@@ -32,5 +32,4 @@ Technical References
    techref/TrueOpenTables
    techref/corpchar
    techref/UniqueID
-   techref/xres
    techref/selections

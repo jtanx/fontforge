@@ -96,7 +96,7 @@ Typographical glossary
       (latin, greek, cyrillic) letters sit. The baseline will probably be in a
       different place for different scripts. In Indic scripts most letters descend
       below the baseline. In CJK scripts there is also a vertical baseline usually
-      in the middle of the glyph. The :doc:`BASE and bsln <baseline>` tables allow
+      in the middle of the glyph. The :doc:`BASE and bsln </ui/dialogs/baseline>` tables allow
       you to specify how the baselines of different scripts should be aligned with
       respect to each other.
 
@@ -106,7 +106,7 @@ Typographical glossary
    Bézier curve
    Bézier splines
       Bézier curves are described in detail in the
-      :doc:`Bézier section of the main manual. <bezier>`
+      :doc:`Bézier section of the main manual. </techref/bezier>`
 
    Bidi
       .. epigraph::
@@ -295,7 +295,7 @@ Typographical glossary
 
    Even-Odd Fill rule
       To determine if a pixel should be
-      :ref:`filled using this rule <editexample2.even-odd>`, draw a line from the
+      :ref:`filled using this rule <editexample2.even-odd-non-zero>`, draw a line from the
       pixel to infinity (in any direction) then count the number of times contours
       cross this line. If that number is odd then fill the point, if it is even
       then do not fill the point. This method is used for fonts by postscript
@@ -564,9 +564,9 @@ Typographical glossary
       be filled with several different colors, stroked, include images, have
       gradient fills, etc..
 
-      See :doc:`Also <multilayer>`
+      See :doc:`Also </ui/dialogs/multilayer>`
 
-      * :doc:`general information <multilayer>`
+      * :doc:`general information </ui/dialogs/multilayer>`
       * Setting font type with :ref:`Element->Font Info->Layers <fontinfo.Layers>`
 
    Multiple Master Font
@@ -578,14 +578,14 @@ Typographical glossary
 
       Adobe is no longer developing this format. Apple has a format which acheives
       the same effect but has not produced many examples. FontForge
-      :doc:`supports both <multiplemaster>`.
+      :doc:`supports both </ui/dialogs/multiplemaster>`.
 
    Namelist
       A mapping from unicode code point to glyph name.
 
    Non-Zero Winding Number Fill rule
       To determine if a pixel should be
-      :ref:`filled using this rule <editexample2.non-zero>` draw a line from here
+      :ref:`filled using this rule <editexample2.even-odd-non-zero>` draw a line from here
       to infinity (in any direction) and count the number of times contours cross
       this line. If the contour crosses the line in a clockwise direction add 1, of
       the contour crosses in a counter clockwise direction subtract one. If the
@@ -619,7 +619,7 @@ Typographical glossary
    OpenType Tables
       Each opentype font contains a collection of tables each of which contains a
       certain kind of information. See
-      :doc:`here for the tables used by FontForge <TrueOpenTables>`.
+      :doc:`here for the tables used by FontForge </techref/TrueOpenTables>`.
 
    Oblique
       A slanted :term:`style` of a font, generally used for
@@ -686,8 +686,6 @@ Typographical glossary
       A unit of length defined (in the US at least) to be 35/83cm (or approximately
       1/6th of an inch). This was used for measuring the length of lines of text
       (as "30 picas and 4 points long"), but not for measuring font heights.
-
-      .. _glossary.type-size-names:
 
       In Renaissance typography, before there were points, sizes of type had names,
       and "pica" was used in this context. As: "Great Canon", "Double Pica", "Great
@@ -841,7 +839,7 @@ Typographical glossary
    SFD
       SplineFont DataBase. These are FontForge's own personal font representation.
       The files are ASCII and vaguely readable, the format is described
-      :doc:`here <sfdformat>`. As of 14 May 2008 the format has been registered
+      :doc:`here </techref/sfdformat>`. As of 14 May 2008 the format has been registered
       with IANA for a MIME type:
       `application/vnd.font-fontforge-sfd <http://www.iana.org/assignments/media-types/application/>`__.
 
@@ -904,7 +902,7 @@ Typographical glossary
    State machine
       A state machine is like a very simple little program, they are used on the
       mac for performing contextual substitutions and kerning. The
-      :doc:`state machine dialog <statemachine>` is reachable from
+      :doc:`state machine dialog </ui/dialogs/statemachine>` is reachable from
       :ref:`Element->Font Info->Lookups <fontinfo.Lookups>`
 
       The "state machine" consists of a table of states, each state in turn
@@ -974,7 +972,7 @@ Typographical glossary
    TrueType Tables
       Each truetype font contains a collection of tables each of which contains a
       certain kind of information. See
-      :doc:`here for the tables used by FontForge <TrueOpenTables>`.
+      :doc:`here for the tables used by FontForge </techref/TrueOpenTables>`.
 
    Type 1
       A type of :term:`PostScript` font which see.

@@ -106,13 +106,13 @@ The Encoding menu is only found in the font view.
 .. object:: Display by Group...
 
    Allows you restrict the glyphs displayed in the font view to those in a user
-   defined :doc:`group <groups>` (specified in the next command).
+   defined :doc:`group </ui/dialogs/groups>` (specified in the next command).
 
 .. _encodingmenu.Define:
 
 .. object:: Define Groups...
 
-   Allows you to define :doc:`groups <groups>` of glyphs which (presumably) have
+   Allows you to define :doc:`groups </ui/dialogs/groups>` of glyphs which (presumably) have
    some meaningful connection to each other.
 
 .. _encodingmenu.SaveNL:

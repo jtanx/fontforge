@@ -204,7 +204,7 @@ stems manually (:menuselection:`Hints --> Add DHint`), or you can let the
 autohinter do this for you
 (:menuselection:`File --> Preferences --> PSHints --> DetectDiagonalStems`).
 
-Please look at the :doc:`page on instructing fonts <ttfinstrs>`.
+Please look at the :doc:`page on instructing fonts </ui/dialogs/ttfinstrs>`.
 
 
 Hint questions:
@@ -230,4 +230,4 @@ I find the hint documentation inadequate for me to do a good job at hinting.
 
 :ref:`Overview of Hinting in PostScript and TrueType <overview.Hints>`.
 
-:doc:`Hinting menu. <hintsmenu>`
+:doc:`Hinting menu. </ui/menus/hintsmenu>`

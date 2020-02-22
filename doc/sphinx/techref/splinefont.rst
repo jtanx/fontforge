@@ -271,8 +271,8 @@ If there is no selection the entire bitmap is converted into a
 :ref:`floating selection <splinefont.BDFFloat>` and copied into the selection
 field.
 
-ut_composite is used when doing a copy from the :ref:`FontView <views.FontView>`
-where you are copying both the splines and the bitmaps of a character.
+ut_composite is used when doing a copy from the FontView where you are copying
+both the splines and the bitmaps of a character.
 
 ut_mult is used when doing a copy from the FontView where you are copying more
 than one character.
@@ -595,10 +595,9 @@ needed to handle seac commands, and the ttf_glyph is needed for just about
 everything when writing a ttf font. The splines field gives all the foreground
 paths (:ref:`SplinePointLists <splinefont.SplinePointList>`). Hints for
 horizontal and vertical stems. A set of other characters referenced in this one,
-again only in the foreground. Then a linked list of all
-:ref:`CharViews <views.CharView>` displaying this SplineChar (if this guy
-changes, all must be updated to reflect the change). A pointer to the
-:ref:`SplineFont <splinefont.SplineFont>` that contains us. A set of bits:
+again only in the foreground. Then a linked list of all CharViews displaying this
+SplineChar (if this guy changes, all must be updated to reflect the change). A pointer
+to the :ref:`SplineFont <splinefont.SplineFont>` that contains us. A set of bits:
 changed means the character has changed since the last save to disk,
 changedsincelasthhinted means that we need to run autohint on the horizontal
 stems, changedsincelastvhinted for vertical stems. Manual hints means the user
@@ -665,15 +664,14 @@ changed since autosave last happened (so we should actually process this font
 the next time autosave rolls around).
 
 Display_antialias means we are displaying an antialias bytemap font in the
-:ref:`FontView <views.FontView>`, rather than a bitmap font. These look better
-but are slower.
+FontView, rather than a bitmap font. These look better but are slower.
 
 Dotlesswarn means that we've warned the user when s/he attempted to create an
 accented character based on i or j and a dotless version of those characters was
 not present in the font (there's no point in warning him again. The operation
 proceeded with a dotted version).
 
-There is only one :ref:`FontView <views.FontView>` associated with a font (other
+There is only one FontView associated with a font (other
 data structures allowed for multiple views, but the font does not).
 
 The font has a characterset and an encoding.

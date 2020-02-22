@@ -38,7 +38,7 @@ point and variation selector below.
 The Glyph class field is for the opentype 'GDEF' table. You can usually leave it
 set to automatic. FontForge will then figure out the class, and whether it
 should be output into GDEF. You can see what FontForge does in
-:doc:`View->Show ATT <showatt>`.
+:doc:`View->Show ATT </ui/dialogs/showatt>`.
 
 The ``[] Mark for Unlink, Remove Overlap Before Save`` checkbox sounds absurdly
 complicated. Consider the glyphs Aring, Ccedilla, and Oogonek. In traditional
@@ -67,8 +67,8 @@ into this field. The comment is for your use, it will not go into any generated
 fonts. You may also assign a color to a glyph to make it stand out in the font
 view.
 
-There are 6 separate sub-dialogs to help you edit the :doc:`lookups <lookups>`
-of the :doc:`GPOS and GSUB <gposgsub>` tables (some of these data can be
+There are 6 separate sub-dialogs to help you edit the :doc:`lookups </ui/dialogs/lookups>`
+of the :doc:`GPOS and GSUB </techref/gposgsub>` tables (some of these data can be
 converted into various of Apple's AAT tables, particularly 'morx'). Lookups and
 their subtables are described in some detail :ref:`here <overview.Lookups>`, and
 may be manipulated and created with the
@@ -105,7 +105,7 @@ Pair-wise Glyph Positioning (kerning) (GPOS)
 
 The pairwise positioning sub-dialog allows you to change the positions of two
 glyphs when they occur next to one another -- better know as kerning. I think
-the :doc:`Metrics View <metricsview>` provides a better place to do kerning, but
+the :doc:`Metrics View </ui/mainviews/metricsview>` provides a better place to do kerning, but
 you can do it here if you wish.
 
 .. _charinfo.substitution:
@@ -278,6 +278,6 @@ The Cancel button now cancels all changes made with this instance of the dialog.
 
 See Also:
 
-* :doc:`The font info dialog <fontinfo>`
-* :doc:`The get info dialogs <getinfo>`
-* :doc:`The MATH info dialog <math>`
+* :doc:`The font info dialog </ui/dialogs/fontinfo>`
+* :doc:`The get info dialogs </ui/dialogs/getinfo>`
+* :doc:`The MATH info dialog </ui/dialogs/math>`

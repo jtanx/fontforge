@@ -7,7 +7,7 @@ Checking a font
 
 After you have finished making all the glyphs in your font you should check it
 for inconsistencies. FontForge has a command,
-:doc:`Element->Find Problems <problems>` which is designed to find many common
+:doc:`Element->Find Problems </ui/dialogs/problems>` which is designed to find many common
 problems.
 
 Simply select all the glyphs in the font and then bring up the Find Problems
@@ -35,7 +35,7 @@ At this point you might want some bitmaps to go with the outline font (this is
 not compulsory). Go to :menuselection:`Element --> Bitmap Strikes Available` and
 select the pixel sizes you want bitmaps in (Note, that on X and MS windows pixel
 sizes often do not correspond exactly to point sizes. You can then use the
-bitmap editor (:doc:`Window->Open Bitmap <bitmapview>`) to clean up the bitmaps,
+bitmap editor (:doc:`Window->Open Bitmap </ui/mainviews/bitmapview>`) to clean up the bitmaps,
 or you can generate your bitmap fonts and then
 `use someone else's bitmap editor to clean them up <http://math.nmsu.edu/~mleisher/Software/gbdfed/>`__.
 
@@ -54,7 +54,7 @@ use the font.
 .. image:: /images/generate.png
    :align: right
 
-Instead you must use :doc:`File->Generate <generate>` to convert your font into
+Instead you must use :doc:`File->Generate </ui/dialogs/generate>` to convert your font into
 one of the standard font formats. FontForge presents what looks like a vast
 array of font formats, but in reality there are just several variants on a few
 basic font formats: PostScript Type 1, TrueType, OpenType (and for CJK fonts,
@@ -73,7 +73,7 @@ similar fonts. In Latin, Greek and Cyrillic fonts italic (or oblique), bold,
 condensed, expanded styles are fairly common.
 
 Fonts with different styles in the same family should share the same Family Name
-(in the :doc:`Element->Font Info->Names <fontinfo>` dialog). The Font Name
+(in the :doc:`Element->Font Info->Names </ui/dialogs/fontinfo>` dialog). The Font Name
 should be the Family Name with the style name(s) appended to the end, often
 preceded by a hyphen. So in the font family "Helvetica" all fonts should have
 the Family Name set to "Helvetica". The plain style could be called simply
@@ -85,7 +85,7 @@ to help you create different styles (bold, italic, oblique, condensed, extended,
 smallcaps,...) of a font a plain face. None of these transformations is perfect,
 be sure to check the results.
 
-The :doc:`Element->Transform->Transform->Skew <transform>` command can turn a
+The :doc:`Element->Transform->Transform->Skew </ui/dialogs/transform>` command can turn a
 plain font into an Oblique one. Creating a true italic font is generally a bit
 more complex, the shape of the "a" changes dramatically to "*a*", the "f" gains
 a descender as "*f*", the serifs on "ilm" etc. become rounded as "*ilm*" and
@@ -134,4 +134,4 @@ is a fair amount work involved still. See the
 :ref:`Installing fonts FAQ <faq.font-install>`.
 
 For a tutorial about
-:doc:`FontForge's scripting mechanism click here <scripting-tutorial>`.
+:doc:`FontForge's scripting mechanism click here </tutorial/scripting-tutorial>`.

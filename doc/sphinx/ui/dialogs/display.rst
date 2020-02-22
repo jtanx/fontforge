@@ -38,7 +38,7 @@ And different bits of text can have different settings, so you can compare them
 and decide which is least worse. Also you can compare two different fonts and
 see how well they work together.
 
-As with the :doc:`metrics view <metricsview>` you may set the script and
+As with the :doc:`metrics view </ui/mainviews/metricsview>` you may set the script and
 language of the selected text and then choose which features to apply. Note that
 if you start typing text in a different script you will probably have to change
 it manually -- FontForge expects you to set the script explicitly. On the upper

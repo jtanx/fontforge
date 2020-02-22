@@ -9,7 +9,7 @@ You may chose to display it at various sizes, by default it will be displayed
 with the outline font rasterized on a 24 pixel em square. You may display it at
 36, 48, 72 and 96 pixel sizes as well. You may also choose to look at an
 anti-aliased greymap (the above image is anti-aliased). These are slower to
-generate but look nicer (:doc:`Comparison <AA-Comparison>`).
+generate but look nicer (:doc:`Comparison </techref/AA-Comparison>`).
 
 If you have an encoding slot which has nothing in it (as opposed to an encoding
 which maps to a space glyph) then that will be shown by a faint red X drawn
@@ -210,8 +210,8 @@ of ISO 8859-1). There are also several 2-byte encodings built in. Several of
 these are subsets of unicode (whose goal is to specify every character currently
 used by humans). There are many large CJK (Chinese, Japanese, Korean) two byte
 encodings. You can also add your own encodings with the
-:doc:`Encoding <encodingmenu>` menu. A brief description of what's in the
-encodings also appears :doc:`on that page <encodingmenu>`.
+:doc:`Encoding </ui/menus/encodingmenu>` menu. A brief description of what's in the
+encodings also appears :doc:`on that page </ui/menus/encodingmenu>`.
 
 There may be some slight differences between one vendor's definition of an
 encoding and another. I try to follow those encodings specified by the Unicode
@@ -285,7 +285,7 @@ of several subfonts each a collection of glyph descriptions with no encoding
 imposed on them and no names given to them.
 
 If FontForge loads in a CID keyed font it will enable a special menu called
-:doc:`CID <cidmenu>` which (among other things) displays the list of all the
+:doc:`CID </ui/menus/cidmenu>` which (among other things) displays the list of all the
 sub-fonts in the font. When it starts up FontForge will pick (practically at
 random) a sub-font to display in the font view. You may change which font is
 displayed by the CID menu.
@@ -348,7 +348,7 @@ Multiple Master Fonts
 If the font is a :ref:`Multiple Master <multiplemaster.MM>` Font there will
 again be several subfonts only this time all the subfonts contain the same glyph
 set. Each subfont provides glyphs for one style of the font family. The
-:doc:`MM <mmmenu>` menu allows you to control which style of the family is
+:doc:`MM </ui/menus/mmmenu>` menu allows you to control which style of the family is
 visible in the font view, and provides a few other commands for manipulating
 multiple masters.
 

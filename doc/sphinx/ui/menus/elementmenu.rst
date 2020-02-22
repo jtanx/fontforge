@@ -12,7 +12,7 @@ FontForge.
 
 .. object:: Font Info
 
-   In all views this brings up the :doc:`Font Info dialog <fontinfo>`.
+   In all views this brings up the :doc:`Font Info dialog </ui/dialogs/fontinfo>`.
 
    CID keyed fonts can set information on the CID font as a whole (rather than
    just the current sub-font, which is what this command does) from
@@ -29,20 +29,20 @@ FontForge.
 
 .. object:: MATH Info...
 
-   Brings up the :doc:`MATH Info dialog <math>`.
+   Brings up the :doc:`MATH Info dialog </ui/dialogs/math>`.
 
 .. _elementmenu.BDF-Info:
 
 .. object:: BDF Info
 
    If you have bitmaps in your font, then in the font view or bitmap view this
-   command will bring up the :doc:`BDF Info dialog. <bdfinfo>`
+   command will bring up the :doc:`BDF Info dialog. </ui/dialogs/bdfinfo>`
 
 .. _elementmenu.HBase:
 
 .. object:: Horizontal Baselines...
 
-   This :doc:`dialog <baseline>` gives you control over the OpenType 'BASE'
+   This :doc:`dialog </ui/dialogs/baseline>` gives you control over the OpenType 'BASE'
    table which allows you to specify different baselines for different scripts,
    and how to align those baselines with each other. It also provides fine
    control over the inter-baseline spacing (the line height).
@@ -51,7 +51,7 @@ FontForge.
 
 .. object:: Vertical Baselines...
 
-   This :doc:`dialog <baseline>` gives you control over the OpenType 'BASE'
+   This :doc:`dialog </ui/dialogs/baseline>` gives you control over the OpenType 'BASE'
    table which allows you to specify different baselines for different scripts,
    and how to align those baselines with each other. It also provides fine
    control over the inter-baseline spacing (the column width).
@@ -60,7 +60,7 @@ FontForge.
 
 .. object:: Justification Information...
 
-   This :doc:`dialog <justify>` allows you to examine and provide the
+   This :doc:`dialog </ui/dialogs/justify>` allows you to examine and provide the
    information needed for the OpenType JSTF table -- information which helps
    layout engines do text justification.
 
@@ -69,8 +69,10 @@ FontForge.
 .. object:: Get Info
 
    In the outline view this brings up
-   :doc:`one of four different dialogs <getinfo>` (Point Info, Image Info,
+   :doc:`one of four different dialogs </ui/dialogs/getinfo>` (Point Info, Image Info,
    Reference Info, Anchor Point Info) depending on what is selected.
+
+.. _elementmenu.Dependents:
 
 .. object:: Show Dependencies
 
@@ -124,7 +126,7 @@ FontForge.
    fixed, in the font view it will check all selected glyphs and if any have
    problems will open them and select the problems. It will post a message
    telling you of each problem found. It brings up the
-   :doc:`Find Problem <problems>` dialog to let you choose what problems to look
+   :doc:`Find Problem </ui/dialogs/problems>` dialog to let you choose what problems to look
    for.
 
 .. _elementmenu.Validate:
@@ -133,7 +135,7 @@ FontForge.
 
    Rather similar to Find Problems, but works with a much smaller set of things
    which are definitely errors, and provides an overview of the problems found
-   in all glyphs of the font. See the :doc:`validation page <validation>` for
+   in all glyphs of the font. See the :doc:`validation page </ui/dialogs/validation>` for
    more info.
 
 .. _elementmenu.Bitmaps:
@@ -259,9 +261,11 @@ FontForge.
    leaving the strike otherwise intact). The dialog is similar to the above two.
    Any indicated glyphs will be removed from the specified strikes.
 
+.. _elementmenu.Style:
+
 .. object:: Styles
 
-   There are many :doc:`standard variations <Styles>` on Latin (Greek, Cyrillic)
+   There are many :doc:`standard variations </ui/dialogs/Styles>` on Latin (Greek, Cyrillic)
    fonts. Some of them apply to other scripts -- making a font darker (bolder)
    is common to many scripts, though the actual mechanics differ from script to
    script) Others -- such as Italic -- are more specialized.
@@ -395,7 +399,7 @@ FontForge.
 
    .. object:: Transform...
 
-      :doc:`In the Font and Outline Views this brings up the transform dialog <transform>`.
+      :doc:`In the Font and Outline Views this brings up the transform dialog </ui/dialogs/transform>`.
       This provides the standard linear transformations you expect to have
       available (rotation, scaling, translation, skewing).
 
@@ -461,8 +465,8 @@ FontForge.
    user to specify a non-linear transformation as a pair of expressions (the
    first specifies the transformation for the x coordinate, the second for the y
    coordinate). These expressions may be fairly general functions of x and y.
-   See the :ref:`scripting page <scripting-alpha.NonLinearTransform>` for a
-   description of the syntax.
+   See the :ff:func:`scripting page <NonLinearTransform>` for a description of
+   the syntax.
 
 .. _elementmenu.Expand:
 
@@ -474,7 +478,7 @@ FontForge.
    all paths).
 
    The remaining documentation on this facility is on its
-   :doc:`own page <stroke>`.
+   :doc:`own page </techref/stroke>`.
 
 .. _elementmenu.TilePath:
 
@@ -482,7 +486,7 @@ FontForge.
 
    This command is not available in the default build, you must reconfigure $
    ``configure --with-tilepath`` and then rebuild FontForge. Not available in
-   quadratic (truetype) fonts. This command brings up a :doc:`dialog <tilepath>`
+   quadratic (truetype) fonts. This command brings up a :doc:`dialog </ui/dialogs/tilepath>`
    which allows you to specify a tile to be applied to any selected contours.
 
 .. _elementmenu.TilePattern:
@@ -646,7 +650,7 @@ FontForge.
    `autotrace program <http://sourceforge.net/projects/autotrace/>`__, or Peter
    Selinger's `potrace <http://potrace.sf.net/>`__. If you have a background
    image in a glyph then autotrace will automagically trace the outlines of that
-   image. See :doc:`the section on autotracing <autotrace>` for more
+   image. See :doc:`the section on autotracing </techref/autotrace>` for more
    information.
 
 .. _elementmenu.Align:
@@ -815,7 +819,7 @@ FontForge.
 .. object:: Insert Text Outlines...
 
    Upon occasion it is useful to be able to insert text into a glyph. The
-   :doc:`Insert Text Dialog <InsertTextDlg>` lets you do this.
+   :doc:`Insert Text Dialog </ui/dialogs/InsertTextDlg>` lets you do this.
 
 .. _elementmenu.Accented:
 
@@ -844,7 +848,7 @@ FontForge.
    (even in the outline glyph view).
 
    A more complete description is given in the section on
-   :doc:`accented glyphs <accented>`.
+   :doc:`accented glyphs </techref/accented>`.
 
 .. _elementmenu.BuildDuplicate:
 

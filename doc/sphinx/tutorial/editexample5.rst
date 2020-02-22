@@ -22,7 +22,7 @@ by selecting the advance width line and adjusting it appropriately.
 However it is generally better not to set the metrics of a single glyph in
 isolation, you should see the glyph in the context of other glyphs and set it
 from that perspective. Use the
-:menuselection:`Window --> Open `:doc:`Metrics Window <metricsview>` command.
+:menuselection:`Window --> Open `:doc:`Metrics Window </ui/mainviews/metricsview>` command.
 
 .. image:: /images/MetricsView.png
 
@@ -96,13 +96,13 @@ important quantity. Unfortunately there is not.
       On a mac the baseline to baseline spacing is determined again by the
       bounding box values of the font, specified in the 'hhea' table, possibly
       modified by a linegap (Which you can set in FontForge with
-      :doc:`Element->FontInfo->OS/2 <fontinfo>`.
+      :doc:`Element->FontInfo->OS/2 </ui/dialogs/fontinfo>`.
 
    .. object:: On Windows
 
       According to the OpenType spec, the baseline to baseline distance is set
       by the values of Typographic Ascent and Descent of the 'OS/2' table. These
-      can be set with :doc:`Element->FontInfo->OS/2 <fontinfo>`, but are usually
+      can be set with :doc:`Element->FontInfo->OS/2 </ui/dialogs/fontinfo>`, but are usually
       allowed to default to the Ascent and Descent values of FontForge -- they
       generally sum to 1em and are equivalent to the traditional unleaded
       default.

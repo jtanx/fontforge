@@ -29,8 +29,8 @@ if no points are selected on any contour. The dialog looks like this:
 
 The :ref:`Freehand Tool <charview.freehand>` also uses the facility and has a
 similar dialog, and there are interfaces for both
-:ref:`Python <python.glyph-stroke>` and
-:ref:`FontForge's native scripting language <scripting-alpha.ExpandStroke>`.
+:py:meth:`Python <fontforge.glyph.stroke>` and
+:ff:func:`FontForge's native scripting language <ExpandStroke>`.
 
 This guide is arranged into four sections. The :ref:`first <stroke.offsetting>`
 discusses the common case of tracing a circular nib, which is also called

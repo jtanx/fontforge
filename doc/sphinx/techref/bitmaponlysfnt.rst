@@ -7,6 +7,8 @@ Unfortunately every system has its own way of storing bitmap only fonts into an
 sfnt wrapper (or the system just doesn't support it)
 
 
+.. _bitmaponlysfnt.Apple:
+
 Apple
 -----
 
@@ -30,6 +32,8 @@ given by some of their tools.
   ``numGlyphs`` is set to the number of bitmap glyphs
 
 
+.. _bitmaponlysfnt.X11:
+
 X11 (Unix/Linux)
 ----------------
 
@@ -47,6 +51,8 @@ with extension .otb.
 
 * The fonts I generate also contain the metrics tables as appropriate
 
+
+.. _bitmaponlysfnt.MS:
 
 MS
 --

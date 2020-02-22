@@ -116,7 +116,7 @@ glyph is represented by one line down the center of the stem, and the line is
 later drawn with a certain width. Most of the time we will not deal with stroked
 fonts directly (the :ref:`Expand Stroke <elementmenu.Expand>` command can be
 used to turn them into outlines), but if you wish to edit stroked fonts, see the
-section on :doc:`multi-layered editing <multilayer>`.
+section on :doc:`multi-layered editing </ui/dialogs/multilayer>`.
 
 .. flex-grid::
 
@@ -141,7 +141,7 @@ use quadratic (SVG fonts can be either).
 
 Each cubic spline is defined by four points, two of which mark the end points of
 the spline and two more to describe the slope of the spline at those end points.
-Here are :doc:`two cubic splines <bezier>` with all their points shown:
+Here are :doc:`two cubic splines </techref/bezier>` with all their points shown:
 
 .. image:: /images/splines.gif
    :align: left
@@ -311,8 +311,8 @@ TrueType vs. PostScript vs OpenType vs SVG fonts
 
 FontForge can produce many font types. What's the difference?
 
-PostScript is based on a :doc:`cubic spline <bezier>` technology, while TrueType
-is based on a :doc:`quadratic <bezier>` technology. Cubic splines are generally
+PostScript is based on a :doc:`cubic spline </techref/bezier>` technology, while TrueType
+is based on a :doc:`quadratic </techref/bezier>` technology. Cubic splines are generally
 easier to edit (more shapes are possible with them). Any quadratic spline can be
 converted to a cubic spline with essentially no loss. A cubic spline can be
 converted to a quadratic with arbitrary precision, but there will be a slight
@@ -335,8 +335,7 @@ The first meaning describes the glyph (and spline) format of the font. In this
 sense Open Type is just a postscript font put into a truetype file format --
 From the outside it looks like a truetype font except that the outline
 descriptions are postscript Type2 font descriptions rather than TrueType.
-Technically it is a :ref:`CFF <glossary.CFF>` font inside an
-:ref:`sfnt <glossary.SFNT>` wrapper.
+Technically it is a :term:`CFF` font inside an :term:`sfnt <SFNT>` wrapper.
 
 In a second sense of the word OpenType refers to a set of tables containing
 advanced typographic information. These tables may be added to either fonts
@@ -513,7 +512,7 @@ small fonts.
    and when it next generates that font it will use those instructions --
    provided no significant change has happened to a glyph.
 
-Most of my :doc:`hinting user interface <hinting>` is designed with PostScript
+Most of my :doc:`hinting user interface </techref/hinting>` is designed with PostScript
 fonts in mind.
 
 
@@ -556,7 +555,7 @@ Generally this causes no problems (FontForge will simply unlink the reference in
 the output, which just makes the font a little bigger, but it has implications
 for instructing TrueType, and, to a lesser extent, hinting PostScript. Most
 people can ignore this, but if you are interested
-:doc:`follow this link <ref-caveats>`).
+:doc:`follow this link </techref/ref-caveats>`).
 
 Most font formats require that a glyph contain either a set of outlines (or
 bitmap rasters) or a set of references. FontForge allows glyphs with a
@@ -598,7 +597,7 @@ It seems a shame to have both a valid cubic and a valid quadratic font in a
 database and only be able to produce a font from one of them, so the font view
 will allow you to switch between layers
 (:ref:`View->Layers->* <viewmenu.FVLayers>`) and
-:doc:`File->Generate Fonts <generate>` command will allow you to output whatever
+:doc:`File->Generate Fonts </ui/dialogs/generate>` command will allow you to output whatever
 layer you want into the font. (Note that all layers will share the same hints,
 instructions, character set, bitmaps, etc. It is only the outlines which
 differ.) Furthermore, you may choose to store all the layers of a font into an
@@ -613,7 +612,7 @@ Type3 Fonts
 ^^^^^^^^^^^
 
 Most people aren't interested in editing
-:doc:`Type3 PostScript fonts <multilayer>` (nor the equivalent SVG font), but if
+:doc:`Type3 PostScript fonts </ui/dialogs/multilayer>` (nor the equivalent SVG font), but if
 you want to, FontForge can. Here each layer represents a different drawing
 operation, and may specify a different color, stroke, fill, etc. Layers are not
 font-wide, each glyph has its own set of layers (which are not named). You can
@@ -913,7 +912,7 @@ is positioned where the anchor from "a" was.
 
 FontForge does not compose these glyphs (well, it can, but that's a completely
 different area), instead it provides information within the
-:doc:`font <gposgsub>` to a text layout program so that the program can do the
+:doc:`font </techref/gposgsub>` to a text layout program so that the program can do the
 composition.
 
 The example above is unlikely to be very useful since most latin fonts contain
@@ -1021,7 +1020,7 @@ reasonably:
 .. image:: /images/alignedBaselines.png
 
 Both Apple Typography and OpenType allow for this. There is a
-:doc:`baseline table <baseline>` which says how the baselines for each script
+:doc:`baseline table </ui/dialogs/baseline>` which says how the baselines for each script
 (or each glyph) should be aligned with respect to other baselines.
 
 
@@ -1030,7 +1029,7 @@ Both Apple Typography and OpenType allow for this. There is a
 Font View
 ---------
 
-The :doc:`font view <fontview>` displays all the glyphs in the font (or all that
+The :doc:`font view </ui/mainviews/fontview>` displays all the glyphs in the font (or all that
 will fit in the window). Every line has two parts, at the top is a label, often
 small clear letters, underneath that, somewhat larger is a 24 pixel
 rasterization of the font you have designed. As you edit a glyph in an
@@ -1060,9 +1059,9 @@ Another Wadalab font encapsulated in a CID keyed font
 Outline Glyph View
 ------------------
 
-The :doc:`outline view <charview>` is probably the most complex view in
+The :doc:`outline view </ui/mainviews/charview>` is probably the most complex view in
 FontForge. This is where you actually edit the splines
-(:doc:`Bézier splines <bezier>`) that make up your glyphs.
+(:doc:`Bézier splines </techref/bezier>`) that make up your glyphs.
 
 You may have a background image loaded into the view to help you trace out the
 shape you are working on (it is displayed in grey). There are various grid lines
@@ -1088,7 +1087,7 @@ layers (foreground, background, grid, hints) are visible and editable.
 Bitmap View
 -----------
 
-The :doc:`bitmap view <bitmapview>` is similar to the outline view above. It
+The :doc:`bitmap view </ui/mainviews/bitmapview>` is similar to the outline view above. It
 also has a tools and layer palette.
 
 This allows you to edit bitmap versions of the outline glyphs you create above.
@@ -1106,7 +1105,7 @@ by hand. In the upper left corner is a full sized image of your bitmap glyph.
 Metrics View
 ------------
 
-The :doc:`metrics view <metricsview>` allows you to see how the glyphs look
+The :doc:`metrics view </ui/mainviews/metricsview>` allows you to see how the glyphs look
 together.
 
 You can change the width and left/right bearings of a glyph, either by dragging

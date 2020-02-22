@@ -27,7 +27,7 @@ using the ``-new`` argument at startup).
 
 .. image:: /images/newfont.png
 
-Give the font a name with the :doc:`Font Info <fontinfo>` command from the
+Give the font a name with the :doc:`Font Info </ui/dialogs/fontinfo>` command from the
 ``Element`` menu. You use this same command to set the copyright message and
 change the ascent and descent (the sum of these two determines the size of the
 em square for the font, and by convention is 1000 for postscript fonts, a power

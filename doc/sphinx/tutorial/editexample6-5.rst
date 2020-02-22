@@ -259,7 +259,7 @@ Now how do we convert these rules into a contextual lookup?
 .. image:: /images/kappa_iota-context.png
    :align: left
 
-We use :ref:`Element->Font Info->Lookups->Add Lookup <fontinfo.Contextual>` to
+We use :doc:`Element->Font Info->Lookups->Add Lookup </ui/dialogs/lookups>` to
 create a new contextual chaining lookup. This is the top level lookup and should
 be bound to a feature tag in the Greek script.
 
@@ -400,7 +400,7 @@ accepted.
 .. image:: /images/kappaiota-lookups.png
 
 Once you have created your lookups you may test the result in the
-:doc:`metrics view <metricsview>`.
+:doc:`metrics view </ui/mainviews/metricsview>`.
 
 .. image:: /images/metrics-kappa_iota.png
 

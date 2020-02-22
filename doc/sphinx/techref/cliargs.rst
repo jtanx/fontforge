@@ -73,7 +73,7 @@ FontForge recognizes the following options:
 
 .. option:: -help
 
-   Bring up a :doc:`browser <helpmenu>` looking at this documentation.
+   Bring up a :doc:`browser </ui/menus/helpmenu>` looking at this documentation.
 
 .. option:: -lang={py|ff}
             -lang {py|ff}
@@ -161,7 +161,7 @@ FontForge recognizes the following options:
 .. option:: -script script-file
 
    If FontForge's first argument is "-script" then the argument that follows
-   will be treated as a :doc:`script file <scripting>` and all the remaining
+   will be treated as a :doc:`script file </scripting/scripting>` and all the remaining
    arguments will be passed as arguments to that file. (The "-script" argument
    may be omitted, and if the first argument is an executable file which whose
    first line starts with "#!" and contains "fontforge". This means that

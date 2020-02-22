@@ -2,7 +2,7 @@ Scripting FontForge
 ===================
 
 FontForge includes two interpreters so you can write scripts to modify fonts.
-One of these interpreters is :doc:`python <python>`, one is a legacy language I
+One of these interpreters is :doc:`python </scripting/python>`, one is a legacy language I
 came up with. FontForge may be configured with either or both of these. If
 configured with both then fontforge will make a guess at which to use based on
 the script file's extension ("py" means use the python interpreter, "ff" or "pe"
@@ -81,7 +81,7 @@ Scripting Language
 
    This section covers FontForge's native scripting functionality.
 
-   For the Python scripting functionality, see :doc:`here <python>`.
+   For the Python scripting functionality, see :doc:`here </scripting/python>`.
 
 The syntax is rather like a mixture of C and shell commands. Every file
 corresponds to a procedure. As in a shell script arguments passed to the file
@@ -479,7 +479,7 @@ information.
 * :ref:`Character manipulation <scripting.Character>`
 * :ref:`Arrays <scripting.arrays>`
 * :ref:`Miscellaneous <scripting.misc>`
-* :ref:`Deprecated <scripting.Deprecated> Names`
+* :ref:`Deprecated Names <scripting.Deprecated>`
 
 
 .. _scripting.alpha:
@@ -1052,7 +1052,7 @@ Examples
 * Scripts used in other projects
 
   * `x-symbol <http://sourceforge.net/projects/x-symbol/>`__
-* :doc:`the scripting tutorial <scripting-tutorial>`
+* :doc:`the scripting tutorial </tutorial/scripting-tutorial>`
 
 
 Example 1:

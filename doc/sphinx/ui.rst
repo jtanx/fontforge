@@ -11,3 +11,4 @@ FontForge's User Interface
    ui/misc/fontforge-themes
    ui/misc/resedit
    ui/misc/xim
+   ui/misc/xres

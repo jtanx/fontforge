@@ -124,7 +124,7 @@ at the point where the anchor is to be created and then bring up the
 :ref:`Point->Add Anchor <pointmenu.AddAnchor>` dialog.
 
 You can examine (and correct) how a glyph fits to any others that combine with
-it by using the :ref:`View->Anchor Control... <viewmenu.AnchorControl>` command.
+it by using the :ref:`View->Anchor Control... <viewmenu.AControl>` command.
 
 .. warning::
 

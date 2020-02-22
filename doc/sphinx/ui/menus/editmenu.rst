@@ -66,7 +66,7 @@ The Edit Menu
    to external applications. If the clipboard contains a single point, then this
    will also be exported in STRING format (giving the coordinates of the point);
    the intent is to make it easier to people to identify the point. See the
-   section on :doc:`selections <selections>`
+   section on :doc:`selections </techref/selections>`
 
 .. _editmenu.Reference:
 
@@ -190,7 +190,7 @@ The Edit Menu
 
       as spline data
 
-   See the section on :doc:`selections <selections>`
+   See the section on :doc:`selections </techref/selections>`
 
 .. _editmenu.PasteInto:
 
@@ -501,7 +501,7 @@ The Edit Menu
 
    .. object:: Select By Lookup Subtable...
 
-      Only in the font view. Brings up a :doc:`dlg <selectbyatt>` which allows
+      Only in the font view. Brings up a :doc:`dlg </ui/dialogs/selectbyatt>` which allows
       you to select various glyphs depending on various advanced typographic
       features.
 
@@ -509,7 +509,7 @@ The Edit Menu
 
 .. object:: Find / Replace
 
-   Only in the font view, this brings up a :doc:`dialog <search>` that allows
+   Only in the font view, this brings up a :doc:`dialog </ui/dialogs/search>` that allows
    you to find patterns within glyphs and replace them with other patterns.
 
 .. _editmenu.ReplaceRef:

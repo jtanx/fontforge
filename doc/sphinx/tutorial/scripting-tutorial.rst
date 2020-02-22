@@ -6,7 +6,7 @@ FontForge Scripting Tutorial
   FontForge now provides python scripting. If you are familiar with python
   that is probably a better choice. There is a lot of information available on
   `python <http://www.python.org/doc/>`__, I shan't repeat it. FontForge's own
-  additions to python are documented :doc:`here <python>`.
+  additions to python are documented :doc:`here </scripting/python>`.
 
 I try to keep things at a fairly elementary level, but this is *not* an attempt
 to teach programming.

@@ -480,6 +480,8 @@ Module functions
    features). For more information see its own section.
 
 
+.. _fontforge.ui_functions:
+
 User Interface Module Functions
 -------------------------------
 
@@ -838,7 +840,7 @@ on-curve point will be interpolated between them. (This should be
 familiar to anyone who has read the truetype 'glyf' table docs). 
 
 For examples of what these splines can look like see the
-:doc:`section on bezier curves <bezier>`. 
+:doc:`section on bezier curves </techref/bezier>`. 
 
 A contour may be open in which case it is just a long wiggly line, or 
 closed when it is more like a circle with an inside and an outside. 
@@ -1325,7 +1327,7 @@ Layers may be compared to see if their contours are similar.
 
    Strokes the lines of each contour in the layer according to the supplied
    parameters. See the corresponding :meth:`glyph.stroke()` for a description
-   of the syntax and the :doc:`stroke <stroke>` documentation for more general
+   of the syntax and the :doc:`stroke </techref/stroke>` documentation for more general
    information.
 
 .. method:: layer.transform(matrix)
@@ -2368,7 +2370,7 @@ must be created through the font.
    (Current interface)
 
    Strokes the contours of the glyph according to the supplied parameters. See
-   the :doc:`stroke <stroke>` documentation for a more complete description of
+   the :doc:`stroke </techref/stroke>` documentation for a more complete description of
    the facility and its parameters.
 
    A ``"circular"`` nib just has a ``width`` (the diameter), while an
@@ -4904,7 +4906,7 @@ See the :class:`selection` type for how to alter the selection.
 
    Strokes the lines of the contours in all selected glyphs according to the
    supplied parameters. See :meth:`glyph.stroke()` for a description of the
-   syntax and the :doc:`stroke <stroke>` documentation for more general
+   syntax and the :doc:`stroke </techref/stroke>` documentation for more general
    information.
 
 .. method:: font.transform(matrix)

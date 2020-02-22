@@ -75,7 +75,7 @@ FontForge will read the following sub tables of the GPOS table:
    .. object:: Writing support
 
       These can be created with the
-      :doc:`Element->Char Info <charinfo>`->Position command.
+      :doc:`Element->Char Info </ui/dialogs/charinfo>`->Position command.
 
 .. object:: pair adjustment
 
@@ -91,7 +91,7 @@ FontForge will read the following sub tables of the GPOS table:
    .. object:: Writing support
 
       'kern' feature s may be created from the
-      :doc:`Metrics View <metricsview>`. 'vkrn' with
+      :doc:`Metrics View </ui/mainviews/metricsview>`. 'vkrn' with
       :ref:`Metrics->VKern From HKern <metricsmenu.VKernFromHKern>`.
 
 .. object:: cursive attachment
@@ -197,9 +197,7 @@ FontForge will read the following sub tables of the GPOS table:
       (nor does anyone)
 
 FontForge also has built into it knowledge on how to provide default values for
-some features that use these tables. See
-:ref:`Element->Typo. Features->Default ATT <elementmenu.DefaultATT>` command for
-that.
+some features that use these tables.
 
 FontForge will retain the order of features in the GPOS table and when a font is
 generated the order should be the same as it was before.
@@ -228,7 +226,7 @@ FontForge will read the following sub tables of the GSUB table:
    .. object:: Writing support
 
       These can be created with the
-      :doc:`Element->Char Info <charinfo>`->Substitution command.
+      :doc:`Element->Char Info </ui/dialogs/charinfo>`->Substitution command.
 
 .. object:: multiple substitution
 
@@ -240,7 +238,7 @@ FontForge will read the following sub tables of the GSUB table:
    .. object:: Writing support
 
       These can be created with the
-      :doc:`Element->Char Info <charinfo>`->Multiple Substitution command.
+      :doc:`Element->Char Info </ui/dialogs/charinfo>`->Multiple Substitution command.
 
 .. object:: alternate substitution
 
@@ -254,7 +252,7 @@ FontForge will read the following sub tables of the GSUB table:
    .. object:: Writing support
 
       These can be created with the
-      :doc:`Element->Char Info <charinfo>`->Alternate Substitution command.
+      :doc:`Element->Char Info </ui/dialogs/charinfo>`->Alternate Substitution command.
 
 .. object:: ligature substitution
 
@@ -270,7 +268,7 @@ FontForge will read the following sub tables of the GSUB table:
    .. object:: Writing support
 
       These can be created with the
-      :doc:`Element->Char Info <charinfo>`->Ligature command.
+      :doc:`Element->Char Info </ui/dialogs/charinfo>`->Ligature command.
 
 .. object:: contextual substitution
 
@@ -330,14 +328,14 @@ FontForge will read the following sub tables of the GSUB table:
 
 FontForge also has built into it knowledge on how to provide default values for
 some features that use these tables. See the [Populate] button of the various
-:doc:`lookup subtable <lookups>` dialogs.
+:doc:`lookup subtable </ui/dialogs/lookups>` dialogs.
 
 FontForge can produce some of these tables, but the text layout/word processing
 program used has to look up the tables and do the actual work of rearranging the
 glyphs.
 
 FontForge will retain the order of features in the GSUB table, and the user may
-adjust it with the :ref:`Element->Font Info <lookups.Order>` command.
+adjust it with the :doc:`Element->Font Info </ui/dialogs/lookups>` command.
 
 
 .. _gposgsub.GDEF:
@@ -490,7 +488,7 @@ extend FontForge's mapping from feature type/setting to OpenType tags).
 
       FontForge can read the unconditional information from these and stores
       them as OpenType ligatures (which can be edited with
-      :doc:`Font Info <lookups>` or :ref:`Char Info <charinfo.lookups>`).
+      :doc:`Font Info </ui/dialogs/lookups>` or :doc:`Char Info </ui/dialogs/charinfo>`).
 
    .. object:: Writing support
 
@@ -503,8 +501,8 @@ extend FontForge's mapping from feature type/setting to OpenType tags).
    .. object:: Reading support
 
       FontForge can read these and stores them as OpenType simple substitutions
-      (which can be edited with :doc:`Font Info <lookups>` or
-      :ref:`Char Info <charinfo.lookups>`)
+      (which can be edited with :doc:`Font Info </ui/dialogs/lookups>` or
+      :doc:`Char Info </ui/dialogs/charinfo>`)
 
    .. object:: Writing support
 
@@ -928,7 +926,7 @@ Apple and OpenType features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table:: Correspondences between Apple and OpenType features (that I support)
-   :name: OT-Mac-features
+   :name: gposgsub.OT-Mac-features
    :header-rows: 1
 
    * - Apple Feature Setting

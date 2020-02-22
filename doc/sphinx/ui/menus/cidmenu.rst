@@ -110,7 +110,7 @@ For more information see the
 
    This allows you to provide information on the entire collection of subfonts
    rather than just the current subfont. It provides access to the standard
-   :doc:`font info dialog <fontinfo>`.
+   :doc:`font info dialog </ui/dialogs/fontinfo>`.
 
 .. object:: <sub font name>
 

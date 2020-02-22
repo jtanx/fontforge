@@ -6,7 +6,7 @@ MicroSoft extended this format to support greymap (anti-aliased, each pixel
 representing various levels of grey rather than just black/white) fonts.
 Recently others have started using this same format
 (`gbdfed <http://math.nmsu.edu/~mleisher/Software/gbdfed/>`_,
-`freetype <http://freetype.sf.net/>`_ and :doc:`fontforge <index>`).
+`freetype <http://freetype.sf.net/>`_ and :doc:`fontforge </index>`).
 
 In Section 3.1 of the format description Adobe defines a "SIZE" keyword.
 MicroSoft has added an optional fourth parameter to this keyword

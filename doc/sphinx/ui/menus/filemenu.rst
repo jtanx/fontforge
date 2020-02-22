@@ -34,7 +34,7 @@ The File Menu
    truetype fonts (it does not open bitmap fonts currently)
 
    FontForge does not open Acorn RISC/OS files, but you can use
-   :doc:`acorn2sfd <acorn2sfd>` to convert them into an sfd file which
+   :doc:`acorn2sfd </fontutils/acorn2sfd>` to convert them into an sfd file which
    FontForge can then open.
 
    If you have `mf <http://www.tug.org/>`__ and
@@ -146,10 +146,10 @@ The File Menu
 
 .. object:: Generate Fonts...
 
-   :doc:`This generates font files <generate>`, both outline and bitmap. You may
+   :doc:`This generates font files </ui/dialogs/generate>`, both outline and bitmap. You may
    choose not to generate either, you may generate an afm file or a pfm file,
    you may select the type of postscript output, you may select which pixelsizes
-   of bitmap to generate. (See :doc:`that page <generate>` for more info)
+   of bitmap to generate. (See :doc:`that page </ui/dialogs/generate>` for more info)
 
 .. _filemenu.GenerateMac:
 
@@ -254,7 +254,7 @@ The File Menu
    or "cid*" are handled similarly except that they specify the current encoding
    (and the number must be in decimal rather than hex).
 
-   If you are editing a :doc:`multi-layered font <multilayer>` then you can also
+   If you are editing a :doc:`multi-layered font </ui/dialogs/multilayer>` then you can also
    import an image into one of the foreground layers.
 
    .. _filemenu.bitmapfiles:
@@ -286,7 +286,7 @@ The File Menu
 .. object:: Merge Feature Info...
 
    Only available in the font view window. This command will allow you to search
-   for an :doc:`adobe feature file <featurefile>` (.fea) for feature/lookup
+   for an :doc:`adobe feature file </techref/featurefile>` (.fea) for feature/lookup
    information or an afm, ofm, tfm, pfm or mac resource file containing kerning
    pairs for the specified font. In many cases it will not be needed because
    when FontForge opens a .pfa or .pfb font it will automagically search for an
@@ -316,14 +316,14 @@ The File Menu
    the font, a text sample of the font, or specific glyphs at a very large
    scale.
 
-   See the section on :doc:`printing <display>` for more information.
+   See the section on :doc:`printing </ui/dialogs/display>` for more information.
 
 .. _filemenu.Execute:
 
 .. object:: Execute Script...
 
    Only in the font view. Brings up a dlg and allows you to enter a
-   :doc:`script <scripting>`, which could be just calling a prewritten script
+   :doc:`script </scripting/scripting>`, which could be just calling a prewritten script
    file. There is a [Call] button in the dlg to help you locate any such files.
    The default extension is "\*.pe" (postscript edit) but you can change that
    with the [Filter] button if you use something else.
@@ -344,17 +344,17 @@ The File Menu
 .. object:: Preferences...
 
    This pops up a
-   :doc:`dialog allowing you to configure various esoteric bits of fontforge <prefs>`.
+   :doc:`dialog allowing you to configure various esoteric bits of fontforge </ui/dialogs/prefs>`.
 
    A number of things, like the colors used in FontForge, that might be
    controlled from a preference window are controlled by
-   :doc:`X Resources <xres>` below.
+   :doc:`X Resources </ui/misc/xres>` below.
 
 .. _filemenu.ResEdit:
 
 .. object:: X Resource Editor...
 
-   :doc:`This dialog <resedit>` allows you to edit FontForge's X Resources, you
+   :doc:`This dialog </ui/misc/resedit>` allows you to edit FontForge's X Resources, you
    may either save them to a file for perminant storage, or change the current
    settings for this use of FontForge.
 

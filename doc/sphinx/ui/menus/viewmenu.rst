@@ -71,7 +71,7 @@ The View Menu
    to change the glyph as directed by the substitution. Also contains an entry
    to return you to the original glyph.
 
-   Substitutions may be set with the :doc:`Element->Glyph Info <charinfo>`
+   Substitutions may be set with the :doc:`Element->Glyph Info </ui/dialogs/charinfo>`
    command.
 
 .. _viewmenu.Goto:
@@ -132,7 +132,7 @@ The View Menu
 
 .. object:: Show ATT
 
-   Only in the font view. Brings up a :doc:`dlg <showatt>` showing the advanced
+   Only in the font view. Brings up a :doc:`dlg </ui/dialogs/showatt>` showing the advanced
    typographic tables (GPOS/GSUB or morx/kern) that FontForge supports.
 
 .. _viewmenu.DspSubs:
@@ -161,7 +161,7 @@ The View Menu
 
    .. object:: Kern Pairs
 
-      This :doc:`brings up a dialog showing all kerning pairs <kernpairs>` in
+      This :doc:`brings up a dialog showing all kerning pairs </ui/dialogs/kernpairs>` in
       the current font (or, if invoked from the outline glyph view, a list of
       all kerning pairs involving that glyph). You may alter kerning pairs here
       too.
@@ -179,14 +179,14 @@ The View Menu
       anchored combinations involving that glyph.
 
       Selecting a combination and double clicking on it will bring up an
-      :doc:`Anchor Control <anchorcontrol>` dialog.
+      :doc:`Anchor Control </ui/dialogs/anchorcontrol>` dialog.
 
    .. _viewmenu.AControl:
 
    .. object:: Anchor Control
 
       Only in the outline view. Has a submenu of all anchor points in this
-      glyph. Selecting one brings upt the :doc:`Anchor Control <anchorcontrol>`
+      glyph. Selecting one brings upt the :doc:`Anchor Control </ui/dialogs/anchorcontrol>`
       dialog.
 
    .. _viewmenu.Glyph:

@@ -20,34 +20,33 @@ yourself unless you want to make changes. The defaults are shown below:
 :Ctrl-Shift-E:      :ref:`Expand Stroke <elementmenu.Expand>`
 :Ctrl-F:            :ref:`Fit in Window <viewmenu.Fit>`
 :Ctrl-Shift-F:      :ref:`Font Info <elementmenu.Font>`
-:Alt-Ctrl-F:        :doc:`Find / Replace <search>`
+:Alt-Ctrl-F:        :doc:`Find / Replace </ui/dialogs/search>`
 :Alt-Ctrl-Shift-F:  :ref:`Replace With Reference <editmenu.ReplaceRef>`
 :Ctrl-G:            :ref:`Copy Reference <editmenu.Reference>`
 :Ctrl-Shift-G:      :ref:`Generate Fonts <filemenu.Generate>`
 :Alt-Ctrl-G:        :ref:`Generate Mac Family <filemenu.GenerateMac>`
-:Ctrl-H:            :ref:`Open Outline <filemenu.Outline>`
+:Ctrl-H:            :ref:`Open Outline <windowmenu.Outline>`
 :Ctrl-Shift-H:      :ref:`AutoHint <hintsmenu.AutoHint>`
 :Alt-Ctrl-H:        :ref:`Review Hints <hintsmenu.Review>`
 :Ctrl-I:            :ref:`Get Info <elementmenu.Info>`
 :Ctrl-Shift-I:      :ref:`Import <filemenu.Import>`
 :Alt-Ctrl-Shift-I:  :ref:`Glyph Info <elementmenu.CharInfo>`
 :Alt-Ctrl-I:        :ref:`Show Dependencies... <elementmenu.Dependents>`
-:Ctrl-J:            :ref:`Open Bitmap <filemenu.Bitmap>`
+:Ctrl-J:            :ref:`Open Bitmap <windowmenu.Bitmap>`
 :Ctrl-Shift-J:      :ref:`Join <editmenu.Join>`
-:Ctrl-K:            :ref:`Open Metrics <filemenu.Metrics>`
-:Ctrl-Shift-K:      :ref:`Auto Kern <metricsmenu.Kern>`
+:Ctrl-K:            :ref:`Open Metrics <windowmenu.Metrics>`
+:Ctrl-Shift-K:      :ref:`Auto Kern <autowidth.AutoKern>`
 :Alt-Ctrl-Shift-K:  :ref:`Merge Feature Info <filemenu.Merge-feature>`
 :Ctrl-L:            :ref:`Set LBearing <metricsmenu.LBearing>`
 :Ctrl-Shift-L:      :ref:`Set Width <metricsmenu.Width>`
 :Ctrl-M:            :ref:`Merge Point <editmenu.Merge>`
 :Ctrl-Shift-M:      :ref:`Simplify <elementmenu.Simplify>`
-:Alt-Ctrl-M:        :ref:`Elide Point <editmenu.Elide>`
-:Alt-Ctrl-Shift-M:  :ref:`Simplify More <editmenu.Simplify>`
+:Alt-Ctrl-Shift-M:  :ref:`Simplify More <elementmenu.SimplifyMore>`
 :Ctrl-N:            :ref:`New <filemenu.New>`
 :Ctrl-O:            :ref:`Open <filemenu.Open>`
 :Ctrl-Shift-O:      :ref:`Remove Overlap <elementmenu.Remove>`
 :Ctrl-P:            :ref:`Print <filemenu.Print>`
-:Alt-Ctrl-P:        :doc:`Display <display>`
+:Alt-Ctrl-P:        :doc:`Display </ui/dialogs/display>`
 :Ctrl-Q:            :ref:`Quit <filemenu.Quit>`
 :Ctrl-Shift-Q:      :ref:`Close <filemenu.Close>`
 :Ctrl-R:            :ref:`Set RBearing <metricsmenu.RBearing>`
@@ -86,9 +85,9 @@ yourself unless you want to make changes. The defaults are shown below:
 :Ctrl-9:            :ref:`96 pixel outline <viewmenu.px96>`
 :Ctrl-0:            :ref:`Add Anchor Point... <pointmenu.AddAnchor>`
 :Ctrl-]:            :ref:`Next Glyph <viewmenu.Next>`
-:Ctrl-Shift-}:      :ref:`Next Point <editmenu.NPoint>`
+:Ctrl-Shift-}:      :ref:`Next Point <editmenu.NextP>`
 :Ctrl-[:            :ref:`Prev Glyph <viewmenu.Prev>`
-:Ctrl-Shift-{:      :ref:`Prev Point <editmenu.PPoint>`
+:Ctrl-Shift-{:      :ref:`Prev Point <editmenu.PrevP>`
 :Ctrl-.:            :ref:`Execute Script <filemenu.Execute>`
 
                     :ref:`Select First Point <editmenu.FirstPt>`
@@ -104,14 +103,14 @@ yourself unless you want to make changes. The defaults are shown below:
 :Ctrl-=:            :ref:`Grid Fit Anti Alias <viewmenu.GFAntiAlias>`
 :Ctrl-Shift-+:      :ref:`Bigger Pixel Size <viewmenu.Bigger>`
 
-                    :ref:`Bigger Point Size <viewmenu.GFBigge>`
+                    :ref:`Bigger Point Size <viewmenu.GFBigger>`
 :Alt-Ctrl-Shift-+:  :ref:`Zoom In <viewmenu.In>`
 :Ctrl--:            :ref:`Smaller Pixel Size <viewmenu.Smaller>`
 
                     :ref:`Smaller Point Size <viewmenu.GFSmaller>`
 :Alt-Ctrl--:        :ref:`Zoom Out <viewmenu.Out>`
-:Help:              :doc:`Help <helpmenu>`
-:F1:                :doc:`Help <helpmenu>` -- :ref:`Index <helpmenu.Index>`
+:Help:              :doc:`Help </ui/menus/helpmenu>`
+:F1:                :doc:`Help </ui/menus/helpmenu>` -- :ref:`Index <helpmenu.Index>`
 
 
 .. _HotKeys.Keyboards:
@@ -185,17 +184,17 @@ Modifier keys for arrow keys in the Outline Glyph Window
 The menus
 ---------
 
-* :doc:`File <filemenu>`
-* :doc:`Edit <editmenu>`
-* :doc:`Point <pointmenu>`
-* :doc:`Element <elementmenu>`
-* :doc:`Hints <hintsmenu>`
-* :doc:`View <viewmenu>`
-* :doc:`Metrics <metricsmenu>`
-* :doc:`CID <cidmenu>`
-* :doc:`MM <mmmenu>`
-* :doc:`Window <windowmenu>`
-* :doc:`Help <helpmenu>`
+* :doc:`File </ui/menus/filemenu>`
+* :doc:`Edit </ui/menus/editmenu>`
+* :doc:`Point </ui/menus/pointmenu>`
+* :doc:`Element </ui/menus/elementmenu>`
+* :doc:`Hints </ui/menus/hintsmenu>`
+* :doc:`View </ui/menus/viewmenu>`
+* :doc:`Metrics </ui/menus/metricsmenu>`
+* :doc:`CID </ui/menus/cidmenu>`
+* :doc:`MM </ui/menus/mmmenu>`
+* :doc:`Window </ui/menus/windowmenu>`
+* :doc:`Help </ui/menus/helpmenu>`
 * :doc:`Hot Keys <HotKeys>`
 
 

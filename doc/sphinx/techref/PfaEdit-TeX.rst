@@ -17,7 +17,7 @@ The :download:`encodings <Encodings.ps.gz>` file has a number of standard TeX
 encodings built in to it.
 
 For large CJK truetype fonts it can read a sub-font definition file as defined
-in the ttf2tfm man page and :doc:`generate <generate>` a series of postscript
+in the ttf2tfm man page and :doc:`generate </ui/dialogs/generate>` a series of postscript
 type-1 fonts based on those two.
 
 In consultation with the lilypond group we have designed a new

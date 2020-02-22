@@ -139,7 +139,7 @@ at best some sub-set of ISO 8859-1 characters. How can the full range of unicode
 characters be entered?
 
 X supplies a sophisticated mechanism for entering characters via stand-alone
-:doc:`input method servers <xim>`. FontForge supports this to some extent now.
+:doc:`input method servers </ui/misc/xim>`. FontForge supports this to some extent now.
 
 Aside from that, many versions of X supply a "Compose Character" key, or
 something equivalent. The X software will map a sequence of keystrokes to one
@@ -322,7 +322,7 @@ probably kern quite differently after a T), and rather than create separate
 kerning pairs for each of the "A"s above, they could all be placed in a class of
 glyphs which kern alike.
 
-The :doc:`Element->Font Info->Lookups <lookups>` provides an interface to this.
+The :doc:`Element->Font Info->Lookups </ui/dialogs/lookups>` provides an interface to this.
 
 .. image:: /images/kerningformat.png
    :align: right
@@ -358,7 +358,7 @@ closer together.
 
 .. image:: /images/kerningclass.png
 
-Each kerning class belongs to a :doc:`lookup subtable <lookups>` and the
+Each kerning class belongs to a :doc:`lookup subtable </ui/dialogs/lookups>` and the
 subtable name is displayed at the top of the dialog.
 
 But the more interesting stuff follows this. A kerning by class actually

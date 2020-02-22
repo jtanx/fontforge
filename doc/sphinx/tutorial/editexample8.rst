@@ -133,7 +133,7 @@ bitmap glyphs just as it builds accented outline glyphs.
 
 If the Font View is displaying a bitmap strike and you double click on a
 character, then FontForge will bring up a
-:doc:`bitmap editing window <bitmapview>` displaying that character in the
+:doc:`bitmap editing window </ui/mainviews/bitmapview>` displaying that character in the
 current strike (rather than opening an outline editing window). If the character
 does not have a matching glyph in the current strike FontForge will create one
 by rasterizing the outline version of the font.

@@ -52,7 +52,7 @@ The outline types are:
 * PostScript Type11 font (this is another format for wrapping a TrueType font in
   PostScript, it is a CID format)
 * PostScript CID font, this is only available if your font is a
-  :doc:`CID font <cidmenu>`. This produces a font in the old Type1 CID format. You
+  :doc:`CID font </ui/menus/cidmenu>`. This produces a font in the old Type1 CID format. You
   probably want to use the OpenType CID format...
 * PostScript CFF font, this is the format that lives inside the 'CFF ' table of an
   opentype font. It is a valid font format in its own right.
@@ -77,7 +77,7 @@ The outline types are:
 * OpenType dfont format, an OpenType font wrapped up in a mac dfont (data fork
   resource file). Mac OS/X font.
 * OpenType CID, This is only available if your font is a
-  :doc:`CID font <cidmenu>`. It produces an OpenType CID-keyed font.
+  :doc:`CID font </ui/menus/cidmenu>`. It produces an OpenType CID-keyed font.
 * :ref:`SVG font <generate.svg>`
 * None
 
@@ -114,7 +114,7 @@ The bitmap types are:
      type1 font. Even though the bitmap is required, it will not be used. Odd.
 * Windows FON -- Windows resource based font format.
 * Windows FNT -- Windows format, one bitmap font per file.
-* Palm fonts -- support for :doc:`various palm bitmap font formats. <palmfonts>`
+* Palm fonts -- support for :doc:`various palm bitmap font formats. </techref/palmfonts>`
 * PS Type3 Bitmap -- create a PostScript Type3 font which uses the imagemask
   operator to display each glyph's bitmap.
 * None
@@ -138,7 +138,7 @@ all times.
   .. note::
     Normally only 'liga' and 'rlig' ligatures will be output in the AFM file.
     But you can control that in the lookup dialog off of
-    :doc:`Font Info <fontinfo>`.
+    :doc:`Font Info </ui/dialogs/fontinfo>`.
 * [] Composites in AFM -- the AFM format includes a mechanism for building
   composite glyphs out of components. It is roughly equivalent to the OpenType
   mark-to-base feature. Almost nobody uses these data, and they can increase the
@@ -259,7 +259,7 @@ the "Force glyph names to" field.
 If you leave [] Validate Before Saving checked then FontForge will attempt to
 validate your font. If it passes then FontForge will save it without bothering
 you further, but if it fails FontForge will give you the option of reviewing
-errors and fixing them. It will pop up a :doc:`validation window <validation>`.
+errors and fixing them. It will pop up a :doc:`validation window </ui/dialogs/validation>`.
 
 If you check [] Append a FONTLOG entry then a text area will open up in which
 you can create a new FONTLOG entry to be appended to the end of the FONTLOG.
@@ -271,7 +271,7 @@ If you generate a TrueType or OpenType font with the OpenType mode set (note:
 the term "OpenType" means two things, a truetype wrapper around a postscript
 font, or a set of tables containing typographic information -- here the OpenType
 mode refers to the typographic tables) then FontForge will generate
-:doc:`GPOS, GSUB, and GDEF tables <gposgsub>`. These contain kerning, ligature
+:doc:`GPOS, GSUB, and GDEF tables </techref/gposgsub>`. These contain kerning, ligature
 information, arabic forms data, anchor points, etc.
 
 Apple does not completely support these OpenType layout tables. If you set Apple

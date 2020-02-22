@@ -165,8 +165,8 @@ on the rectangle to get a friendlier dialog (see
 
 Every lookup is associated with a set of flags which control its behavior. The
 "Mark Class:" field is only active if there are
-:ref:`Mark Classes <fontinfo.MarkClass>` defined, and the "Mark Set:" field is
-active if there are :ref:`Mark Sets <fontinfo.MarkSet>` defined. Mark classes
+:ref:`Mark Classes <fontinfo.MarkClass-MarkSets>` defined, and the "Mark Set:" field is
+active if there are :ref:`Mark Sets <fontinfo.MarkClass-MarkSets>` defined. Mark classes
 and sets are very similar, with mark sets being the newer (largely unsupported
 as I write in spring 2009) but more versatile of the two. These provide an
 extension of the Ignore Marks flag -- if you specify a mark class (or set) then

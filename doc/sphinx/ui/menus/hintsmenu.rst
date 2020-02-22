@@ -71,7 +71,7 @@ This menu is only present in the outline glyph view and the font view.
 .. object:: Edit Instructions...
 
    Only available in the outline and font views, and only in quadratic fonts.
-   :doc:`This dialog <ttfinstrs>` shows any truetype instructions associated
+   :doc:`This dialog </ui/dialogs/ttfinstrs>` shows any truetype instructions associated
    with this glyph, and allows you to edit them.
 
    Note there are some glyphs for which you cannot write instructions if they
@@ -99,7 +99,7 @@ This menu is only present in the outline glyph view and the font view.
 .. object:: Edit fpgm...
 
    Only available in the font view, and only in quadratic fonts.
-   :doc:`This dialog <ttfinstrs>` shows any truetype instructions in the 'fpgm'
+   :doc:`This dialog </ui/dialogs/ttfinstrs>` shows any truetype instructions in the 'fpgm'
    table, and allows you to edit them.
 
 .. _hintsmenu.Editprep:
@@ -107,7 +107,7 @@ This menu is only present in the outline glyph view and the font view.
 .. object:: Edit prep...
 
    Only available in the font view, and only in quadratic fonts.
-   :doc:`This dialog <ttfinstrs>` shows any truetype instructions in the 'prep'
+   :doc:`This dialog </ui/dialogs/ttfinstrs>` shows any truetype instructions in the 'prep'
    table, and allows you to edit them.
 
 .. _hintsmenu.Editcvt:
@@ -123,7 +123,7 @@ This menu is only present in the outline glyph view and the font view.
 
 .. object:: Suggest Deltas...
 
-   Brings up a :doc:`dialog <SuggestDeltas>` which will help you search for
+   Brings up a :doc:`dialog </techref/SuggestDeltas>` which will help you search for
    places where truetype delta instructions might be useful.
 
 .. _hintsmenu.RmTables:
@@ -132,7 +132,7 @@ This menu is only present in the outline glyph view and the font view.
 
    If the font contains a 'fpgm', 'prep', 'cvt ' or 'maxp' table, then this
    command will remove them. This should be done in conjunction with
-   :doc:`Hints->Clear Instructions <hintsmenu>`, otherwise any remaining
+   :doc:`Hints->Clear Instructions </ui/menus/hintsmenu>`, otherwise any remaining
    instructed glyphs will fail to work.
 
 .. _hintsmenu.ClearHints:
@@ -223,20 +223,20 @@ The Histograms SubMenu
 
 .. object:: HStem
 
-   Brings up a :doc:`dialog <histogram>` displaying a histogram of the
+   Brings up a :doc:`dialog </ui/dialogs/histogram>` displaying a histogram of the
    horizontal stem widths of all selected glyphs.
 
 .. _hintsmenu.VStem-Hist:
 
 .. object:: VStem
 
-   Brings up a :doc:`dialog <histogram>` displaying a histogram of the vertical
+   Brings up a :doc:`dialog </ui/dialogs/histogram>` displaying a histogram of the vertical
    stem widths of all selected glyphs.
 
 .. _hintsmenu.Blue-Hist:
 
 .. object:: BlueValues
 
-   Brings up a :doc:`dialog <histogram>` displaying a histogram of the vertical
+   Brings up a :doc:`dialog </ui/dialogs/histogram>` displaying a histogram of the vertical
    maxima and minima of all selected glyphs.
 

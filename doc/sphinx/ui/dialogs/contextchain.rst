@@ -49,8 +49,7 @@ lookup.
 
 You may pull down an example script font with this substitution from
 `FormalScript.tgz <http://fontforge.sf.net/sfds/FormalScript.tgz>`__, this
-example is worked out in detail in the
-:ref:`tutorial <editexample6-5.Conditional>`.
+example is worked out in detail in the :doc:`tutorial </tutorial/editexample6-5>`.
 
 
 More complete descriptions

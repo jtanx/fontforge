@@ -27,7 +27,7 @@ Help Menu
 
 .. object:: Index
 
-   Invokes a browser and brings up :doc:`the index of help topics <IndexFS>` on
+   Invokes a browser and brings up :doc:`the index of help topics </index>` on
    the web page.
 
 .. _helpmenu.About:

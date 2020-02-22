@@ -55,4 +55,3 @@ Files used by FontForge
 .. object:: /usr/local/share/doc/fontforge/*.html
 
    Optional location for online documentation.
-   :ref:`You can pull down a compressed archive from here. <source-build.Documentation>`

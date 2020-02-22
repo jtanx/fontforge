@@ -6,7 +6,7 @@ A program for comparing fonts ::
    sfddiff [-merge outfile] [-ignorehints] [-ignorenames] [-ignoregpos] [-ignoregsub] [-ignorebitmaps] [-exact] [-warn] [-version] [-help] fontfile1 fontfile2
 
 *Sfddiff* compares (or merges) two font files (in any format
-:doc:`fontforge <overview>` can read) and checks for differences.
+:doc:`fontforge </index>` can read) and checks for differences.
 
 It will notice:
 
@@ -57,4 +57,4 @@ It will notice:
 See Also
 --------
 
-:doc:`fontforge <overview>`
+:doc:`fontforge </index>`

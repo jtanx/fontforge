@@ -30,7 +30,7 @@ The Preferences Window...
 
 .. object:: ResourceFile
 
-   FontForge will read :doc:`X Resources <xres>` from a property on the screen.
+   FontForge will read :doc:`X Resources </ui/misc/xres>` from a property on the screen.
    But sometimes this isn't enough. You set this preference item to specify a
    file from which these resources should be read (those on the screen will also
    be read and will supersede those in the file).
@@ -47,8 +47,7 @@ The Preferences Window...
 .. object:: OtherSubrsFile
 
    Allows you to redefine the OtherSubrs routines used in type1 fonts. The file
-   format is described at the scripting command
-   :ref:`ReadOtherSubrsFile <scripting-alpha.ReadOtherSubrsFile>`.
+   format is described at the scripting command :ff:func:`ReadOtherSubrsFile`.
 
 .. _prefs.FreeTypeInFontView:
 
@@ -63,7 +62,7 @@ The Preferences Window...
 
 .. object:: FreeTypeAAFillInOutlineView
 
-   In the :doc:`outline glyph view <charview>`, FontForge can generate glyph
+   In the :doc:`outline glyph view </ui/mainviews/charview>`, FontForge can generate glyph
    filles using many techniques. If FontForge is using the freetype library for
    this, you can enable this option to have FontForge generate fills with anti
    aliased edges. The old default was not to antialias in order to save some
@@ -76,7 +75,7 @@ The Preferences Window...
 .. object:: UseCairoDrawing
 
    FontForge can use its own drawing routines, or rely on Cairo library in the
-   :doc:`outline glyph view <charview>`. Using Cairo is slower, but gives smooth
+   :doc:`outline glyph view </ui/mainviews/charview>`. Using Cairo is slower, but gives smooth
    curves, and subpixel display precision. New setting applies only to windows
    created afterwards.
 
@@ -178,8 +177,8 @@ The Preferences Window...
 
 .. object:: OpenCharsInNewWindow
 
-   Double clicking on a glyph in a :doc:`font view <fontview>` can either always
-   create a new :doc:`glyph view <charview>`, or reuse an already opened one.
+   Double clicking on a glyph in a :doc:`font view </ui/mainviews/fontview>` can either always
+   create a new :doc:`glyph view </ui/mainviews/charview>`, or reuse an already opened one.
 
 .. figure:: /images/prefs-editing.png
 
@@ -573,7 +572,7 @@ This section of the dialog allows you to define built in scripts that will show
 up in the :ref:`script menu <filemenu.ScriptMenu>`. Each entry has two things
 associated with it, the menu name and a script file. The menu name will be the
 name of this entry inside the script menu, and the
-:doc:`script file <scripting>` will be the filename of the file to be invoked.
+:doc:`script file </scripting/scripting>` will be the filename of the file to be invoked.
 The "..." button allows you to browse for script files, which I think have
 extension .pe (but which can have whatever extension you prefer if you don't
 like my conventions).
@@ -649,5 +648,5 @@ Other ways of configuring
 A number of things that might be controlled from a preference window are
 controlled by
 
-* :doc:`X Resources <xres>`
+* :doc:`X Resources </ui/misc/xres>`
 * :ref:`Environment Variables <cliargs.Environment>`

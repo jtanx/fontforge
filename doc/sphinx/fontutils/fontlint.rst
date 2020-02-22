@@ -88,4 +88,4 @@ In any sfnt (True or OpenType font):
 See Also
 --------
 
-:doc:`fontforge <overview>`
+:doc:`fontforge </index>`

@@ -118,7 +118,7 @@ number. IT MUST BE FIRST in the file. The rest of the file is basically a set of
 keyword value pairs. Within a given section, order is largely irrelevant. The
 next few lines give the various different names that postscript allows fonts to
 have. Then some fairly self-explanatory items (if they don't make sense, look
-them up in the :doc:`font info <fontinfo>` dlg). A few things need some
+them up in the :doc:`font info </ui/dialogs/fontinfo>` dlg). A few things need some
 explanation:
 
 .. object:: Comments
@@ -1730,7 +1730,7 @@ directory contains the following:
 Autosave Format
 ---------------
 
-:doc:`Error recovery <errrecovery>` files are saved in ~/.FontForge/autosave,
+:doc:`Error recovery </appendices/errrecovery>` files are saved in ~/.FontForge/autosave,
 they have quite random looking names and end in .asfd. They look very similar to
 .sfd files above.
 

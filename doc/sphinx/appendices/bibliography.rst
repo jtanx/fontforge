@@ -41,7 +41,7 @@ Font File Formats
 * `PostScript Type42 <http://partners.adobe.com/public/developer/en/font/5012.Type42_Spec.pdf>`__
 * `Adobe Feature File (fea) <http://www.adobe.com/devnet/opentype/afdko/topic_feature_file_syntax.html>`__
 
-  * (:doc:`FontForge's implementation <featurefile>` of this format is a superset of
+  * (:doc:`FontForge's implementation </techref/featurefile>` of this format is a superset of
     what Adobe accepts, and a superset of what Adobe documents. Neither can
     completely describe opentype. Adobe claims they will update the feat spec in
     late 2007).
@@ -62,7 +62,7 @@ Font File Formats
     spec defines standard X BDF Properties
   * `ABF <http://partners.adobe.com/public/developer/en/font/5006.ABF_Spec.pdf>`__
     -- Binary format
-  * :doc:`Extensions to BDF for greymap support <BDFgrey>`
+  * :doc:`Extensions to BDF for greymap support </techref/BDFGrey>`
 * True Type Standard
 
   (Sadly different sources have slightly different definitions of less important
@@ -88,7 +88,9 @@ Font File Formats
     variations)
   * `avar <http://developer.apple.com/fonts/TTRefMan/RM06/Chap6avar.html>`__ (axis
     variations)
-* `OpenType <http://partners.adobe.com/public/developer/opentype/index_spec.html>`__
+* .. _bibliography.OpenType:
+
+  `OpenType <http://partners.adobe.com/public/developer/opentype/index_spec.html>`__
   (postscript embedded in a truetype wrapper, or advanced typography tables in a
   truetype wrapper)
 
@@ -109,7 +111,7 @@ Font File Formats
 
   (based on OpenType 1.4 but an international standard)
 * `Apple's sfnt wrapper around a PS type1 font <ftp://ftp.apple.com/developer/Development_Kits/QuickDraw_GX/Documents.sit.hqx>`__
-* :doc:`Various bitmap only sfnt formats <bitmaponlysfnt>`
+* :doc:`Various bitmap only sfnt formats </techref/bitmaponlysfnt>`
 * `WOFF <http://people.mozilla.com/~jkew/woff/woff-2009-09-16.html>`__ -- Web Open
   Font Format, mozilla's compressed sfnt format
 * `PostScript Type42 <http://partners.adobe.com/public/developer/en/font/5012.Type42_Spec.pdf>`__
@@ -117,7 +119,7 @@ Font File Formats
 * SVG 1.1 `fonts <http://www.w3c.org/TR/SVG11/fonts.html>`__
 
   * `SVG 1.2 font hinting proposal <http://www.w3c.org/TR/SVG12/>`__
-* :doc:`Macintosh font formats <macformats>`
+* :doc:`Macintosh font formats </techref/macformats>`
 * Windows raster font formats
 
   * `FNT -- Windows version 2 <http://www.technoir.nu/hplx/hplx-l/9708/msg00404.html>`__
@@ -127,7 +129,7 @@ Font File Formats
 
   * Sadly there is no real standard for this.
     `There's the source code used by X11 <http://ftp.x.org/pub/R6.4/xc/lib/font/bitmap/>`__.
-  * :doc:`So I wrote my own description... <pcf-format>`
+  * :doc:`So I wrote my own description... </techref/pcf-format>`
 * `PC Screen Font (psf/psfu/psf2) <http://www.win.tue.nl/~aeb/linux/kbd/font-formats-1.html>`__
 * TeX font formats
 
@@ -155,8 +157,8 @@ Font File Formats
   `URW++ <http://www.urwpp.de/english/home.htm>`__)
 
   Interestingly the exact format of a curve is up to the interpretation program.
-* :doc:`sfd <sfdformat>` files (FontForge's internal spline font database format)
-* :doc:`cidmap <cidmapformat>` files (Fontforge's format for mapping cids to
+* :doc:`sfd </techref/sfdformat>` files (FontForge's internal spline font database format)
+* :doc:`cidmap </techref/cidmapformat>` files (Fontforge's format for mapping cids to
   unicode)
 * XML formats
 
@@ -214,7 +216,7 @@ Unicode
     (0xF850-0xF8FE)
   * `Adobe's corporate use extensions <http://partners.adobe.com/asn/tech/type/type/corporateuse.txt>`__
     (0xF634-0F7FF) (also includes some of Apple's codes above)
-  * :doc:`FontForge's corporate use extensions <corpchar>` (0xF500-0xF580)
+  * :doc:`FontForge's corporate use extensions </techref/corpchar>` (0xF500-0xF580)
   * `A registry of code points in the private area <http://www.evertype.com/standards/csur/>`__
     (does not include any of Adobe's or Apple's codepoints)
   * `American Mathematical Society's corporate use extensions <http://www.ams.org/STIX/bnb/stix-tbl.asc-2003-10-10>`__

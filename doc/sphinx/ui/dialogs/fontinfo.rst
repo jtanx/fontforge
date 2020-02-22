@@ -41,7 +41,7 @@ from this database; this should be a floating point number. Or you may leave
 this field blank. If you leave it blank FontForge will generate a default value
 based on other version information specified elsewhere.
 
-Normally when :doc:`generating a font, <generate>` FontForge will use the
+Normally when :doc:`generating a font, </ui/dialogs/generate>` FontForge will use the
 fontname as the base for the default filename of the font file (the base to
 which the extension is added). But that is not always what you want. You may
 wish to attach a version string to the fontname, or abbreviate it, etc. The
@@ -148,7 +148,7 @@ PostScript Unique ID
 
 .. note::
 
-   :doc:`Adobe now says <UniqueID>` that both XUID and UniqueID are unnecessary.
+   :doc:`Adobe now says </techref/UniqueID>` that both XUID and UniqueID are unnecessary.
 
 .. image:: /images/fontinfo-psuid.png
    :align: right
@@ -208,7 +208,7 @@ When the ``[Guess]`` button is enabled FontForge thinks it can make a reasonable
 guess for the value of the currently selected entry.
 
 The ``[Histogram]`` button is similar, it will bring up a
-:doc:`dialog showing a histogram <histogram>` of the values of an attribute of
+:doc:`dialog showing a histogram </ui/dialogs/histogram>` of the values of an attribute of
 the font. The hope is that this will allow you to pick a good value for the
 entry.
 
@@ -363,7 +363,7 @@ spacing between vertical columns of text. (the equivalent to LineGap in vertical
 text).
 
 :ref:`See the FAQ <faq.linespace>` for a discussion on the complexities involved
-in setting the line spacing. :doc:`The 'BASE' table <baseline>` provides a more
+in setting the line spacing. :doc:`The 'BASE' table </ui/dialogs/baseline>` provides a more
 precise method for setting line spacing.
 
 
@@ -598,7 +598,7 @@ different languages.
 When you create a Style entry for an language, FontForge will attempt to
 translate the American English style into something appropriate for that
 language. It understands languages in
-:doc:`the table on the font styles page <fontstyles>`, but not others so it
+:doc:`the table on the font styles page </appendices/fontstyles>`, but not others so it
 won't always work.
 
 So if your style in American English is "BoldItalic" then after you create the
@@ -704,7 +704,7 @@ point sizes more readable than they would otherwise be. Conversely large
 pointsizes would tend to have less white space around them, otherwise the
 letters would appear too far apart.
 
-:doc:`Multi-master fonts <multiplemaster>` provide one method to avoid this
+:doc:`Multi-master fonts </ui/dialogs/multiplemaster>` provide one method to avoid this
 problem. This dialog provides another. Suppose you have a series of font-faces
 designed for different point-sizes.
 
@@ -818,7 +818,7 @@ Lookups
 
    Font Info Anchors
 
-This pane is so complex that it merits its :doc:`own section <lookups>`.
+This pane is so complex that it merits its :doc:`own section </ui/dialogs/lookups>`.
 
 Briefly, lookups contain the data to do the work needed for complex typography.
 There are two main classes of lookups, those which substitute glyphs (ligatures
@@ -851,7 +851,7 @@ these functions as well as:
 .. object:: Save Lookup
 
    Saves the currently selected lookup to an
-   :doc:`Adobe Feature File <featurefile>` of its very own.
+   :doc:`Adobe Feature File </techref/featurefile>` of its very own.
 
 .. object:: Add 'aalt' features
 
@@ -874,7 +874,7 @@ these functions as well as:
 .. object:: Save Feature File
 
    Saves all lookups (both GSUB and GPOS) to an
-   :doc:`Adobe Feature File <featurefile>`.
+   :doc:`Adobe Feature File </techref/featurefile>`.
 
 
 .. _fontinfo.WOFF:
@@ -979,6 +979,6 @@ defined in the font within that range, and scroll to one of them.
 
 See Also:
 
-* :doc:`The char info dialog <charinfo>`
-* :doc:`The get info dialogs <getinfo>`
+* :doc:`The char info dialog </ui/dialogs/charinfo>`
+* :doc:`The get info dialogs </ui/dialogs/getinfo>`
 * :doc:`The contextual / chaining dialog <contextchain>`

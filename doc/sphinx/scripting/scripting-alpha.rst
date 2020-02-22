@@ -978,7 +978,7 @@ the fourth argument you must specify the second and third arguments too.
         present, and that will only be present if an obsolete NFNT is also present)
    * fnt (For windows FNT format)
    * otb (For X11 opentype bitmap format)
-   * pdb (for :doc:`palm bitmap fonts <palmfonts>`)
+   * pdb (for :doc:`palm bitmap fonts </techref/palmfonts>`)
    * pt3 (for a postscript type3 bitmap font)
    * "" for no bitmaps
 
@@ -1249,7 +1249,7 @@ the fourth argument you must specify the second and third arguments too.
    * "BBox" returns a 4 element array containing [minimum-x-value,
      minimum-y-value, maximum-x-value, maximum-y-value] of the glyph.
    * "ValidationState" returns a bitmask of the glyph's validation state. (See the
-     :ref:`ff python docs <python.validation-state>` for the bit break down)
+     :py:attr:`fontforge.glyph.validation_state` for the bit break down)
    * "Kern" (there must be a second argument here which specifies another glyph as
      in Select()) Returns the kern offset between the two glyphs (or 0 if none).
    * "VKern" (there must be a second argument here which specifies another glyph
@@ -1882,7 +1882,7 @@ the fourth argument you must specify the second and third arguments too.
 .. function:: PrintFont(type[,pointsize[,sample-text/filename[,output-file]]])
 
    Prints the current font according to the :func:`PrintSetup()`. The values
-   for type are (meanings are described in the :doc:`section on printing <display>`):
+   for type are (meanings are described in the :doc:`section on printing </ui/dialogs/display>`):
 
    * 0 => Prints a full font display at the given pointsize
    * 1 => Prints selected glyphs to fill page

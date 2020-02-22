@@ -86,7 +86,7 @@ Questions about Hints and TrueType Instructions
 * :ref:`I loaded a ttf font, made a few changes and generated a new font. The changed glyphs don't look anywhere near as nice as the originals. Why? <faq.ttf-degrade>`
 
 
-Questions about :doc:`Font Formats <bibliography>`
+Questions about :doc:`Font Formats </appendices/bibliography>`
 --------------------------------------------------
 
 * :ref:`What's the difference between OpenType and PostScript (or TrueType) fonts? <faq.Open-difference>`
@@ -211,7 +211,7 @@ Random questions
      lacking features that I wanted.
    * To learn
 
-   For a more complete description see the :doc:`FontForge history <ff-history>`
+   For a more complete description see the :doc:`FontForge history </appendices/ff-history>`
    page.
 
 .. _faq.give:
@@ -351,8 +351,9 @@ Random questions
 
    I'm giving away fontforge, so I do.
 
-   The :doc:`BSD license <license>` says "Don't sue me, and include my copyright
-   notice if you use my code" and that's all I care about.
+   The `BSD license <https://raw.githubusercontent.com/fontforge/fontforge/master/LICENSE>`__
+   says "Don't sue me, and include my copyright notice if you use my code" and
+   that's all I care about.
 
    Perhaps I am naif, but I don't believe that anyone is going to start selling
    fontforge. Why would they? It makes no sense for someone to try to sell what
@@ -622,7 +623,7 @@ Random questions
    Instead of having one global measurement which controls the line spacing for
    all uses of the font, it is better to have more specific measures which
    control the line spacing dependent on conditions. The OpenType
-   :doc:`'BASE' table <baseline>` does this. It allows you to specify extent
+   :doc:`'BASE' table </ui/dialogs/baseline>` does this. It allows you to specify extent
    data depending on script, language and active feature (for example, a 'mkmk'
    feature might increase the line spacing). I don't know whether any
    applications actually make use of these data
@@ -666,7 +667,7 @@ Random questions
      `FAQ <http://scripts.sil.org/OFL-FAQ_web>`__)
 
      The above is the license I would
-     recommend.:doc:`A collection of unofficial translations of the OFL <OFL-Unofficial>`.
+     recommend.:doc:`A collection of unofficial translations of the OFL </appendices/OFL-Unofficial>`.
      These are not legally binding but may help non-English speakers get the
      intent of the license.
    * `The license Bitstream used to release the Vera fonts <http://www.gnome.org/fonts/#Final_Bitstream_Vera_fonts>`__
@@ -930,7 +931,7 @@ Random questions
 
       **Note:** make sure you either replace the original font files, or that
       you rename the font within fontforge and (for postscript fonts) that you
-      give it a new unique id. See the :doc:`Font Info <fontinfo>` dlg.
+      give it a new unique id. See the :doc:`Font Info </ui/dialogs/fontinfo>` dlg.
 
       **Caveat:** A postscript font is useless on a macintosh unless it is
       accompanied by at least one bitmap font. If you generate a postscript font
@@ -954,8 +955,7 @@ Random questions
         NCenturySchoolbook => NCenSch
 
    Mac OS/X
-      On Mac OS/X you can run :ref:`FontForge directly <running.mac>` (if you've
-      got :ref:`X11 installed <mac-install.Before>`). OS/X has several font
+      On Mac OS/X you can run FontForge directly. OS/X has several font
       formats, some fonts are stored in the old format (see above), while others
       are stored as data fork resources. The data fork font files generally have
       the extension ".dfont". On a Mac FontForge is able to edit both formats
@@ -988,7 +988,7 @@ Random questions
       :ref:`File->Generate Mac Family <filemenu.GenerateMac>` command.
 
       All the fonts in a family must have the same Family name (See the
-      :doc:`font info <fontinfo>` dialog). Font Families are handled rather
+      :doc:`font info </ui/dialogs/fontinfo>` dialog). Font Families are handled rather
       differently under Carbon (the old font handling mechanism used in OS 9)
       and under ATSUI (on OS/X).
 
@@ -1059,7 +1059,7 @@ Random questions
 .. _faq.windows:
 
 **How do I edit fonts on MS windows?**
-   See the :doc:`MS Windows install instructions <ms-install>`.
+   See the `MS Windows install instructions <https://fontforge.org/en-US/downloads/windows-dl/>`__.
 
 .. _faq.Bad-Windows-Fonts:
 
@@ -1137,7 +1137,7 @@ Random questions
    #. File->Open
 
       * an existing font
-   #. :doc:`Element->Generate Fonts <generate>`
+   #. :doc:`Element->Generate Fonts </ui/dialogs/generate>`
 
       * to generate the desired output.
 
@@ -1158,7 +1158,7 @@ Random questions
    #. :menuselection:`Edit --> Select --> Select All`
    #. :ref:`Element->Simplify->Simplify <elementmenu.Simplify>`
    #. :ref:`Hints->Auto Hint <hintsmenu.AutoHint>`
-   #. :doc:`Element->Generate Fonts <generate>`
+   #. :doc:`Element->Generate Fonts </ui/dialogs/generate>`
 
    Converting from PostScript (cubic splines, otf and pfb files) to TrueType
    (quadratic splines, ttf files):
@@ -1170,13 +1170,13 @@ Random questions
       * [OK]
    #. :menuselection:`Edit --> Select --> Select All`
    #. :ref:`Hints->AutoInstr <hintsmenu.AutoInstr>`
-   #. :doc:`Element->Generate Fonts <generate>`
+   #. :doc:`Element->Generate Fonts </ui/dialogs/generate>`
 
 .. _faq.bitmap-conversion:
 
 **How do I convert from one bitmap format to another?**
    This is also easy, open a bitmap font, and then use
-   :doc:`Element->Generate Fonts <generate>` to generate the desired output.
+   :doc:`Element->Generate Fonts </ui/dialogs/generate>` to generate the desired output.
 
 .. _faq.outline-bitmap:
 
@@ -1186,10 +1186,10 @@ Random questions
    strike(s) of the appropriate size(s). This process is called rasterization,
    at small pixel sizes it is difficult for a computer to do well. You might be
    advised to examine the results of the rasterization in the
-   :doc:`bitmap window <bitmapview>` (with
+   :doc:`bitmap window </ui/mainviews/bitmapview>` (with
    :ref:`Window->Open Bitmap Window <windowmenu.Bitmap>`), and possibly fixup
    the bitmap as you go. Then when done select
-   :doc:`Element->Generate Fonts <generate>`, turn off outline font generation
+   :doc:`Element->Generate Fonts </ui/dialogs/generate>`, turn off outline font generation
    (unless you also want an outline font, of course), and select the desired
    bitmap format.
 
@@ -1200,7 +1200,7 @@ Random questions
    procedure will not produce good results.
 
    * Before you do anything else make sure you have either the
-     :doc:`potrace or autotrace programs <autotrace>` installed on your system
+     :doc:`potrace or autotrace programs </techref/autotrace>` installed on your system
 
 --------------------------------------------------------------------------------
 
@@ -1298,14 +1298,14 @@ Random questions
    sent around the internet (it's a registered MIME type
    ``application/vnd.font-fontforge-sfd``).
 
-   :doc:`An overview of the format. <sfdformat>`
+   :doc:`An overview of the format. </techref/sfdformat>`
 
 .. _faq.background:
 
 **FontForge's grey background distresses me. How do I change it?**
-   The general mechanism is discussed on the :doc:`X Resources page <xres>`.
+   The general mechanism is discussed on the :doc:`X Resources page </ui/misc/xres>`.
 
-   :doc:`Here are some combinations you might try <fontforge-themes>`.
+   :doc:`Here are some combinations you might try </ui/misc/fontforge-themes>`.
 
 .. _faq.fontsize:
 
@@ -1322,7 +1322,7 @@ Random questions
       Gdraw.ScreenWidthCentimeters: 37.3
 
    to your ``~/.Xdefaults`` file (The general mechanism is discussed on the
-   :doc:`X Resources page <xres>`). If the GUI fonts are still too small you can
+   :doc:`X Resources page </ui/misc/xres>`). If the GUI fonts are still too small you can
    lie about the screen size. If you claim the screen is smaller (in inches or
    centimeters) than it actually is, ff will use a bigger font.
 
@@ -1548,8 +1548,8 @@ Random questions
    can be converted to the other without the possibility for some loss of
    information. I discuss this in greater detail
 
-   * :ref:`In the tutorial <editexample6-5.Conditional>`
-   * :doc:`In the section on advanced typography <gposgsub>`
+   * :doc:`In the tutorial </tutorial/editexample6-5>`
+   * :doc:`In the section on advanced typography </techref/gposgsub>`
 
 .. _faq.Tiger-Open:
 
@@ -1647,7 +1647,7 @@ Random questions
 
 **Why doesn't** :menuselection:`Edit --> Copy` **copy glyph names as well as glyph info?**
    Firstly because I believe that any attempt to copy a glyph's name will almost
-   certainly be better done by defining a custom :doc:`encoding <encodingmenu>`.
+   certainly be better done by defining a custom :doc:`encoding </ui/menus/encodingmenu>`.
 
    Secondly because most of the time you don't want the name copied.
 

@@ -401,7 +401,7 @@ Calculating the outline of a stroked path
 
 .. note::
    While some of this section is still accurate, most of it describes an
-   earlier version of the Expand Stroke facility. See :ref:`here <stroke>`
+   earlier version of the Expand Stroke facility. See :doc:`here <stroke>`
    for an up-to-date description of the current algorithm.
 
 

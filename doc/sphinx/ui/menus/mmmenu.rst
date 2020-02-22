@@ -17,7 +17,7 @@ The menu as it appears in the font view
 
 .. object:: Create MM
 
-   Brings up the :doc:`multiple master dialog <multiplemaster>` and allows you
+   Brings up the :doc:`multiple master dialog </ui/dialogs/multiplemaster>` and allows you
    to create your own multiple master font from scratch.
 
 .. _mmmenu.Valid:
@@ -52,7 +52,7 @@ The menu as it appears in the font view
 
 .. object:: MM Info
 
-   Brings up the :doc:`multiple master dialog <multiplemaster>` and allows you
+   Brings up the :doc:`multiple master dialog </ui/dialogs/multiplemaster>` and allows you
    to modify the current multiple master font.
 
 .. _mmmenu.NewFont:
