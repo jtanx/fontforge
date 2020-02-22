@@ -71,6 +71,20 @@ Step 4
 
 .. figure:: /images/Cspiro3.png
 
+Now select the corner point from the tool menu (the one that looks like a square).
+
+Place it at a location where the slope changes abruptly -- a corner.
+
+We are now readly to talk about the "left tangent point". Pretend you are
+standing on the corner point, facing toward the tangent point. Is the next
+point after it (in this case the curved point) to your left or to your right?
+If to your left, use a left tangen, if to your right, use a right tangent.
+
+Step 5
+******
+
+.. figure:: /images/Cspiro4.png
+
 Now we want to do some fiddly work on the top of the "C". Here we have a serif
 with a slight curve to it between two corners, two abrupt changes of direction.
 
@@ -78,35 +92,35 @@ We need to get a close up view of the image in order to work more precisely, so
 select the magnifying glass tool from the tool pane, move it to the middle of
 the serif, and click it several times until the serif fills the screen.
 
-Step 5
+Step 6
 ******
 
-.. figure:: /images/Cspiro4.png
+.. figure:: /images/Cspiro5.png
 
 Generally a corner point should have a constraint (or another corner) point on
 either side of it, so we need to pick another constraint. In this case the
 contour will change from a straight line to a curve, so that means a "prev
 constraint" point.
 
-Step 6
-******
-
-.. figure:: /images/Cspiro5.png
-
-Then proceeding to fill in the other points needed to make for a smooth curve
-of the serif.
-
 Step 7
 ******
 
 .. figure:: /images/Cspiro6.png
 
-And another smooth curve of the other side of the serif.
+Then proceeding to fill in the other points needed to make for a smooth curve
+of the serif.
 
 Step 8
 ******
 
 .. figure:: /images/Cspiro6_5.png
+
+And another smooth curve of the other side of the serif.
+
+Step 9
+******
+
+.. figure:: /images/Cspiro7.png
 
 Now it is no longer useful to have such a close view of the image, so grab the
 magnifying glass tool again, and hold down the Alt (Meta, Option) key. The
@@ -114,17 +128,17 @@ cursor should change, and clicking it will zoom you out.
 
 Then fill in the remainder of the points on this side.
 
-Step 9
-******
-
-.. figure:: /images/Cspiro7.png
-
-As we approach the lower tip of the C we again need to zoom in
-
 Step 10
 *******
 
 .. figure:: /images/Cspiro8.png
+
+As we approach the lower tip of the C we again need to zoom in
+
+Step 11
+*******
+
+.. figure:: /images/Cspiro9.png
 
 And eventually we have completed a rough outline of the glyph. Clicking on the
 start point will close the curve.

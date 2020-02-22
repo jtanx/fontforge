@@ -274,13 +274,13 @@ Books
 FontForge
 ^^^^^^^^^
 
-* .. image:: /images/http://images-eu.amazon.com/images/P/284177273X.08.MZZZZZZZ.jpg
+* .. image:: http://images-eu.amazon.com/images/P/284177273X.08.MZZZZZZZ.jpg
      :align: left
      :alt: Fontes et Codages
 
   `Haralambous, Yannis, 2004, Fontes & Codages <http://www.amazon.fr/exec/obidos/ASIN/284177273X/qid%3D1096481415/402-5423443-8577732>`__
 
-* .. image:: /images/http://images.amazon.com/images/P/0596102429.01._AA240_SCLZZZZZZZ_V40077239_.jpg
+* .. image:: http://images.amazon.com/images/P/0596102429.01._AA240_SCLZZZZZZZ_V40077239_.jpg
      :align: left
      :alt: Fontes et Codages
 
