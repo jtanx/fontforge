@@ -11,7 +11,7 @@ struct _GGtkWindow
     GGTKWindow gw;
     GGtkWindowEventHandler eh;
     GdkRGBA background_color;
-	PangoLayout *pango_layout;
+    PangoLayout *pango_layout;
 
     cairo_surface_t *offscreen_surface;
     cairo_t* offscreen_context;
@@ -50,9 +50,9 @@ cairo_t* ggtk_window_get_cairo_context(GGtkWindow *ggw)
     if (ggw->offscreen_context) {
         return ggw->offscreen_context;
     } else if (!ggw->offscreen_surface) {
-		// This should be rare - trying to draw before an initial expose event
-		// Just return this, cairo_create never returns NULL, it just won't do anything
-		Log(LOGWARN, "Tried to draw before any expose");
+        // This should be rare - trying to draw before an initial expose event
+        // Just return this, cairo_create never returns NULL, it just won't do anything
+        Log(LOGWARN, "Tried to draw before any expose");
         return cairo_create(NULL);
     }
 
@@ -85,16 +85,16 @@ const char *ggtk_window_get_title(GGtkWindow *ggw)
     if (ggw->gw->is_toplevel) {
         return gtk_window_get_title(ggtk_window_get_window(ggw));
     }
-	return NULL;
+    return NULL;
 }
 
 PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw)
 {
-	if (ggw->pango_layout) {
-		return ggw->pango_layout;
-	}
-	ggw->pango_layout = pango_layout_new(gtk_widget_get_pango_context(GTK_WIDGET(ggw)));
-	return ggw->pango_layout;
+    if (ggw->pango_layout) {
+        return ggw->pango_layout;
+    }
+    ggw->pango_layout = pango_layout_new(gtk_widget_get_pango_context(GTK_WIDGET(ggw)));
+    return ggw->pango_layout;
 }
 
 GtkWidget* ggtk_window_new(GGTKWindow gw, GGtkWindowEventHandler eh)
@@ -117,11 +117,11 @@ static void ggtk_window_size_allocate(GtkWidget* widget, GtkAllocation *alloc)
 
 static void ggtk_window_screen_changed(GtkWidget *widget, G_GNUC_UNUSED GdkScreen *previous_screen)
 {
-	GGtkWindow *ggw = GGTK_WINDOW(widget);
-	if (ggw->pango_layout) {
-		g_object_unref(ggw->pango_layout);
-		ggw->pango_layout = NULL;
-	}
+    GGtkWindow *ggw = GGTK_WINDOW(widget);
+    if (ggw->pango_layout) {
+        g_object_unref(ggw->pango_layout);
+        ggw->pango_layout = NULL;
+    }
 }
 
 static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
@@ -148,7 +148,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
     }
 
     if (ggw->repaint_all || ggw->dirty_regions) {
-		cairo_rectangle_int_t extents = {.width = alloc.width, .height = alloc.height};
+        cairo_rectangle_int_t extents = {.width = alloc.width, .height = alloc.height};
         ggw->offscreen_context = cairo_create(ggw->offscreen_surface);
         if (ggw->dirty_regions) {
             if (!ggw->repaint_all) {
@@ -166,11 +166,11 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
             ggw->dirty_regions = NULL;
         }
 
-		cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_SOURCE);
+        cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_SOURCE);
         cairo_set_source_rgba(ggw->offscreen_context,
             ggw->background_color.red, ggw->background_color.green, ggw->background_color.blue, ggw->background_color.alpha);
         cairo_paint(ggw->offscreen_context);
-		cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_OVER);
+        cairo_set_operator(ggw->offscreen_context, CAIRO_OPERATOR_OVER);
 
         if (ggw->repaint_all) {
             GdkEventConfigure configure = {
@@ -211,7 +211,7 @@ static gboolean ggtk_window_draw(GtkWidget* widget, cairo_t* cr)
     }
 
     // Now paint the offscreen surface
-	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE); // can't do this if it's not opaque
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE); // can't do this if it's not opaque
     cairo_set_source_surface(cr, ggw->offscreen_surface, 0, 0);
     cairo_paint(cr);
 
@@ -273,7 +273,7 @@ static void ggtk_window_dispose(GObject *gobject)
     GGtkWindow *ggw = GGTK_WINDOW(gobject);
     ggw->disposed = true;
 
-	G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
+    G_OBJECT_CLASS(ggtk_window_parent_class)->dispose(gobject);
 }
 
 static void ggtk_window_finalize(GObject *gobject)
@@ -281,10 +281,10 @@ static void ggtk_window_finalize(GObject *gobject)
     GGtkWindow *ggw = GGTK_WINDOW(gobject);
     ggw->finalized = true;
 
-	if (ggw->pango_layout) {
-		g_object_unref(ggw->pango_layout);
-		ggw->pango_layout = NULL;
-	}
+    if (ggw->pango_layout) {
+        g_object_unref(ggw->pango_layout);
+        ggw->pango_layout = NULL;
+    }
     if (ggw->offscreen_context) {
         cairo_destroy(ggw->offscreen_context);
         ggw->offscreen_context = NULL;

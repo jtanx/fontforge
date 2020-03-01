@@ -241,7 +241,7 @@ static void _GGTKDraw_OnTimerDestroyed(GGTKTimer *timer) {
 
 static void _GGTKDraw_CallEHChecked(GGTKWindow gw, GEvent *event, int (*eh)(GWindow gw, GEvent *)) {
     if (eh) {
-		// Increment reference counter
+        // Increment reference counter
         GGTKDRAW_ADDREF(gw);
         (eh)((GWindow)gw, event);
         // Decrement reference counter
@@ -288,9 +288,9 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
     static int request_id = 0;
     struct gevent gevent = {0};
 
-	GGTKWindow gw = ggtk_window_get_base(ggw);
-	GGTKDisplay *gdisp = gw->display;
-	assert(gw->w == ggw);
+    GGTKWindow gw = ggtk_window_get_base(ggw);
+    GGTKDisplay *gdisp = gw->display;
+    assert(gw->w == ggw);
 
     Log(LOGVERBOSE, "[%d] Received event %d(%s) %p", request_id++, event->type, GdkEventName(event->type), ggw);
     //fflush(stderr);
@@ -428,7 +428,7 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
                     gdisp->bs.cur_click = 1;
                 }
                 gdisp->bs.last_press_time = gevent.u.mouse.time;
-				Log(LOGDEBUG, "LAST TIME %d click %d", gevent.u.mouse.time, gdisp->bs.cur_click);
+                Log(LOGDEBUG, "LAST TIME %d click %d", gevent.u.mouse.time, gdisp->bs.cur_click);
             } else {
                 gevent.type = et_mouseup;
                 gdisp->bs.release_w = gw;
@@ -713,9 +713,9 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
             return NULL;
         }
 
-		gtk_widget_add_events(GTK_WIDGET(window), event_mask);
+        gtk_widget_add_events(GTK_WIDGET(window), event_mask);
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(nw->w));
-		gtk_window_set_default(window, GTK_WIDGET(nw->w));
+        gtk_window_set_default(window, GTK_WIDGET(nw->w));
         gtk_widget_show(GTK_WIDGET(nw->w)); // show/hide controlled on the GtkWindow
         
         g_signal_connect(window, "delete-event", G_CALLBACK(_GGTKDraw_HandleDeleteEvent), nw->w);
@@ -731,17 +731,17 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         gtk_layout_put(GTK_LAYOUT(gw->w), GTK_WIDGET(nw->w), nw->pos.x, nw->pos.y);
         gtk_widget_set_size_request(GTK_WIDGET(nw->w), nw->pos.width, nw->pos.height);
     }
-	
-	// Set background
+    
+    // Set background
     if (!(wattrs->mask & wam_backcol) || wattrs->background_color == COLOR_DEFAULT) {
         wattrs->background_color = gdisp->def_background;
     }
     nw->ggc->bg = wattrs->background_color;
 
     GGTKDrawSetWindowBackground((GWindow)nw, wattrs->background_color);
-	
-	// Set event mask, connect to the right signals
-	gtk_widget_add_events(GTK_WIDGET(nw->w), event_mask);
+    
+    // Set event mask, connect to the right signals
+    gtk_widget_add_events(GTK_WIDGET(nw->w), event_mask);
     
     // Set cursor
     if ((wattrs->mask & wam_cursor) && wattrs->cursor != ct_default) {
@@ -796,38 +796,38 @@ static GWindow _GGTKDraw_NewPixmap(GDisplay *disp, GWindow similar, uint16 width
         if (similar == NULL) {
             gw->pixmap_surface = cairo_image_surface_create(is_bitmap ? CAIRO_FORMAT_A1 : CAIRO_FORMAT_ARGB32, width, height);
         } else {
-			GdkWindow* window = gtk_widget_get_window(GTK_WIDGET(((GGTKWindow)similar)->w));
+            GdkWindow* window = gtk_widget_get_window(GTK_WIDGET(((GGTKWindow)similar)->w));
             gw->pixmap_surface = gdk_window_create_similar_surface(window, CAIRO_CONTENT_COLOR, width, height);
         }
     } else {
         cairo_format_t format = is_bitmap ? CAIRO_FORMAT_A1 : CAIRO_FORMAT_ARGB32;
         gw->pixmap_surface = cairo_image_surface_create_for_data(data, format, width, height, cairo_format_stride_for_width(format, width));
     }
-	
-	if (gw->pixmap_surface != NULL) {
-		gw->pixmap_context = cairo_create(gw->pixmap_surface);
-		if (gw->pixmap_context != NULL) {
-			PangoContext *context = similar == NULL ? gdisp->default_pango_context :
-									gtk_widget_get_pango_context(GTK_WIDGET(((GGTKWindow)similar)->w));
-			gw->pixmap_layout = pango_layout_new(context);
-			if (gw->pixmap_layout != NULL) {
+    
+    if (gw->pixmap_surface != NULL) {
+        gw->pixmap_context = cairo_create(gw->pixmap_surface);
+        if (gw->pixmap_context != NULL) {
+            PangoContext *context = similar == NULL ? gdisp->default_pango_context :
+                                    gtk_widget_get_pango_context(GTK_WIDGET(((GGTKWindow)similar)->w));
+            gw->pixmap_layout = pango_layout_new(context);
+            if (gw->pixmap_layout != NULL) {
                 // Add a reference to ourselves
                 GGTKDRAW_ADDREF(gw);
-				return (GWindow)gw;
-			}
-			Log(LOGWARN, "Failed to create pixmap layout, context=%p", context);
-			cairo_destroy(gw->pixmap_context);
-		} else {
-			Log(LOGWARN, "Failed to create pixmap context, surface=%p", gw->pixmap_surface);
-		}
-		cairo_surface_destroy(gw->pixmap_surface);
-	} else {
-		Log(LOGWARN, "Failed to crate pixmap surface");
-	}
-	
-	free(gw->ggc);
-	free(gw);
-	return NULL;
+                return (GWindow)gw;
+            }
+            Log(LOGWARN, "Failed to create pixmap layout, context=%p", context);
+            cairo_destroy(gw->pixmap_context);
+        } else {
+            Log(LOGWARN, "Failed to create pixmap context, surface=%p", gw->pixmap_surface);
+        }
+        cairo_surface_destroy(gw->pixmap_surface);
+    } else {
+        Log(LOGWARN, "Failed to crate pixmap surface");
+    }
+    
+    free(gw->ggc);
+    free(gw);
+    return NULL;
 }
 
 static void GGTKDrawInit(GDisplay *gdisp) {
@@ -845,7 +845,7 @@ static void GGTKDrawInit(GDisplay *gdisp) {
 }
 
 static void GGTKDrawSetDefaultIcon(GWindow icon) {
-	GGTKWindow gicon = (GGTKWindow)icon;
+    GGTKWindow gicon = (GGTKWindow)icon;
     if (gicon->is_pixmap) {
         gicon->display->default_icon = gicon;
     }
@@ -893,7 +893,7 @@ static GWindow GGTKDrawCreateBitmap(GDisplay *gdisp, uint16 width, uint16 height
 static GCursor GGTKDrawCreateCursor(GWindow src, GWindow mask, Color fg, Color bg, int16 x, int16 y) {
     Log(LOGVERBOSE, " ");
 
-	GGTKDisplay *gdisp = (GGTKDisplay *)(src->display);
+    GGTKDisplay *gdisp = (GGTKDisplay *)(src->display);
     GdkCursor *cursor = NULL;
     if (mask == NULL) { // Use src directly
         assert(src != NULL);
@@ -922,8 +922,8 @@ static GCursor GGTKDrawCreateCursor(GWindow src, GWindow mask, Color fg, Color b
 
 static void GGTKDrawDestroyCursor(GDisplay *disp, GCursor gcursor) {
     Log(LOGVERBOSE, " ");
-	
-	GGTKDisplay *gdisp = (GGTKDisplay *)disp;
+    
+    GGTKDisplay *gdisp = (GGTKDisplay *)disp;
     gcursor -= ct_user;
     if ((int)gcursor >= 0 && gcursor < gdisp->cursors->len) {
         g_object_unref(gdisp->cursors->pdata[gcursor]);
@@ -977,14 +977,14 @@ static void GGTKDrawSetWindowBorder(GWindow UNUSED(gw), int UNUSED(width), Color
 
 static void GGTKDrawSetWindowBackground(GWindow w, Color gcol) {
     Log(LOGVERBOSE, " ");
-	GGTKWindow gw = (GGTKWindow)w;
-	GdkRGBA col = {
+    GGTKWindow gw = (GGTKWindow)w;
+    GdkRGBA col = {
         .red = COLOR_RED(gcol) / 255.,
         .green = COLOR_GREEN(gcol) / 255.,
         .blue = COLOR_BLUE(gcol) / 255.,
         .alpha = 1.
     };
-	ggtk_window_set_background(gw->w, &col);
+    ggtk_window_set_background(gw->w, &col);
 }
 
 static int GGTKDrawSetDither(GDisplay *UNUSED(gdisp), int UNUSED(set)) {
@@ -998,52 +998,73 @@ static void GGTKDrawReparentWindow(GWindow child, GWindow newparent, int x, int 
 
 static void GGTKDrawSetVisible(GWindow w, int show) {
     Log(LOGDEBUG, "0x%p %d", w, show);
-	GGTKWindow gw = (GGTKWindow)w;
-	GtkWidget *widget = GTK_WIDGET(gw->w);
-	if (gw->is_toplevel) {
-		widget = gtk_widget_get_toplevel(widget);
-	}
+    GGTKWindow gw = (GGTKWindow)w;
+    GtkWidget *widget = GTK_WIDGET(gw->w);
+    if (gw->is_toplevel) {
+        widget = gtk_widget_get_toplevel(widget);
+    }
     gtk_widget_set_visible(widget, show);
 }
 
 static void GGTKDrawMove(GWindow w, int32 x, int32 y) {
     //Log(LOGDEBUG, "%p:%s, %d %d", gw, ((GGTKWindow) gw)->window_title, x, y);
-	GGTKWindow gw = (GGTKWindow)w;
-	if (gw->is_toplevel) {
-		gtk_window_move(ggtk_window_get_window(gw->w), x, y);
-	} else {
-		gtk_layout_move(GTK_LAYOUT(gw->parent->w), GTK_WIDGET(gw->w), x, y);
-	}
+    GGTKWindow gw = (GGTKWindow)w;
+    if (gw->is_toplevel) {
+        GdkWindow *window = gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
+        gdk_window_move(window, x, y);
+    } else {
+        gtk_layout_move(GTK_LAYOUT(gw->parent->w), GTK_WIDGET(gw->w), x, y);
+    }
 }
 
 static void GGTKDrawTrueMove(GWindow w, int32 x, int32 y) {
     Log(LOGVERBOSE, " ");
-	GGTKDrawMove(w, x, y);
+    GGTKDrawMove(w, x, y);
 }
 
 static void GGTKDrawResize(GWindow w, int32 width, int32 height) {
     //Log(LOGDEBUG, "%p:%s, %d %d", gw, ((GGTKWindow) gw)->window_title, w, h);
-	GGTKWindow gw = (GGTKWindow)w;
-	if (gw->is_toplevel) {
-		gtk_window_resize(ggtk_window_get_window(gw->w), width, height);
-	} else {
-		gtk_widget_set_size_request(GTK_WIDGET(gw->w), width, height);
-	}
+    GGTKWindow gw = (GGTKWindow)w;
+    if (gw->is_toplevel) {
+        GdkWindow *window = gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
+        gdk_window_resize(window, width, height);
+    } else {
+        gtk_widget_set_size_request(GTK_WIDGET(gw->w), width, height);
+    }
 }
 
 static void GGTKDrawMoveResize(GWindow w, int32 x, int32 y, int32 width, int32 height) {
     //Log(LOGDEBUG, "%p:%s, %d %d %d %d", gw, ((GGTKWindow) gw)->window_title, x, y, w, h);
-	// fixme
-	GGTKDrawMove(w, x, y);
-	GGTKDrawResize(w, width, height);
+    GGTKWindow gw = (GGTKWindow)w;
+    if (gw->is_toplevel) {
+        GdkWindow *window = gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
+        gdk_window_move_resize(window, x, y, width, height);
+    } else {
+        // hmmm
+        GGTKDrawMove(w, x, y);
+        GGTKDrawResize(w, width, height);
+    }
 }
 
 static void GGTKDrawRaise(GWindow w) {
     Log(LOGVERBOSE, " ");
+    GGTKWindow gw = (GGTKWindow)w;
+
+    if (!gw->is_toplevel) {
+        Log(LOGINFO, "[GGTKDrawRaise] %p is not toplevel", w);
+    }
+
 }
 
-static void GGTKDrawRaiseAbove(GWindow gw1, GWindow gw2) {
+static void GGTKDrawRaiseAbove(GWindow w1, GWindow w2) {
     Log(LOGVERBOSE, " ");
+    GGTKWindow gw1 = (GGTKWindow)w1, gw2 = (GGTKWindow)w2;
+    if (!gw1->is_toplevel) {
+        Log(LOGINFO, "[GGTKDrawRaiseAbove] w1:%p is not toplevel", w1);
+    }
+    if (!gw2->is_toplevel) {
+        Log(LOGINFO, "[GGTKDrawRaiseAbove] w2:%p si not toplevel", w2);
+    }
 }
 
 // Only used once in gcontainer - force it to call GDrawRaiseAbove
@@ -1059,17 +1080,17 @@ static void GGTKDrawLower(GWindow gw) {
 // Icon title is ignored.
 static void GGTKDrawSetWindowTitles8(GWindow w, const char *title, const char *UNUSED(icontitle)) {
     Log(LOGVERBOSE, " "); // assert(false);
-	GGTKWindow gw = (GGTKWindow)w;
-	if (gw->is_toplevel) {
-		gtk_window_set_title(ggtk_window_get_window(gw->w), title);
-	}
+    GGTKWindow gw = (GGTKWindow)w;
+    if (gw->is_toplevel) {
+        gtk_window_set_title(ggtk_window_get_window(gw->w), title);
+    }
 }
 
 static void GGTKDrawSetWindowTitles(GWindow w, const unichar_t *title, const unichar_t *UNUSED(icontitle)) {
     Log(LOGVERBOSE, " ");
-	char *str = u2utf8_copy(title);
-	GGTKDrawSetWindowTitles8(w, str, NULL);
-	free(str);
+    char *str = u2utf8_copy(title);
+    GGTKDrawSetWindowTitles8(w, str, NULL);
+    free(str);
 }
 
 static char *GGTKDrawGetWindowTitle8(GWindow w) {
@@ -1079,10 +1100,10 @@ static char *GGTKDrawGetWindowTitle8(GWindow w) {
 
 static unichar_t *GGTKDrawGetWindowTitle(GWindow w) {
     Log(LOGVERBOSE, " "); // assert(false);
-	char *title = GGTKDrawGetWindowTitle8(w);
-	unichar_t *ret = utf82u_copy(title);
-	free(title);
-	return ret;
+    char *title = GGTKDrawGetWindowTitle8(w);
+    unichar_t *ret = utf82u_copy(title);
+    free(title);
+    return ret;
 }
 
 static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner) {
@@ -1279,26 +1300,26 @@ static void GGTKDrawPointerGrab(GWindow w) {
 
 static void GGTKDrawRequestExpose(GWindow w, GRect *rect, int UNUSED(doclear)) {
     Log(LOGWARN, "%p [%s]", w, ggtk_window_get_title(((GGTKWindow) w)->w));
-	assert(!w->is_pixmap);
-	cairo_rectangle_int_t r;
-	if (rect) {
-		r.x = rect->x;
-		r.y = rect->y;
-		r.width = rect->width;
-		r.height = rect->height;
-	}
-	ggtk_window_request_expose(GGTK_WINDOW(((GGTKWindow)w)->w), rect ? &r : NULL);
+    assert(!w->is_pixmap);
+    cairo_rectangle_int_t r;
+    if (rect) {
+        r.x = rect->x;
+        r.y = rect->y;
+        r.width = rect->width;
+        r.height = rect->height;
+    }
+    ggtk_window_request_expose(GGTK_WINDOW(((GGTKWindow)w)->w), rect ? &r : NULL);
 }
 
 static void GGTKDrawForceUpdate(GWindow w) {
     //Log(LOGVERBOSE, " ");
-	// fixme
-	ggtk_window_request_expose(GGTK_WINDOW(((GGTKWindow)w)->w), NULL);
+    // fixme
+    ggtk_window_request_expose(GGTK_WINDOW(((GGTKWindow)w)->w), NULL);
 }
 
 static void GGTKDrawSync(GDisplay *gdisp) {
     //Log(LOGVERBOSE, " ");
-	gdk_display_sync(((GGTKDisplay *)gdisp)->display);
+    gdk_display_sync(((GGTKDisplay *)gdisp)->display);
 }
 
 static void GGTKDrawSkipMouseMoveEvents(GWindow UNUSED(gw), GEvent *UNUSED(gevent)) {
@@ -1308,21 +1329,21 @@ static void GGTKDrawSkipMouseMoveEvents(GWindow UNUSED(gw), GEvent *UNUSED(geven
 
 static void GGTKDrawProcessPendingEvents(GDisplay *gdisp) {
     //Log(LOGVERBOSE, " ");
-	while (gtk_events_pending())
-		gtk_main_iteration_do(false);
+    while (gtk_events_pending())
+        gtk_main_iteration_do(false);
 }
 
 static void GGTKDrawProcessWindowEvents(GWindow w) {
     Log(LOGWARN, "This function SHOULD NOT BE CALLED! Window: %p", w);
-	
-	if (w != NULL)  {
+    
+    if (w != NULL)  {
         GGTKDrawProcessPendingEvents(w->display);
     }
 }
 
 static void GGTKDrawProcessOneEvent(GDisplay *gdisp) {
     //Log(LOGVERBOSE, " ");
-	gtk_main_iteration();
+    gtk_main_iteration();
 }
 
 static void GGTKDrawEventLoop(GDisplay *gdisp) {
@@ -1344,7 +1365,7 @@ static void GGTKDrawEventLoop(GDisplay *gdisp) {
 
 static void GGTKDrawPostEvent(GEvent *e) {
     //Log(LOGVERBOSE, " ");
-	GGTKWindow gw = (GGTKWindow)(e->w);
+    GGTKWindow gw = (GGTKWindow)(e->w);
     e->native_window = gw->w;
     _GGTKDraw_CallEHChecked(gw, e, gw->eh);
 }
@@ -1455,30 +1476,30 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawBeep,
     GGTKDrawFlush,
 
-	GGTKDrawPushClip,
-	GGTKDrawPopClip,
+    GGTKDrawPushClip,
+    GGTKDrawPopClip,
 
-	GGTKDrawSetDifferenceMode,
+    GGTKDrawSetDifferenceMode,
 
-	GGTKDrawClear,
-	GGTKDrawDrawLine,
-	GGTKDrawDrawArrow,
-	GGTKDrawDrawRect,
-	GGTKDrawFillRect,
-	GGTKDrawFillRoundRect,
-	GGTKDrawDrawEllipse,
-	GGTKDrawFillEllipse,
-	GGTKDrawDrawArc,
-	GGTKDrawDrawPoly,
-	GGTKDrawFillPoly,
+    GGTKDrawClear,
+    GGTKDrawDrawLine,
+    GGTKDrawDrawArrow,
+    GGTKDrawDrawRect,
+    GGTKDrawFillRect,
+    GGTKDrawFillRoundRect,
+    GGTKDrawDrawEllipse,
+    GGTKDrawFillEllipse,
+    GGTKDrawDrawArc,
+    GGTKDrawDrawPoly,
+    GGTKDrawFillPoly,
     GGTKDrawScroll,
 
-	GGTKDrawDrawImage,
+    GGTKDrawDrawImage,
     NULL, // GGTKDrawTileImage - Unused function
-	GGTKDrawDrawGlyph,
-	GGTKDrawDrawImageMagnified,
+    GGTKDrawDrawGlyph,
+    GGTKDrawDrawImageMagnified,
     NULL, // GGTKDrawCopyScreenToImage - Unused function
-	GGTKDrawDrawPixmap,
+    GGTKDrawDrawPixmap,
     NULL, // GGTKDrawTilePixmap - Unused function
 
     GGTKDrawCreateInputContext,
@@ -1515,33 +1536,33 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawPrinterNextPage,
     GGTKDrawPrinterEndJob,
 
-	GGTKDrawGetFontMetrics,
+    GGTKDrawGetFontMetrics,
 
-	GGTKDrawHasCairo,
-	GGTKDrawPathStartNew,
-	GGTKDrawPathClose,
-	GGTKDrawPathMoveTo,
-	GGTKDrawPathLineTo,
-	GGTKDrawPathCurveTo,
-	GGTKDrawPathStroke,
-	GGTKDrawPathFill,
-	GGTKDrawPathFillAndStroke,
+    GGTKDrawHasCairo,
+    GGTKDrawPathStartNew,
+    GGTKDrawPathClose,
+    GGTKDrawPathMoveTo,
+    GGTKDrawPathLineTo,
+    GGTKDrawPathCurveTo,
+    GGTKDrawPathStroke,
+    GGTKDrawPathFill,
+    GGTKDrawPathFillAndStroke,
 
-	GGTKDrawLayoutInit,
-	GGTKDrawLayoutDraw,
-	GGTKDrawLayoutIndexToPos,
-	GGTKDrawLayoutXYToIndex,
-	GGTKDrawLayoutExtents,
-	GGTKDrawLayoutSetWidth,
-	GGTKDrawLayoutLineCount,
-	GGTKDrawLayoutLineStart,
-	GGTKDrawStartNewSubPath,
-	GGTKDrawFillRuleSetWinding,
+    GGTKDrawLayoutInit,
+    GGTKDrawLayoutDraw,
+    GGTKDrawLayoutIndexToPos,
+    GGTKDrawLayoutXYToIndex,
+    GGTKDrawLayoutExtents,
+    GGTKDrawLayoutSetWidth,
+    GGTKDrawLayoutLineCount,
+    GGTKDrawLayoutLineStart,
+    GGTKDrawStartNewSubPath,
+    GGTKDrawFillRuleSetWinding,
 
-	GGTKDrawDoText8,
+    GGTKDrawDoText8,
 
-	GGTKDrawPushClipOnly,
-	GGTKDrawClipPreserve,
+    GGTKDrawPushClipOnly,
+    GGTKDrawClipPreserve,
 };
 
 // Protected member functions (package-level)
