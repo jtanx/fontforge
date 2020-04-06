@@ -149,7 +149,6 @@ static void _dousage(void) {
     printf( "\t-help\t\t\t (displays this message, and exits)\n" );
     printf( "\t-docs\t\t\t (displays this message, invokes a browser)\n\t\t\t\t (Using the BROWSER environment variable)\n" );
     printf( "\t-version\t\t (prints the version of fontforge and exits)\n" );
-    printf( "\t-library-status\t (prints information about optional libraries\n\t\t\t\t and exits)\n" );
 #ifndef _NO_PYTHON
     printf( "\t-lang=py\t\t use python for scripts (may precede -script)\n" );
 #endif
@@ -1182,8 +1181,8 @@ int fontforge_main( int argc, char **argv ) {
 #endif
     }
 #ifdef FONTFORGE_CAN_USE_GDK
-    gdk_init(&argc, &argv);
     gdk_set_allowed_backends("win32,quartz,x11");
+    gdk_init(&argc, &argv);
 #endif
     ensureDotFontForgeIsSetup();
 #if defined(__MINGW32__) && !defined(_NO_LIBCAIRO)
