@@ -987,7 +987,7 @@ typedef struct enc {
     unsigned int is_unicodefull: 1;
     unsigned int is_custom: 1;
     unsigned int is_original: 1;
-    unsigned int is_compact: 1;
+    unsigned int is_compact: 1; /* UNUSED: TODO: Remove! */
     unsigned int is_japanese: 1;
     unsigned int is_korean: 1;
     unsigned int is_tradchinese: 1;

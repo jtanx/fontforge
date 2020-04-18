@@ -2761,7 +2761,7 @@ return( err );
 }
 
 
-static int SFD_Dump( FILE *sfd, SplineFont *sf, EncMap *map, EncMap *normal,
+static int SFD_Dump( FILE *sfd, SplineFont *sf, EncMap *map, int compacted,
 		     int todir, char *dirname)
 {
     int i, realcnt;
@@ -2769,10 +2769,7 @@ static int SFD_Dump( FILE *sfd, SplineFont *sf, EncMap *map, EncMap *normal,
     int *newgids = NULL;
     int err = false;
 
-    if ( normal!=NULL )
-	map = normal;
-
-    SFD_DumpSplineFontMetadata( sfd, sf ); //, map, normal, todir, dirname );
+    SFD_DumpSplineFontMetadata( sfd, sf ); //, map, compacted, todir, dirname );
 
     if ( sf->MATH!=NULL ) {
 	struct MATH *math = sf->MATH;
@@ -2797,7 +2794,7 @@ static int SFD_Dump( FILE *sfd, SplineFont *sf, EncMap *map, EncMap *normal,
 	fprintf(sfd, "CIDVersion: %g\n", (double) sf->cidversion );	/* This is a number whereas "version" is a string */
     } else
 	SFDDumpEncoding(sfd,map->enc,"Encoding");
-    if ( normal!=NULL )
+    if ( compacted )
 	fprintf(sfd, "Compacted: 1\n" );
     fprintf( sfd, "UnicodeInterp: %s\n", unicode_interp_names[sf->uni_interp]);
     fprintf( sfd, "NameList: %s\n", sf->for_new_glyphs->title );
@@ -2876,7 +2873,7 @@ static int SFD_Dump( FILE *sfd, SplineFont *sf, EncMap *map, EncMap *normal,
 		strcpy(fontprops,subfont); strcat(fontprops,"/" FONT_PROPS);
 		ssfd = fopen( fontprops,"w");
 		if ( ssfd!=NULL ) {
-		    err |= SFD_Dump(ssfd,sf->subfonts[i],map,NULL,todir,subfont);
+		    err |= SFD_Dump(ssfd,sf->subfonts[i],map,false,todir,subfont);
 		    if ( ferror(ssfd) ) err = true;
 		    if ( fclose(ssfd)) err = true;
 		} else
@@ -2891,7 +2888,7 @@ static int SFD_Dump( FILE *sfd, SplineFont *sf, EncMap *map, EncMap *normal,
 		    max = sf->subfonts[i]->glyphcnt;
 	    fprintf(sfd, "BeginSubFonts: %d %d\n", sf->subfontcnt, max );
 	    for ( i=0; i<sf->subfontcnt; ++i )
-		SFD_Dump(sfd,sf->subfonts[i],map,NULL,false, NULL);
+		SFD_Dump(sfd,sf->subfonts[i],map,false,false, NULL);
 	    fprintf(sfd, "EndSubFonts\n" );
 	}
     } else {
@@ -2983,7 +2980,7 @@ static int SFD_MIDump(SplineFont *sf,EncMap *map,char *dirname,	int mm_pos) {
     strcpy(fontprops,instance); strcat(fontprops,"/" FONT_PROPS);
     ssfd = fopen( fontprops,"w");
     if ( ssfd!=NULL ) {
-	err |= SFD_Dump(ssfd,sf,map,NULL,true,instance);
+	err |= SFD_Dump(ssfd,sf,map,false,true,instance);
 	if ( ferror(ssfd) ) err = true;
 	if ( fclose(ssfd)) err = true;
     } else
@@ -2993,7 +2990,7 @@ static int SFD_MIDump(SplineFont *sf,EncMap *map,char *dirname,	int mm_pos) {
 return( err );
 }
 
-static int SFD_MMDump(FILE *sfd,SplineFont *sf,EncMap *map,EncMap *normal,
+static int SFD_MMDump(FILE *sfd,SplineFont *sf,EncMap *map,int compacted,
 	int todir, char *dirname) {
     MMSet *mm = sf->mm;
     int max, i, j;
@@ -3048,14 +3045,14 @@ static int SFD_MMDump(FILE *sfd,SplineFont *sf,EncMap *map,EncMap *normal,
 		max = mm->instances[i]->glyphcnt;
 	fprintf(sfd, "BeginMMFonts: %d %d\n", mm->instance_count+1, max );
 	for ( i=0; i<mm->instance_count; ++i )
-	    SFD_Dump(sfd,mm->instances[i],map,normal,todir,dirname);
-	SFD_Dump(sfd,mm->normal,map,normal,todir,dirname);
+	    SFD_Dump(sfd,mm->instances[i],map,compacted,todir,dirname);
+	SFD_Dump(sfd,mm->normal,map,compacted,todir,dirname);
     }
     fprintf(sfd, "EndMMFonts\n" );
 return( err );
 }
 
-static int SFDDump(FILE *sfd,SplineFont *sf,EncMap *map,EncMap *normal,
+static int SFDDump(FILE *sfd,SplineFont *sf,EncMap *map,int compacted,
 	int todir, char *dirname) {
     int i, realcnt;
     BDFFont *bdf;
@@ -3082,9 +3079,9 @@ static int SFDDump(FILE *sfd,SplineFont *sf,EncMap *map,EncMap *normal,
     } 
     fprintf(sfd, "SplineFontDB: %.1f\n", version );
     if ( sf->mm != NULL )
-	err = SFD_MMDump(sfd,sf->mm->normal,map,normal,todir,dirname);
+	err = SFD_MMDump(sfd,sf->mm->normal,map,compacted,todir,dirname);
     else
-	err = SFD_Dump(sfd,sf,map,normal,todir,dirname);
+	err = SFD_Dump(sfd,sf,map,compacted,todir,dirname);
     ff_progress_end_indicator();
 return( err );
 }
@@ -3159,7 +3156,7 @@ return;
     closedir(dir);
 }
 
-int SFDWrite(char *filename,SplineFont *sf,EncMap *map,EncMap *normal,int todir) {
+int SFDWrite(char *filename,SplineFont *sf,EncMap *map,int compacted,int todir) {
     FILE *sfd;
     int i, gc;
     char *tempfilename = filename;
@@ -3186,10 +3183,10 @@ return( 0 );
 	    if ( sf->subfonts[i]->glyphcnt > gc )
 		gc = sf->subfonts[i]->glyphcnt;
 	map = EncMap1to1(gc);
-	err = SFDDump(sfd,sf,map,NULL,todir,filename);
+	err = SFDDump(sfd,sf,map,false,todir,filename);
 	EncMapFree(map);
     } else
-	err = SFDDump(sfd,sf,map,normal,todir,filename);
+	err = SFDDump(sfd,sf,map,compacted,todir,filename);
     switch_to_old_locale(&tmplocale, &oldlocale); // Switch to the cached locale.
     if ( ferror(sfd) ) err = true;
     if ( fclose(sfd) ) err = true;
@@ -3224,7 +3221,7 @@ int SFDDoesAnyBackupExist(char* filename)
  *
  */
 int SFDWriteBakExtended(char* locfilename,
-			SplineFont *sf,EncMap *map,EncMap *normal,
+			SplineFont *sf,EncMap *map,int compacted,
 			int s2d,
 			int localRevisionsToRetain )
 {
@@ -3232,7 +3229,7 @@ int SFDWriteBakExtended(char* locfilename,
 
     if( s2d )
     {
-	rc = SFDWrite(locfilename,sf,map,normal,s2d);
+	rc = SFDWrite(locfilename,sf,map,compacted,s2d);
 	return rc;
     }
 
@@ -3252,7 +3249,7 @@ int SFDWriteBakExtended(char* locfilename,
 	prefRevisionsToRetain = localRevisionsToRetain;
     }
 
-    rc = SFDWriteBak( locfilename, sf, map, normal );
+    rc = SFDWriteBak( locfilename, sf, map, compacted );
 
     prefRevisionsToRetain = cacheRevisionsToRetain;
 
@@ -3260,13 +3257,13 @@ int SFDWriteBakExtended(char* locfilename,
 }
 
 
-int SFDWriteBak(char *filename,SplineFont *sf,EncMap *map,EncMap *normal) {
+int SFDWriteBak(char *filename,SplineFont *sf,EncMap *map,int compacted) {
     char *buf=0, *buf2=NULL;
     int ret;
 
     if ( sf->save_to_dir )
     {
-	ret = SFDWrite(filename,sf,map,normal,true);
+	ret = SFDWrite(filename,sf,map,compacted,true);
 	return(ret);
     }
 
@@ -3314,7 +3311,7 @@ int SFDWriteBak(char *filename,SplineFont *sf,EncMap *map,EncMap *normal) {
     }
     free(buf);
 
-    ret = SFDWrite(filename,sf,map,normal,false);
+    ret = SFDWrite(filename,sf,map,compacted,false);
     if ( ret && sf->compression!=0 ) {
 	unlink(buf2);
 	buf = malloc(strlen(filename)+40);

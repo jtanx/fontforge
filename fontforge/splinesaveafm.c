@@ -891,7 +891,7 @@ return( "BIG5HKSCS.2001" );
     else if ( map->is_tradchinese )
 return( "BIG5" );			/* 2002? */
 
-    if ( map->is_custom || map->is_original || map->is_compact )
+    if ( map->is_custom || map->is_original )
 return( "FontSpecific" );
 
 return( name );

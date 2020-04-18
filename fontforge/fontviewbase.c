@@ -845,11 +845,6 @@ void FVReencode(FontViewBase *fv,Encoding *enc) {
 	if (fv->sf != NULL && fv->map == fv->sf->map) { fv->sf->map = map; }
 	fv->map = map;
     }
-    if ( fv->normal!=NULL ) {
-	EncMapFree(fv->normal);
-	if (fv->sf != NULL && fv->normal == fv->sf->map) { fv->sf->map = NULL; }
-	fv->normal = NULL;
-    }
     SFReplaceEncodingBDFProps(fv->sf,fv->map);
     FVSetTitle(fv);
     FontViewReformatOne(fv);
@@ -1455,18 +1450,6 @@ void FVAddUnencoded(FontViewBase *fv, int cnt) {
     int i;
     EncMap *map = fv->map;
 
-    if ( fv->normal!=NULL ) {
-	/* If it's compacted, lose the base encoding and the fact that it's */
-	/*  compact and make it be custom. That's what Alexey Kryukov asked */
-	/*  for */
-	EncMapFree(fv->normal);
-	// If fv->normal happens to be fv->sf->map, freeing it leaves an invalid pointer in the splinefont.
-	// So we tell the splinefont to use the fontview map.
-	if (fv->sf != NULL && fv->normal == fv->sf->map) { fv->sf->map = NULL; }
-	fv->normal = NULL;
-	fv->map->enc = &custom;
-	FVSetTitle(fv);
-    }
     if ( fv->cidmaster ) {
 	SplineFont *sf = fv->sf;
 	FontViewBase *fvs;
@@ -1522,23 +1505,7 @@ void FVRemoveUnused(FontViewBase *fv) {
 }
 
 void FVCompact(FontViewBase *fv) {
-    int oldcount = fv->map->enccount;
-
-    if ( fv->normal!=NULL ) {
-	EncMapFree(fv->map);
-	if (fv->sf != NULL && fv->sf->map == fv->map) { fv->sf->map = fv->normal ; }
-	fv->map = fv->normal;
-	fv->normal = NULL;
-	fv->selected = realloc(fv->selected,fv->map->enccount);
-	memset(fv->selected,0,fv->map->enccount);
-    } else {
-	/* We reduced the encoding, so don't really need to reallocate the selection */
-	/*  array. It's just bigger than it needs to be. */
-	fv->normal = EncMapCopy(fv->map);
-	CompactEncMap(fv->map,fv->sf);
-	fv->sf->map = fv->map;
-    }
-    if ( oldcount!=fv->map->enccount )
+	fv->compacted = !fv->compacted;
 	FontViewReformatOne(fv);
     FVSetTitle(fv);
 }
@@ -1759,11 +1726,6 @@ return;
 	EncMapFree(fv->map);
 	if (fv->sf != NULL && fv->map == fv->sf->map) { fv->sf->map = map; }
 	fv->map = map;
-	if ( fvs->normal!=NULL ) {
-	    EncMapFree(fvs->normal);
-	    fvs->normal = EncMapCopy(fvs->map);
-	    CompactEncMap(fvs->map,temp);
-	}
     }
     ff_progress_allow_events();
     SFClearAutoSave(old);
@@ -1914,15 +1876,11 @@ static FontViewBase *_FontViewBaseCreate(SplineFont *sf) {
 	fv->sf = sf;
 	if ( fv->nextsame!=NULL ) {
 	    fv->map = EncMapCopy(fv->nextsame->map);
-	    fv->normal = fv->nextsame->normal==NULL ? NULL : EncMapCopy(fv->nextsame->normal);
+	    fv->compacted = fv->nextsame->compacted;
 	    fprintf(stderr, "There are two FontViews using the same SplineFont. Please report on the issue tracker or the mailing list how you reached this point.\n");
-	} else if ( sf->compacted ) {
-	    fv->normal = sf->map;
-	    fv->map = CompactEncMap(EncMapCopy(sf->map),sf);
-	    sf->map = fv->map;
 	} else {
 	    fv->map = sf->map;
-	    fv->normal = NULL;
+	    fv->compacted = sf->compacted;
 	}
     } else {
 	fv->cidmaster = sf;

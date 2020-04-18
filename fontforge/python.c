@@ -16541,7 +16541,7 @@ static PyObject *PyFFFont_Save(PyFF_Font *self, PyObject *args) {
 	    s2d = true;
 
 	int rc = SFDWriteBakExtended( locfilename,
-				      fv->sf,fv->map,fv->normal,s2d,
+				      fv->sf,fv->map,fv->compacted,s2d,
 				      localRevisionsToRetain );
 	if ( !rc )
 	{
@@ -16586,7 +16586,7 @@ static PyObject *PyFFFont_Save(PyFF_Font *self, PyObject *args) {
 	 * Otherwise, save as many as the user wants.
 	 */
 	int rc = SFDWriteBakExtended( targetfilename,
-				      fv->sf,fv->map,fv->normal,s2d,
+				      fv->sf,fv->map,fv->compacted,s2d,
 				      localRevisionsToRetain );
 	if ( !rc )
 	{
@@ -16743,7 +16743,7 @@ return( NULL );
     locfilename = utf82def_copy(filename);
     PyMem_Free(filename);
     if ( !GenerateScript(fv->sf,locfilename,bitmaptype,iflags,resolution,subfontdirectory,
-	    NULL,fv->normal==NULL?fv->map:fv->normal,rename_to,layer) ) {
+	    NULL,fv->map,rename_to,layer) ) {
 	PyErr_Format(PyExc_EnvironmentError, "Font generation failed");
 return( NULL );
     }

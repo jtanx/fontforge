@@ -177,7 +177,7 @@ typedef struct fontviewbase {
     struct fontviewbase *next;		/* Next on list of open fontviews */
     struct fontviewbase *nextsame;	/* Next fv looking at this font */
     EncMap *map;			/* Current encoding info */
-    EncMap *normal;			/* If this is not NULL then we have a compacted encoding in map, and this is the original */
+    int compacted;			/* Is the view compacted? */
     SplineFont *sf;			/* Current font */
     SplineFont *cidmaster;		/* If CID keyed, contains master font */
     int active_layer;

@@ -553,7 +553,7 @@ return( ret );
 
 int _FVMenuGenerate(FontView *fv,int family) {
     FVFlattenAllBitmapSelections(fv);
-return( SFGenerateFont(fv->b.sf,fv->b.active_layer,family,fv->b.normal==NULL?fv->b.map:fv->b.normal) );
+return( SFGenerateFont(fv->b.sf,fv->b.active_layer,family,fv->b.map) );
 }
 
 static void FVMenuGenerate(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
@@ -705,7 +705,7 @@ return( 0 );
     
     FVFlattenAllBitmapSelections(fv);
     fv->b.sf->compression = 0;
-    ok = SFDWrite(filename,fv->b.sf,fv->b.map,fv->b.normal,s2d);
+    ok = SFDWrite(filename,fv->b.sf,fv->b.map,fv->b.compacted,s2d);
     if ( ok ) {
 	SplineFont *sf = fv->b.cidmaster?fv->b.cidmaster:fv->b.sf->mm!=NULL?fv->b.sf->mm->normal:fv->b.sf;
 	free(sf->filename);
@@ -756,7 +756,7 @@ int _FVMenuSave(FontView *fv) {
 	ret = _FVMenuSaveAs(fv);
     else {
 	FVFlattenAllBitmapSelections(fv);
-	if ( !SFDWriteBak(sf->filename,sf,fv->b.map,fv->b.normal) )
+	if ( !SFDWriteBak(sf->filename,sf,fv->b.map,fv->b.compacted) )
 	    ff_post_error(_("Save Failed"),_("Save Failed"));
 	else {
 	    SplineFontSetUnChanged(sf);
@@ -2895,7 +2895,6 @@ static void FVMenuChangeChar(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e)
 static void FVShowSubFont(FontView *fv,SplineFont *new) {
     MetricsView *mv, *mvnext;
     BDFFont *newbdf;
-    int wascompact = fv->b.normal!=NULL;
     extern int use_freetype_to_rasterize_fv;
 
     for ( mv=fv->b.sf->metrics; mv!=NULL; mv = mvnext ) {
@@ -2903,21 +2902,7 @@ static void FVShowSubFont(FontView *fv,SplineFont *new) {
 	mvnext = mv->next;
 	GDrawDestroyWindow(mv->gw);
     }
-    if ( wascompact ) {
-	EncMapFree(fv->b.map);
-	if (fv->b.map == fv->b.sf->map) { fv->b.sf->map = fv->b.normal; }
-	fv->b.map = fv->b.normal;
-	fv->b.normal = NULL;
-	fv->b.selected = realloc(fv->b.selected,fv->b.map->enccount);
-	memset(fv->b.selected,0,fv->b.map->enccount);
-    }
     CIDSetEncMap((FontViewBase *) fv,new);
-    if ( wascompact ) {
-	fv->b.normal = EncMapCopy(fv->b.map);
-	CompactEncMap(fv->b.map,fv->b.sf);
-	FontViewReformatOne(&fv->b);
-	FVSetTitle(&fv->b);
-    }
     newbdf = SplineFontPieceMeal(fv->b.sf,fv->b.active_layer,fv->filled->pixelsize,72,
 	    (fv->antialias?pf_antialias:0)|(fv->bbsized?pf_bbsized:0)|
 		(use_freetype_to_rasterize_fv && !fv->b.sf->strokedfont && !fv->b.sf->multilayer?pf_ft_nohints:0),
@@ -2933,7 +2918,7 @@ static void FVMenuGotoChar(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNU
     FontView *fv = (FontView *) GDrawGetUserData(gw);
     int merge_with_selection = false;
     int pos = GotoChar(fv->b.sf,fv->b.map,&merge_with_selection);
-    if ( fv->b.cidmaster!=NULL && pos!=-1 && !fv->b.map->enc->is_compact ) {
+    if ( fv->b.cidmaster!=NULL && pos!=-1 ) {
 	SplineFont *cidmaster = fv->b.cidmaster;
 	int k, hadk= cidmaster->subfontcnt;
 	for ( k=0; k<cidmaster->subfontcnt; ++k ) {
@@ -3567,9 +3552,9 @@ static void FontViewSetTitle(FontView *fv) {
     if ( fv->gw==NULL )		/* In scripting */
 return;
 
-    enc = SFEncodingName(fv->b.sf,fv->b.normal?fv->b.normal:fv->b.map);
+    enc = SFEncodingName(fv->b.sf,fv->b.map);
     len = strlen(fv->b.sf->fontname)+1 + strlen(enc)+6;
-    if ( fv->b.normal ) len += strlen(_("Compact"))+1;
+    if ( fv->b.compacted ) len += strlen(_("Compact"))+1;
     if ( fv->b.cidmaster!=NULL ) {
 	if ( (file = fv->b.cidmaster->filename)==NULL )
 	    file = fv->b.cidmaster->origname;
@@ -3591,7 +3576,7 @@ return;
 	free(temp);
     }
     uc_strcat(title, " (" );
-    if ( fv->b.normal ) { utf82u_strcat(title,_("Compact")); uc_strcat(title," "); }
+    if ( fv->b.compacted ) { utf82u_strcat(title,_("Compact")); uc_strcat(title," "); }
     uc_strcat(title,enc);
     uc_strcat(title, ")" );
     free(enc);
@@ -3901,11 +3886,7 @@ return;
 	fv->b.selected = realloc(fv->b.selected,fv->b.map->enccount);
 	memset(fv->b.selected+oldcnt,0,fv->b.map->enccount-oldcnt);
     }
-    if ( fv->b.normal!=NULL ) {
-	EncMapFree(fv->b.normal);
-	if (fv->b.normal == fv->b.sf->map) { fv->b.sf->map = NULL; }
-	fv->b.normal = NULL;
-    }
+    fv->b.compacted = false;
     SFReplaceEncodingBDFProps(fv->b.sf,fv->b.map);
     FontViewSetTitle(fv);
     FontViewReformatOne(&fv->b);
@@ -5063,7 +5044,7 @@ static void enlistcheck(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e)) {
     for ( mi = mi->sub; mi->ti.text!=NULL || mi->ti.line ; ++mi ) {
 	switch ( mi->mid ) {
 	  case MID_Compact:
-	    mi->ti.checked = fv->b.normal!=NULL;
+	    mi->ti.checked = fv->b.compacted;
 	  break;
 	case MID_HideNoGlyphSlots:
 	    break;
@@ -5086,7 +5067,7 @@ static void enlistcheck(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e)) {
 	    mi->ti.disabled = fv->b.cidmaster!=NULL || group_root==NULL;
 	  break;
 	  case MID_NameGlyphs:
-	    mi->ti.disabled = fv->b.normal!=NULL || fv->b.cidmaster!=NULL;
+	    mi->ti.disabled = fv->b.compacted || fv->b.cidmaster!=NULL;
 	  break;
 	  case MID_RenameGlyphs: case MID_SaveNamelist:
 	    mi->ti.disabled = fv->b.cidmaster!=NULL;
@@ -6065,7 +6046,7 @@ void FVDrawInfo(FontView *fv,GWindow pixmap, GEvent *event) {
     g_string_printf( output, "%d (0x%x) ", localenc, localenc );
 
     sc = (gid=fv->b.map->map[fv->end_pos])!=-1 ? sf->glyphs[gid] : NULL;
-    if ( fv->b.cidmaster==NULL || fv->b.normal==NULL || sc==NULL )
+    if ( fv->b.cidmaster==NULL || !fv->b.compacted || sc==NULL ) // TODO: Compacted matters?
 	SCBuildDummy(&dummy,sf,fv->b.map,fv->end_pos);
     else
 	dummy = *sc;
@@ -6975,14 +6956,10 @@ static FontView *__FontViewCreate(SplineFont *sf) {
 	fv->b.sf = sf;
 	if ( fv->b.nextsame!=NULL ) {
 	    fv->b.map = EncMapCopy(fv->b.nextsame->map);
-	    fv->b.normal = fv->b.nextsame->normal==NULL ? NULL : EncMapCopy(fv->b.nextsame->normal);
-	} else if ( sf->compacted ) {
-	    fv->b.normal = sf->map;
-	    fv->b.map = CompactEncMap(EncMapCopy(sf->map),sf);
-	    sf->map = fv->b.map;
+        fv->b.compacted = fv->b.nextsame->compacted;
 	} else {
 	    fv->b.map = sf->map;
-	    fv->b.normal = NULL;
+	    fv->b.compacted = sf->compacted;
 	}
     } else {
 	fv->b.cidmaster = sf;
@@ -6999,11 +6976,7 @@ static FontView *__FontViewCreate(SplineFont *sf) {
 	if ( fv->b.nextsame==NULL ) { EncMapFree(sf->map); sf->map = NULL; }
 	fv->b.map = EncMap1to1(sf->glyphcnt);
 	if ( fv->b.nextsame==NULL ) { sf->map = fv->b.map; }
-	if ( sf->compacted ) {
-	    fv->b.normal = fv->b.map;
-	    fv->b.map = CompactEncMap(EncMapCopy(fv->b.map),sf);
-	    if ( fv->b.nextsame==NULL ) { sf->map = fv->b.map; }
-	}
+	fv->b.compacted = sf->compacted;
     }
     fv->b.selected = calloc((fv->b.map ? fv->b.map->enccount : 0), sizeof(uint8));
     fv->user_requested_magnify = -1;

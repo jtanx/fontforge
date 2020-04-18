@@ -3778,7 +3778,7 @@ static void CVChangeChar(CharView *cv, int i )
     EncMap *map = ((FontView *) (cv->b.fv))->b.map;
     int gid = i<0 || i>= map->enccount ? -2 : map->map[i];
 
-    if ( sf->cidmaster!=NULL && !map->enc->is_compact ) {
+    if ( sf->cidmaster!=NULL ) {
 	SplineFont *cidmaster = sf->cidmaster;
 	int k;
 	for ( k=0; k<cidmaster->subfontcnt; ++k ) {
@@ -6726,7 +6726,7 @@ static void CVMenuSaveAs(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSE
 static void CVMenuGenerate(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
     CharView *cv = (CharView *) GDrawGetUserData(gw);
     FontViewBase *fv = cv->b.fv;
-    SFGenerateFont(cv->b.sc->parent,CVLayer((CharViewBase *) cv),false,fv->normal==NULL?fv->map:fv->normal);
+    SFGenerateFont(cv->b.sc->parent,CVLayer((CharViewBase *) cv),false,fv->map);
 }
 
 static void CVMenuGenerateFamily(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {

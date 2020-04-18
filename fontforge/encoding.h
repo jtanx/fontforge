@@ -29,7 +29,6 @@ extern void RemoveMultiples(Encoding *item);
 extern char *ParseEncodingFile(char *filename, char *encodingname);
 extern char *SFEncodingName(SplineFont *sf, EncMap *map);
 extern const char *FindUnicharName(void);
-extern EncMap *CompactEncMap(EncMap *map, SplineFont *sf);
 extern EncMap *EncMapFromEncoding(SplineFont *sf, Encoding *enc);
 extern Encoding *FindOrMakeEncoding(const char *name);
 extern Encoding *_FindOrMakeEncoding(const char *name, int make_it);

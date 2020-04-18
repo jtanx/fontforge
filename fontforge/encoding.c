@@ -2127,29 +2127,6 @@ return( NULL );
 return( map );
 }
 
-EncMap *CompactEncMap(EncMap *map, SplineFont *sf) {
-    int i, inuse, gid;
-    int32 *newmap;
-
-    for ( i=inuse=0; i<map->enccount ; ++i )
-	if ( (gid = map->map[i])!=-1 && SCWorthOutputting(sf->glyphs[gid]))
-	    ++inuse;
-    newmap = malloc(inuse*sizeof(int32));
-    for ( i=inuse=0; i<map->enccount ; ++i )
-	if ( (gid = map->map[i])!=-1 && SCWorthOutputting(sf->glyphs[gid]))
-	    newmap[inuse++] = gid;
-    free(map->map);
-    map->map = newmap;
-    map->enccount = inuse;
-    map->encmax = inuse;
-    map->enc = &custom;
-    memset(map->backmap,-1,sf->glyphcnt*sizeof(int32));
-    for ( i=inuse-1; i>=0; --i )
-	if ( (gid=map->map[i])!=-1 )
-	    map->backmap[gid] = i;
-return( map );
-}
-
 static void BCProtectUndoes( Undoes *undo,BDFChar *bc ) {
     BDFRefChar *brhead, *brprev=NULL, *brnext;
 
@@ -2184,8 +2161,7 @@ int SFReencode(SplineFont *sf, const char *encname, int force) {
     FontViewBase *fv = sf->fv;
 
     if ( strmatch(encname,"compacted")==0 ) {
-	fv->normal = EncMapCopy(fv->map);
-	CompactEncMap(fv->map,sf);
+	fv->compacted = true;
     } else {
 	new_enc = FindOrMakeEncoding(encname);
 	if ( new_enc==NULL )
@@ -2201,11 +2177,6 @@ return -1;
 	    fv->map = map;
 	    if ( !no_windowing_ui )
 		FVSetTitle(fv);
-	}
-	if ( fv->normal!=NULL ) {
-	    EncMapFree(fv->normal);
-	    if (fv->sf != NULL && fv->map == fv->sf->map) { fv->sf->map = NULL; }
-	    fv->normal = NULL;
 	}
 	SFReplaceEncodingBDFProps(sf,fv->map);
     }
@@ -2445,10 +2416,6 @@ void SFAddGlyphAndEncode(SplineFont *sf,SplineChar *sc,EncMap *basemap, int base
 	if ( !MapAddEnc(sf,sc,basemap,map,baseenc,gid,fv) )
 	    FVAddEncodingSlot(fv,gid);
 	if ( map==basemap ) mapfound = true;
-	if ( fv->normal!=NULL ) {
-	    if ( !MapAddEnc(sf,sc,basemap,fv->normal,baseenc,gid,fv))
-		MapAddEncodingSlot(fv->normal,gid);
-	}
     }
     if ( !mapfound && basemap!=NULL )
 	MapAddEnc(sf,sc,basemap,basemap,baseenc,gid,fv);
@@ -2631,7 +2598,7 @@ int32 EncFromUni(int32 uni, Encoding *enc) {
     size_t fromlen, tolen;
     int i;
 
-    if ( enc->is_custom || enc->is_original || enc->is_compact || uni==-1 )
+    if ( enc->is_custom || enc->is_original || uni==-1 )
 return( -1 );
     if ( enc->is_unicodebmp || enc->is_unicodefull )
 return( uni<enc->char_cnt ? uni : -1 );
@@ -2700,8 +2667,6 @@ return;
 
     for ( fv=sf->fv; fv!=NULL; fv=fv->nextsame ) {
 	if ( fv->sf==sf ) {	/* Beware of cid keyed fonts which might look at a different subfont */
-	    if ( fv->normal!=NULL )
-    continue;			/* If compacted then we haven't added any glyphs so haven't changed anything */
 	    /* Don't display any of these guys, so not mapped. */
 	    /*  No change to selection, or to map->map, but change to backmap */
 	    if ( newcnt>fv->map->backmax )

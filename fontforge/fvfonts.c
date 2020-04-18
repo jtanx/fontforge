@@ -742,7 +742,7 @@ int SFFindSlot(SplineFont *sf, EncMap *map, int unienc, const char *name ) {
     int index=-1, pos;
     struct cidmap *cidmap;
 
-    if ( sf->cidmaster!=NULL && !map->enc->is_compact &&
+    if ( sf->cidmaster!=NULL &&
 		(cidmap = FindCidMap(sf->cidmaster->cidregistry,
 				    sf->cidmaster->ordering,
 				    sf->cidmaster->supplement,
@@ -750,7 +750,7 @@ int SFFindSlot(SplineFont *sf, EncMap *map, int unienc, const char *name ) {
 	index = NameUni2CID(cidmap,unienc,name);
     if ( index!=-1 )
 	/* All done */;
-    else if ( (map->enc->is_custom || map->enc->is_compact ||
+    else if ( (map->enc->is_custom ||
 	    map->enc->is_original) && unienc!=-1 ) {
 	/* Just on the off-chance that it is unicode after all */
 	if ( unienc<map->enccount && map->map[unienc]!=-1 &&
