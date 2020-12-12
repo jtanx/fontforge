@@ -970,11 +970,6 @@ static void GGTKDrawSetZoom(GWindow UNUSED(gw), GRect *UNUSED(size), enum gzoom_
     // Not implemented.
 }
 
-// Not possible?
-static void GGTKDrawSetWindowBorder(GWindow UNUSED(gw), int UNUSED(width), Color UNUSED(gcol)) {
-    Log(LOGWARN, "GGTKDrawSetWindowBorder unimplemented!");
-}
-
 static void GGTKDrawSetWindowBackground(GWindow w, Color gcol) {
     Log(LOGVERBOSE, " ");
     GGTKWindow gw = (GGTKWindow)w;
@@ -990,10 +985,6 @@ static void GGTKDrawSetWindowBackground(GWindow w, Color gcol) {
 static int GGTKDrawSetDither(GDisplay *UNUSED(gdisp), int UNUSED(set)) {
     // Not implemented; does nothing.
     return false;
-}
-
-static void GGTKDrawReparentWindow(GWindow child, GWindow newparent, int x, int y) {
-    Log(LOGWARN, "GGTKDrawReparentWindow called: Reparenting should NOT be used!");
 }
 
 static void GGTKDrawSetVisible(GWindow w, int show) {
@@ -1227,10 +1218,6 @@ static void GGTKDrawBeep(GDisplay *gdisp) {
     //Log(LOGVERBOSE, " ");
 }
 
-static void GGTKDrawFlush(GDisplay *gdisp) {
-    //Log(LOGVERBOSE, " ");
-}
-
 static void GGTKDrawScroll(GWindow w, GRect *rect, int32 hor, int32 vert) {
     //Log(LOGVERBOSE, " ");
     GGTKWindow gw = (GGTKWindow) w;
@@ -1407,34 +1394,9 @@ static void GGTKDrawCancelTimer(GTimer *timer) {
     GGTKDRAW_DECREF(gtimer, _GGTKDraw_OnTimerDestroyed);
 }
 
-static void GGTKDrawSyncThread(GDisplay *UNUSED(gdisp), void (*func)(void *), void *UNUSED(data)) {
-    Log(LOGVERBOSE, " "); // For some shitty gio impl. Ignore ignore ignore!
-}
-
-static GWindow GGTKDrawPrinterStartJob(GDisplay *UNUSED(gdisp), void *UNUSED(user_data), GPrinterAttrs *UNUSED(attrs)) {
-    Log(LOGERR, " ");
-    assert(false);
-
-    return NULL;
-}
-
-static void GGTKDrawPrinterNextPage(GWindow UNUSED(w)) {
-    Log(LOGERR, " ");
-    assert(false);
-}
-
-static int GGTKDrawPrinterEndJob(GWindow UNUSED(w), int UNUSED(cancel)) {
-    Log(LOGERR, " ");
-    assert(false);
-
-    return 0;
-}
-
 // Our function VTable
 static struct displayfuncs gtkfuncs = {
     GGTKDrawInit,
-    NULL, // GGTKDrawTerm,
-    NULL, // GGTKDrawNativeDisplay,
 
     GGTKDrawSetDefaultIcon,
 
@@ -1447,11 +1409,9 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawDestroyCursor,
     GGTKDrawNativeWindowExists, //Not sure what this is meant to do...
     GGTKDrawSetZoom,
-    GGTKDrawSetWindowBorder,
     GGTKDrawSetWindowBackground,
     GGTKDrawSetDither,
 
-    GGTKDrawReparentWindow,
     GGTKDrawSetVisible,
     GGTKDrawMove,
     GGTKDrawTrueMove,
@@ -1474,7 +1434,6 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawTranslateCoordinates,
 
     GGTKDrawBeep,
-    GGTKDrawFlush,
 
     GGTKDrawPushClip,
     GGTKDrawPopClip,
@@ -1495,12 +1454,9 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawScroll,
 
     GGTKDrawDrawImage,
-    NULL, // GGTKDrawTileImage - Unused function
     GGTKDrawDrawGlyph,
     GGTKDrawDrawImageMagnified,
-    NULL, // GGTKDrawCopyScreenToImage - Unused function
     GGTKDrawDrawPixmap,
-    NULL, // GGTKDrawTilePixmap - Unused function
 
     GGTKDrawCreateInputContext,
     GGTKDrawSetGIC,
@@ -1530,11 +1486,6 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawRequestTimer,
     GGTKDrawCancelTimer,
 
-    GGTKDrawSyncThread,
-
-    GGTKDrawPrinterStartJob,
-    GGTKDrawPrinterNextPage,
-    GGTKDrawPrinterEndJob,
 
     GGTKDrawGetFontMetrics,
 
@@ -1627,7 +1578,6 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
         gdisp->res = 96;
     }
 
-    gdisp->scale_screen_by = 1; //Does nothing
     gdisp->bs.double_time = 200;
     gdisp->bs.double_wiggle = 3;
 
