@@ -608,25 +608,6 @@ void GGTKDrawSetDifferenceMode(GWindow w) {
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
 }
 
-
-void GGTKDrawClear(GWindow w, GRect *rect) {
-    //Log(LOGDEBUG, " ");
-	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);
-
-    GRect temp, *r = rect, old;
-    if (r == NULL) {
-        temp = w->pos;
-        temp.x = temp.y = 0;
-        r = &temp;
-    }
-    GGTKDrawPushClip(w, r, &old);
-    cairo_set_source_rgba(cr, COLOR_RED(w->ggc->bg) / 255.,
-                          COLOR_GREEN(w->ggc->bg) / 255.,
-                          COLOR_BLUE(w->ggc->bg) / 255., 1.0);
-    cairo_paint(cr);
-    GGTKDrawPopClip(w, &old);
-}
-
 void GGTKDrawDrawLine(GWindow w, int32 x, int32 y, int32 xend, int32 yend, Color col) {
     //Log(LOGDEBUG, " ");
 	cairo_t *cr = _GGTKDraw_GetCairoContext((GGTKWindow)w);

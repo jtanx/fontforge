@@ -1047,58 +1047,15 @@ static void GGTKDrawRaise(GWindow w) {
     }
 }
 
-static void GGTKDrawRaiseAbove(GWindow w1, GWindow w2) {
-    Log(LOGVERBOSE, " ");
-    GGTKWindow gw1 = (GGTKWindow)w1, gw2 = (GGTKWindow)w2;
-    if (!gw1->is_toplevel) {
-        Log(LOGWARN, "[GGTKDrawRaiseAbove] w1:%p is not toplevel", w1);
-    }
-    if (!gw2->is_toplevel) {
-        Log(LOGWARN, "[GGTKDrawRaiseAbove] w2:%p si not toplevel", w2);
-    }
-
-    // Not really supported by GTK in the general case
-    // Luckily usage of this is limited to palettes so meh
-    GGTKDrawRaise(w1);
-
-    if (gw1->is_toplevel && gw2->is_toplevel) {
-        gdk_window_restack(gtk_widget_get_window(GTK_WIDGET(ggtk_window_get_window(gw1->w))),
-            gtk_widget_get_window(GTK_WIDGET(ggtk_window_get_window(gw2->w))),
-            true);
-    }
-}
-
-// Only used once in gcontainer - force it to call GDrawRaiseAbove
-static int GGTKDrawIsAbove(GWindow UNUSED(gw1), GWindow UNUSED(gw2)) {
-    Log(LOGVERBOSE, " ");
-    return false;
-}
-
-static void GGTKDrawLower(GWindow gw) {
-    Log(LOGVERBOSE, " ");
-}
-
 // Icon title is ignored.
 static void GGTKDrawSetWindowTitles8(GWindow w, const char *title, const char *UNUSED(icontitle)) {
     Log(LOGVERBOSE, " "); // assert(false);
     ggtk_window_set_title(((GGTKWindow)w)->w, title);
 }
 
-static void GGTKDrawSetWindowTitles(GWindow w, const unichar_t *title, const unichar_t *UNUSED(icontitle)) {
-    Log(LOGVERBOSE, " ");
-    char *str = u2utf8_copy(title);
-    GGTKDrawSetWindowTitles8(w, str, NULL);
-    free(str);
-}
-
 static char *GGTKDrawGetWindowTitle8(GWindow w) {
     Log(LOGVERBOSE, " ");
     return copy(ggtk_window_get_title(((GGTKWindow)w)->w));
-}
-
-static unichar_t *GGTKDrawGetWindowTitle(GWindow w) {
-    Log(LOGVERBOSE, " "); // assert(false);
-    return utf82u_copy(ggtk_window_get_title(((GGTKWindow)w)->w));
 }
 
 static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner) {
@@ -1206,12 +1163,6 @@ static void GGTKDrawSetCursor(GWindow w, GCursor gcursor) {
 static GCursor GGTKDrawGetCursor(GWindow gw) {
     Log(LOGVERBOSE, " ");
     return ((GGTKWindow)gw)->current_cursor;
-}
-
-static GWindow GGTKDrawGetRedirectWindow(GDisplay *UNUSED(gdisp)) {
-    Log(LOGVERBOSE, " ");
-    // Not implemented.
-    return NULL;
 }
 
 static void GGTKDrawTranslateCoordinates(GWindow from, GWindow to, GPoint *pt) {
@@ -1359,14 +1310,6 @@ static void GGTKDrawProcessPendingEvents(GDisplay *gdisp) {
         gtk_main_iteration_do(false);
 }
 
-static void GGTKDrawProcessWindowEvents(GWindow w) {
-    Log(LOGWARN, "This function SHOULD NOT BE CALLED! Window: %p", w);
-    
-    if (w != NULL)  {
-        GGTKDrawProcessPendingEvents(w->display);
-    }
-}
-
 static void GGTKDrawProcessOneEvent(GDisplay *gdisp) {
     //Log(LOGVERBOSE, " ");
     gtk_main_iteration();
@@ -1457,19 +1400,13 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawResize,
     GGTKDrawMoveResize,
     GGTKDrawRaise,
-    GGTKDrawRaiseAbove,
-    GGTKDrawIsAbove,
-    GGTKDrawLower,
-    GGTKDrawSetWindowTitles,
     GGTKDrawSetWindowTitles8,
-    GGTKDrawGetWindowTitle,
     GGTKDrawGetWindowTitle8,
     GGTKDrawSetTransientFor,
     GGTKDrawGetPointerPosition,
     GGTKDrawGetPointerWindow,
     GGTKDrawSetCursor,
     GGTKDrawGetCursor,
-    GGTKDrawGetRedirectWindow,
     GGTKDrawTranslateCoordinates,
 
     GGTKDrawBeep,
@@ -1479,7 +1416,6 @@ static struct displayfuncs gtkfuncs = {
 
     GGTKDrawSetDifferenceMode,
 
-    GGTKDrawClear,
     GGTKDrawDrawLine,
     GGTKDrawDrawArrow,
     GGTKDrawDrawRect,
@@ -1515,7 +1451,6 @@ static struct displayfuncs gtkfuncs = {
     GGTKDrawSync,
     GGTKDrawSkipMouseMoveEvents,
     GGTKDrawProcessPendingEvents,
-    GGTKDrawProcessWindowEvents,
     GGTKDrawProcessOneEvent,
     GGTKDrawEventLoop,
     GGTKDrawPostEvent,

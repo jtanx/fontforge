@@ -212,7 +212,6 @@ void _GGTKDraw_CleanupAutoPaint(GGTKDisplay *gdisp);
 void GGTKDrawPushClip(GWindow w, GRect *rct, GRect *old);
 void GGTKDrawPopClip(GWindow gw, GRect *old);
 void GGTKDrawSetDifferenceMode(GWindow gw);
-void GGTKDrawClear(GWindow gw, GRect *rect);
 void GGTKDrawDrawLine(GWindow w, int32 x, int32 y, int32 xend, int32 yend, Color col);
 void GGTKDrawDrawArrow(GWindow gw, int32 x, int32 y, int32 xend, int32 yend, int16 arrows, Color col);
 void GGTKDrawDrawRect(GWindow gw, GRect *rect, Color col);
