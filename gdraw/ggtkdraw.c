@@ -22,6 +22,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// FIXME: Things that are generally broken:
+// GTK4 deletes the ability to know te position of toplevels and the ability to move them (wtf)
+// Doing things before the gdkwindow is present (needs to be realised first...)
+// Knowing the position of widgets relative to others, esp. those with no common ancestors
+// Generally anything involving the root window
+
 #include <fontforge-config.h>
 
 /**
@@ -653,6 +659,10 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
             free(window_title);
         }
 
+        if (nw->is_popup || (wattrs->mask & wam_palette)) {
+            gtk_window_set_type_hint(window, GDK_WINDOW_TYPE_HINT_UTILITY);
+        }
+
         gtk_window_set_default_size(window, pos->width, pos->height);
 
         if (!(wattrs->mask & wam_positioned) || (wattrs->mask & wam_centered)) {
@@ -716,6 +726,7 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
         gtk_widget_add_events(GTK_WIDGET(window), event_mask);
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(nw->w));
         gtk_window_set_default(window, GTK_WIDGET(nw->w));
+        gtk_widget_realize(GTK_WIDGET(nw->w)); // FIXME? maybe just do stuff after realising?
         gtk_widget_show(GTK_WIDGET(nw->w)); // show/hide controlled on the GtkWindow
         
         g_signal_connect(window, "delete-event", G_CALLBACK(_GGTKDraw_HandleDeleteEvent), nw->w);
@@ -730,6 +741,7 @@ static GWindow _GGTKDraw_CreateWindow(GGTKDisplay *gdisp, GGTKWindow gw, GRect *
 
         gtk_layout_put(GTK_LAYOUT(gw->w), GTK_WIDGET(nw->w), nw->pos.x, nw->pos.y);
         gtk_widget_set_size_request(GTK_WIDGET(nw->w), nw->pos.width, nw->pos.height);
+        gtk_widget_realize(GTK_WIDGET(nw->w)); // FIXME? maybe just do stuff after realising?
     }
     
     // Set background
@@ -999,13 +1011,7 @@ static void GGTKDrawSetVisible(GWindow w, int show) {
 
 static void GGTKDrawMove(GWindow w, int32 x, int32 y) {
     //Log(LOGDEBUG, "%p:%s, %d %d", gw, ((GGTKWindow) gw)->window_title, x, y);
-    GGTKWindow gw = (GGTKWindow)w;
-    if (gw->is_toplevel) {
-        GdkWindow *window = gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
-        gdk_window_move(window, x, y);
-    } else {
-        gtk_layout_move(GTK_LAYOUT(gw->parent->w), GTK_WIDGET(gw->w), x, y);
-    }
+    ggtk_window_move(((GGTKWindow)w)->w, x, y);
 }
 
 static void GGTKDrawTrueMove(GWindow w, int32 x, int32 y) {
@@ -1016,45 +1022,49 @@ static void GGTKDrawTrueMove(GWindow w, int32 x, int32 y) {
 static void GGTKDrawResize(GWindow w, int32 width, int32 height) {
     //Log(LOGDEBUG, "%p:%s, %d %d", gw, ((GGTKWindow) gw)->window_title, w, h);
     GGTKWindow gw = (GGTKWindow)w;
-    if (gw->is_toplevel) {
-        GdkWindow *window = gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
-        gdk_window_resize(window, width, height);
-    } else {
-        gtk_widget_set_size_request(GTK_WIDGET(gw->w), width, height);
-    }
+    gtk_widget_set_size_request(GTK_WIDGET(gw->w), width, height);
 }
 
 static void GGTKDrawMoveResize(GWindow w, int32 x, int32 y, int32 width, int32 height) {
     //Log(LOGDEBUG, "%p:%s, %d %d %d %d", gw, ((GGTKWindow) gw)->window_title, x, y, w, h);
-    GGTKWindow gw = (GGTKWindow)w;
-    if (gw->is_toplevel) {
-        GdkWindow *window = gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(gw->w)));
-        gdk_window_move_resize(window, x, y, width, height);
-    } else {
-        // hmmm
-        GGTKDrawMove(w, x, y);
-        GGTKDrawResize(w, width, height);
-    }
+    GGTKDrawMove(w, x, y);
+    GGTKDrawResize(w, width, height);
 }
 
 static void GGTKDrawRaise(GWindow w) {
     Log(LOGVERBOSE, " ");
     GGTKWindow gw = (GGTKWindow)w;
-
-    if (!gw->is_toplevel) {
-        Log(LOGINFO, "[GGTKDrawRaise] %p is not toplevel", w);
+    Log(LOGDEBUG, "%p[%p][%s]", gw, gw->w, ggtk_window_get_title(gw->w));
+    if (!gw->is_visible) {
+        Log(LOGINFO, "Discarding raise on hidden window: %p[%p][%s]",
+            gw, gw->w, ggtk_window_get_title(gw->w));
+        return;
+    } else if (gw->is_toplevel) {
+        gtk_window_present(ggtk_window_get_window(gw->w));
+    } else {
+        // _GGDKDraw_FakeConfigureEvent
+         Log(LOGWARN, "[GGTKDrawRaise] %p is not toplevel", w);
     }
-
 }
 
 static void GGTKDrawRaiseAbove(GWindow w1, GWindow w2) {
     Log(LOGVERBOSE, " ");
     GGTKWindow gw1 = (GGTKWindow)w1, gw2 = (GGTKWindow)w2;
     if (!gw1->is_toplevel) {
-        Log(LOGINFO, "[GGTKDrawRaiseAbove] w1:%p is not toplevel", w1);
+        Log(LOGWARN, "[GGTKDrawRaiseAbove] w1:%p is not toplevel", w1);
     }
     if (!gw2->is_toplevel) {
-        Log(LOGINFO, "[GGTKDrawRaiseAbove] w2:%p si not toplevel", w2);
+        Log(LOGWARN, "[GGTKDrawRaiseAbove] w2:%p si not toplevel", w2);
+    }
+
+    // Not really supported by GTK in the general case
+    // Luckily usage of this is limited to palettes so meh
+    GGTKDrawRaise(w1);
+
+    if (gw1->is_toplevel && gw2->is_toplevel) {
+        gdk_window_restack(gtk_widget_get_window(GTK_WIDGET(ggtk_window_get_window(gw1->w))),
+            gtk_widget_get_window(GTK_WIDGET(ggtk_window_get_window(gw2->w))),
+            true);
     }
 }
 
@@ -1071,10 +1081,7 @@ static void GGTKDrawLower(GWindow gw) {
 // Icon title is ignored.
 static void GGTKDrawSetWindowTitles8(GWindow w, const char *title, const char *UNUSED(icontitle)) {
     Log(LOGVERBOSE, " "); // assert(false);
-    GGTKWindow gw = (GGTKWindow)w;
-    if (gw->is_toplevel) {
-        gtk_window_set_title(ggtk_window_get_window(gw->w), title);
-    }
+    ggtk_window_set_title(((GGTKWindow)w)->w, title);
 }
 
 static void GGTKDrawSetWindowTitles(GWindow w, const unichar_t *title, const unichar_t *UNUSED(icontitle)) {
@@ -1091,10 +1098,7 @@ static char *GGTKDrawGetWindowTitle8(GWindow w) {
 
 static unichar_t *GGTKDrawGetWindowTitle(GWindow w) {
     Log(LOGVERBOSE, " "); // assert(false);
-    char *title = GGTKDrawGetWindowTitle8(w);
-    unichar_t *ret = utf82u_copy(title);
-    free(title);
-    return ret;
+    return utf82u_copy(ggtk_window_get_title(((GGTKWindow)w)->w));
 }
 
 static void GGTKDrawSetTransientFor(GWindow transient, GWindow owner) {
@@ -1211,7 +1215,36 @@ static GWindow GGTKDrawGetRedirectWindow(GDisplay *UNUSED(gdisp)) {
 }
 
 static void GGTKDrawTranslateCoordinates(GWindow from, GWindow to, GPoint *pt) {
-    Log(LOGVERBOSE, " ");
+    //Log(LOGDEBUG, " ");
+    GGTKWindow gfrom = (GGTKWindow)from, gto = (GGTKWindow)to;
+    GGTKDisplay *gdisp = gfrom->display;
+    int x, y;
+
+    if (gto == gdisp->groot) {
+        // The actual meaning of this command... get the coords in root window coords
+        GtkWindow* w = ggtk_window_get_window(gfrom->w);
+        bool ret = gtk_widget_translate_coordinates(GTK_WIDGET(gfrom->w), GTK_WIDGET(w), pt->x, pt->y, &x, &y);
+        // assert(ret);
+        pt->x = x;
+        pt->y = y;
+        gtk_window_get_position(w, &x, &y);
+        pt->x += x;
+        pt->y += y;
+    } else {
+        GtkWindow* fw = ggtk_window_get_window(gfrom->w);
+        GtkWindow* tw = ggtk_window_get_window(gto->w);
+        int fx, fy, tx, ty;
+        gtk_window_get_position(fw, &fx, &fy);
+        gtk_window_get_position(tw, &tx, &ty);
+        bool ret = gtk_widget_translate_coordinates(GTK_WIDGET(gfrom->w), GTK_WIDGET(fw), pt->x, pt->y, &x, &y);
+        // assert(ret);
+        pt->x = fx - tx + x;
+        pt->y = fy - ty + y;
+        // bool ret = gtk_widget_translate_coordinates(GTK_WIDGET(gfrom->w), GTK_WIDGET(gto->w), pt->x, pt->y, &x, &y);
+        // assert(ret);
+        // pt->x = x;
+        // pt->y = y;
+    }
 }
 
 static void GGTKDrawBeep(GDisplay *gdisp) {
@@ -1279,10 +1312,16 @@ static int GGTKDrawSelectionHasOwner(GDisplay *disp, enum selnames sn) {
 
 static void GGTKDrawPointerUngrab(GDisplay *gdisp) {
     Log(LOGVERBOSE, " ");
+    GtkWidget* current = gtk_grab_get_current();
+    if (current != NULL) {
+        gtk_grab_remove(current);
+    }
 }
 
 static void GGTKDrawPointerGrab(GWindow w) {
     Log(LOGVERBOSE, " ");
+    GGTKWindow gw = (GGTKWindow)w;
+    gtk_grab_add(GTK_WIDGET(gw->w));
 }
 
 static void GGTKDrawRequestExpose(GWindow w, GRect *rect, int UNUSED(doclear)) {
@@ -1595,7 +1634,7 @@ GDisplay *_GGTKDraw_CreateDisplay(char *displayname, char *UNUSED(programname)) 
 
     groot = (GGTKWindow)calloc(1, sizeof(struct ggtkwindow));
     if (groot == NULL) {
-        Log(LOGERR, "Failedto alloc root GGTKWindow");
+        Log(LOGERR, "Failed to alloc root GGTKWindow");
         free(gdisp);
         return NULL;
     }

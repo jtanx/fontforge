@@ -20,6 +20,8 @@ struct _GGtkWindow
     int offscreen_width;
     int offscreen_height;
 
+    char* window_title;
+
     bool disposed;
     bool finalized;
 };
@@ -34,7 +36,7 @@ GGTKWindow ggtk_window_get_base(GGtkWindow *ggw)
 
 GtkWindow* ggtk_window_get_window(GGtkWindow *ggw)
 {
-    g_return_val_if_fail(ggw->gw->is_toplevel, NULL);
+    // g_return_val_if_fail(ggw->gw->is_toplevel, NULL);
     return GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(ggw)));
 }
 
@@ -80,12 +82,27 @@ void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area)
     gtk_widget_queue_draw(GTK_WIDGET(ggw));
 }
 
+void ggtk_window_set_title(GGtkWindow* ggw, const char* title)
+{
+    g_free(ggw->window_title);
+    ggw->window_title = g_strdup(title);
+    if (ggw->gw->is_toplevel) {
+        gtk_window_set_title(ggtk_window_get_window(ggw), ggw->window_title);
+    }
+}
+
 const char *ggtk_window_get_title(GGtkWindow *ggw)
 {
+    return ggw->window_title;
+}
+
+void ggtk_window_move(GGtkWindow* ggw, gint x, gint y)
+{
     if (ggw->gw->is_toplevel) {
-        return gtk_window_get_title(ggtk_window_get_window(ggw));
+        gtk_window_move(ggtk_window_get_window(ggw), x, y);
+    } else {
+        gtk_layout_move(GTK_LAYOUT(ggw->gw->parent->w), GTK_WIDGET(ggw), x, y);
     }
-    return NULL;
 }
 
 PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw)
@@ -281,6 +298,10 @@ static void ggtk_window_finalize(GObject *gobject)
     GGtkWindow *ggw = GGTK_WINDOW(gobject);
     ggw->finalized = true;
 
+    if (ggw->window_title) {
+        g_free(ggw->window_title);
+        ggw->window_title = NULL;
+    }
     if (ggw->pango_layout) {
         g_object_unref(ggw->pango_layout);
         ggw->pango_layout = NULL;
