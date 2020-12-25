@@ -105,6 +105,15 @@ void ggtk_window_move(GGtkWindow* ggw, gint x, gint y)
     }
 }
 
+void ggtk_window_resize(GGtkWindow* ggw, gint w, gint h)
+{
+    if (ggw->gw->is_toplevel) {
+        gtk_window_resize(ggtk_window_get_window(ggw), w, h);
+    } else {
+        gtk_widget_set_size_request(GTK_WIDGET(ggw), w, h);
+    }
+}
+
 PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw)
 {
     if (ggw->pango_layout) {

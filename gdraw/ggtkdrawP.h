@@ -87,6 +87,7 @@ void ggtk_window_request_expose(GGtkWindow *ggw, cairo_rectangle_int_t *area);
 void ggtk_window_set_title(GGtkWindow *ggw, const char* title);
 const char *ggtk_window_get_title(GGtkWindow *ggw);
 void ggtk_window_move(GGtkWindow* ggw, gint x, gint y);
+void ggtk_window_resize(GGtkWindow* ggw, gint w, gint y);
 PangoLayout *ggtk_window_get_pango_layout(GGtkWindow *ggw);
 
 // end GGtkWindow declaration

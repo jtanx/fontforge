@@ -1021,8 +1021,7 @@ static void GGTKDrawTrueMove(GWindow w, int32 x, int32 y) {
 
 static void GGTKDrawResize(GWindow w, int32 width, int32 height) {
     //Log(LOGDEBUG, "%p:%s, %d %d", gw, ((GGTKWindow) gw)->window_title, w, h);
-    GGTKWindow gw = (GGTKWindow)w;
-    gtk_widget_set_size_request(GTK_WIDGET(gw->w), width, height);
+    ggtk_window_resize(((GGTKWindow)w)->w, width, height);
 }
 
 static void GGTKDrawMoveResize(GWindow w, int32 x, int32 y, int32 width, int32 height) {
