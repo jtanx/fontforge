@@ -343,7 +343,7 @@ static void _GGTKDraw_DispatchEvent(GGtkWindow *ggw, GdkEvent *event) {
             gevent.u.mouse.state = _GGTKDraw_GdkModifierToKsm(evt->state);
             gevent.u.mouse.x = evt->x;
             gevent.u.mouse.y = evt->y;
-            //Log(LOGDEBUG, "Motion: [%f %f]", evt->x, evt->y);
+            Log(LOGWARN, "Motion: %p [%f %f]", gevent.w, evt->x, evt->y);
         }
         break;
         case GDK_SCROLL: { //Synthesize a button press // OK
@@ -1172,21 +1172,30 @@ static void GGTKDrawTranslateCoordinates(GWindow from, GWindow to, GPoint *pt) {
 
     if (gto == gdisp->groot) {
         // The actual meaning of this command... get the coords in root window coords
+        // gtk_window_get_position seems to ignore window decorations so need to use gdk
         GtkWindow* w = ggtk_window_get_window(gfrom->w);
         bool ret = gtk_widget_translate_coordinates(GTK_WIDGET(gfrom->w), GTK_WIDGET(w), pt->x, pt->y, &x, &y);
-        // assert(ret);
+        assert(ret);
+        gtk_widget_realize(GTK_WIDGET(gfrom->w));
+        gdk_window_get_root_coords(gtk_widget_get_window(GTK_WIDGET(w)), x, y, &x, &y);
         pt->x = x;
         pt->y = y;
         gtk_window_get_position(w, &x, &y);
-        pt->x += x;
-        pt->y += y;
     } else {
+        // Fairly sure this is broken by:
+        // https://gitlab.gnome.org/GNOME/gtk/-/commit/7f2cb91761ae89a27a9ad45e479adecfc3702c05
+        // Coords coming in are 'helpfully' translated but transltaed wrong.
         GtkWindow* fw = ggtk_window_get_window(gfrom->w);
         GtkWindow* tw = ggtk_window_get_window(gto->w);
         int fx, fy, tx, ty;
         gtk_window_get_position(fw, &fx, &fy);
         gtk_window_get_position(tw, &tx, &ty);
         bool ret = gtk_widget_translate_coordinates(GTK_WIDGET(gfrom->w), GTK_WIDGET(fw), pt->x, pt->y, &x, &y);
+
+        Log(LOGWARN, "TRANSLATE FR(%p:%dx%dx%dx%d:%s) TO(%p:%dx%dx%dx%d:%s) ORIG(%d,%d), TRANS(%d,%d %d), FO(%d,%d), TO(%d,%d), RES(%d,%d)",
+            from, from->pos.x, from->pos.y, from->pos.width, from->pos.height, ggtk_window_get_title(gfrom->w),
+            to, to->pos.x, to->pos.y, to->pos.width, to->pos.height, ggtk_window_get_title(gto->w),
+                pt->x, pt->y, x, y, ret, fx, fy, tx, ty, fx-tx+x, fy-ty+y);
         // assert(ret);
         pt->x = fx - tx + x;
         pt->y = fy - ty + y;
@@ -1262,8 +1271,8 @@ static int GGTKDrawSelectionHasOwner(GDisplay *disp, enum selnames sn) {
 
 static void GGTKDrawPointerUngrab(GDisplay *gdisp) {
     Log(LOGVERBOSE, " ");
-    GtkWidget* current = gtk_grab_get_current();
-    if (current != NULL) {
+    GtkWidget* current;
+    while ((current = gtk_grab_get_current())) {
         gtk_grab_remove(current);
     }
 }
