@@ -2,17 +2,20 @@
 
 from typing import Iterator, List, Optional, Set, Tuple
 from functools import partial
+from itertools import chain
 
 import dataclasses
 import enum
 import os
 import sys
+import zipfile
 
 SCRIPT = sys.argv[0]
 VERSION = "1.0"
 
 UNIDATA_VERSION = "12.1.0"
 UNICODE_DATA = "UnicodeData%s.txt"
+UNIHAN = "Unihan%s.zip"
 DERIVED_CORE_PROPERTIES = "DerivedCoreProperties%s.txt"
 PROP_LIST = "PropList%s.txt"
 LINE_BREAK = "LineBreak%s.txt"
@@ -23,6 +26,37 @@ DATA_DIR = "data"
 
 MANDATORY_LINE_BREAKS = ["BK", "CR", "LF", "NL"]
 
+LICENSE = f"""/* This is a GENERATED file - from {SCRIPT} {VERSION} with Unicode {UNIDATA_VERSION} */
+
+/* Copyright (C) 2000-2012 by George Williams */
+/* Contributions: Werner Lemberg, Khaled Hosny, Joe Da Silva */
+/*
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+
+ * The name of the author may not be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+"""
+
 
 class UcdTypeFlags(enum.IntFlag):  # rough character counts:
     FF_UNICODE_ISUNICODEPOINTASSIGNED = 0x1  # all
@@ -32,13 +66,13 @@ class UcdTypeFlags(enum.IntFlag):  # rough character counts:
     FF_UNICODE_ISRIGHTTOLEFT = 0x20  # 1286
     FF_UNICODE_ISLOWER = 0x40  # 1434
     FF_UNICODE_ISUPPER = 0x80  # 1119
-    FF_UNICODE_ISDIGIT = 0x100  # 370
-    FF_UNICODE_ISLIGVULGFRAC = 0x200  # 615
-    FF_UNICODE_ISCOMBINING = 0x400  # 2295
-    FF_UNICODE_ISZEROWIDTH = 0x800  # 404 Really ISDEFAULTIGNORABLE now
-    FF_UNICODE_ISEURONUMERIC = 0x1000  # 168
-    FF_UNICODE_ISEURONUMTERM = 0x2000  # 76
-    FF_UNICODE_ISARABNUMERIC = 0x8000  # 61
+    FF_UNICODE_ISDIGIT = 0x100  # 758
+    FF_UNICODE_ISNUMERIC = 0x200  # 1835
+    FF_UNICODE_ISLIGVULGFRAC = 0x400  # 615
+    FF_UNICODE_ISCOMBINING = 0x800  # 2295
+    FF_UNICODE_ISZEROWIDTH = 0x1000  # 404 Really ISDEFAULTIGNORABLE now
+    FF_UNICODE_ISEURONUMERIC = 0x2000  # 168
+    FF_UNICODE_ISEURONUMTERM = 0x4000  # 76
 
 
 class CombiningClass(enum.IntFlag):
@@ -212,6 +246,24 @@ class UnicodeData:
             c = int(data[0], 16)
             table[c].bidi_mirroring = data[1]
 
+        with open_data(UNIHAN, version) as file:
+            zip = zipfile.ZipFile(file)
+            if version == "3.2.0":
+                data = zip.open("Unihan-3.2.0.txt").read()
+            else:
+                data = zip.open("Unihan_NumericValues.txt").read()
+        for line in data.decode("utf-8").splitlines():
+            if not line.startswith("U+"):
+                continue
+            code, tag, value = line.split(None, 3)[:3]
+            if tag not in ("kAccountingNumeric", "kPrimaryNumeric", "kOtherNumeric"):
+                continue
+            value = value.strip().replace(",", "")
+            i = int(code[2:], 16)
+            # Patch the numeric field
+            if table[i] is not None:
+                table[i].numeric_value = value
+
 
 # --------------------------------------------------------------------
 # unicode character type tables
@@ -258,7 +310,7 @@ def makeutype(unicode, trace):
             elif bidirectional == "EN":
                 flags |= UcdTypeFlags.FF_UNICODE_ISEURONUMERIC
             elif bidirectional == "AN":
-                flags |= UcdTypeFlags.FF_UNICODE_ISARABNUMERIC
+                switches.setdefault("arabnumeric", []).append(char)
             elif bidirectional == "ES":
                 switches.setdefault("euronumsep", []).append(char)
             elif bidirectional == "CS":
@@ -316,6 +368,8 @@ def makeutype(unicode, trace):
             if record.numeric_type:
                 flags |= UcdTypeFlags.FF_UNICODE_ISDIGIT
                 digit = int(record.numeric_type)
+            if record.numeric_value:
+                flags |= UcdTypeFlags.FF_UNICODE_ISNUMERIC
             item = (upper, lower, title, mirror, flags)
             # add entry to index and item tables
             i = cache.get(item)
@@ -386,6 +440,15 @@ def makeutype(unicode, trace):
             fprint("}")
             fprint()
 
+        for name, flag in [
+            ("ff_unicode_isideoalpha", "FF_UNICODE_ISALPHA | FF_UNICODE_ISIDEOGRAPHIC"),
+            ("ff_unicode_isalnum", "FF_UNICODE_ISALPHA | FF_UNICODE_ISNUMERIC"),
+        ]:
+            fprint("int %s(unichar_t ch) {" % name)
+            fprint("    return _GetRecord(ch)->flags & (%s);" % flag)
+            fprint("}")
+            fprint()
+
         for k in sorted(switches.keys()):
             Switch("ff_unicode_is" + k, switches[k]).dump(fp)
 
@@ -403,7 +466,10 @@ def makeutype(unicode, trace):
 
     return (
         [("int", x.name.lower()) for x in UcdTypeFlags]
-        + [("int", "ff_unicode_is" + k) for k in switches]
+        + [
+            ("int", "ff_unicode_is" + k)
+            for k in chain(["ideoalpha", "alnum"], switches)
+        ]
         + [("unichar_t", "ff_unicode_to" + n) for n in conv_types]
     )
 
@@ -471,6 +537,7 @@ def makeunicodedata(unicode, trace):
         fprint("};")
 
         # split decomposition index table
+        # splitbins3(decomp_index)
         index1, index2, shift = splitbins(decomp_index, trace)
 
         fprint("/* decomposition data */")
@@ -491,6 +558,10 @@ def makeutypeheader(utype_funcs):
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
 
+        fprint(LICENSE)
+        fprint("#ifndef FONTFORGE_UNICODE_UTYPE2_H")
+        fprint("#define FONTFORGE_UNICODE_UTYPE2_H")
+        fprint()
         fprint(
             "#include <ctype.h>	/* Include here so we can control it. If a system header includes it later bad things happen */"
         )
@@ -511,6 +582,8 @@ def makeutypeheader(utype_funcs):
         for _, fn, realfn in utype_funcs:
             fprint("#define %-*s %s((ch))" % (alignment, realfn + "(ch)", fn))
         fprint()
+
+        fprint("#endif /* FONTFORGE_UNICODE_UTYPE2_H */")
 
 
 # stuff to deal with arrays of unsigned integers
