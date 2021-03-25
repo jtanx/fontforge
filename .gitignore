@@ -1,6 +1,7 @@
 build/
 contrib/admintools/splashimage.c
-Unicode/data
+Unicode/data/*.txt
+Unicode/data/*.zip
 
 .vscode/
 .vs/

@@ -1,4 +1,4 @@
-/* This is a GENERATED file - from makeutype.py 1.0 with Unicode 12.1.0 */
+/* This is a GENERATED file - from makeutype.py with Unicode 13.0.0 */
 
 /* Copyright (C) 2000-2012 by George Williams */
 /* Contributions: Werner Lemberg, Khaled Hosny, Joe Da Silva */
@@ -34,6 +34,25 @@
 #include <ctype.h>	/* Include here so we can control it. If a system header includes it later bad things happen */
 #include "basics.h"	/* Include here so we can use pre-defined int types to correctly size constant data arrays. */
 
+#define FF_UNICODE_DECOMP_VISUAL    1
+#define FF_UNICODE_DECOMP_CANONICAL 2
+#define FF_UNICODE_DECOMP_NO_BREAK  3
+#define FF_UNICODE_DECOMP_COMPAT    4
+#define FF_UNICODE_DECOMP_SUPER     5
+#define FF_UNICODE_DECOMP_FRACTION  6
+#define FF_UNICODE_DECOMP_SUB       7
+#define FF_UNICODE_DECOMP_FONT      8
+#define FF_UNICODE_DECOMP_CIRCLE    9
+#define FF_UNICODE_DECOMP_WIDE      10
+#define FF_UNICODE_DECOMP_VERTICAL  11
+#define FF_UNICODE_DECOMP_SQUARE    12
+#define FF_UNICODE_DECOMP_ISOLATED  13
+#define FF_UNICODE_DECOMP_FINAL     14
+#define FF_UNICODE_DECOMP_INITIAL   15
+#define FF_UNICODE_DECOMP_MEDIAL    16
+#define FF_UNICODE_DECOMP_SMALL     17
+#define FF_UNICODE_DECOMP_NARROW    18
+
 extern int ff_unicode_isunicodepointassigned(unichar_t ch);
 extern int ff_unicode_isalpha(unichar_t ch);
 extern int ff_unicode_isideographic(unichar_t ch);
@@ -60,6 +79,10 @@ extern unichar_t ff_unicode_tolower(unichar_t ch);
 extern unichar_t ff_unicode_toupper(unichar_t ch);
 extern unichar_t ff_unicode_totitle(unichar_t ch);
 extern unichar_t ff_unicode_tomirror(unichar_t ch);
+extern int ff_unicode_hasdecomposition(unichar_t ch);
+extern int ff_unicode_decompositioncategory(unichar_t ch);
+extern int ff_unicode_isdecompositionnormative(unichar_t ch);
+extern const unichar_t* ff_unicode_decomposition(unichar_t ch);
 
 #undef isunicodepointassigned
 #undef isalpha
@@ -87,32 +110,47 @@ extern unichar_t ff_unicode_tomirror(unichar_t ch);
 #undef toupper
 #undef totitle
 #undef tomirror
+#undef hasdecomposition
+#undef decompositioncategory
+#undef isdecompositionnormative
+#undef decomposition
 
-#define isunicodepointassigned(ch) ff_unicode_isunicodepointassigned((ch))
-#define isalpha(ch)                ff_unicode_isalpha((ch))
-#define isideographic(ch)          ff_unicode_isideographic((ch))
-#define islefttoright(ch)          ff_unicode_islefttoright((ch))
-#define isrighttoleft(ch)          ff_unicode_isrighttoleft((ch))
-#define islower(ch)                ff_unicode_islower((ch))
-#define isupper(ch)                ff_unicode_isupper((ch))
-#define isdigit(ch)                ff_unicode_isdigit((ch))
-#define isnumeric(ch)              ff_unicode_isnumeric((ch))
-#define isligvulgfrac(ch)          ff_unicode_isligvulgfrac((ch))
-#define iscombining(ch)            ff_unicode_iscombining((ch))
-#define iszerowidth(ch)            ff_unicode_iszerowidth((ch))
-#define iseuronumeric(ch)          ff_unicode_iseuronumeric((ch))
-#define iseuronumterm(ch)          ff_unicode_iseuronumterm((ch))
-#define isideoalpha(ch)            ff_unicode_isideoalpha((ch))
-#define isalnum(ch)                ff_unicode_isalnum((ch))
-#define isspace(ch)                ff_unicode_isspace((ch))
-#define iseuronumsep(ch)           ff_unicode_iseuronumsep((ch))
-#define iscommonsep(ch)            ff_unicode_iscommonsep((ch))
-#define ishexdigit(ch)             ff_unicode_ishexdigit((ch))
-#define istitle(ch)                ff_unicode_istitle((ch))
-#define isarabnumeric(ch)          ff_unicode_isarabnumeric((ch))
-#define tolower(ch)                ff_unicode_tolower((ch))
-#define toupper(ch)                ff_unicode_toupper((ch))
-#define totitle(ch)                ff_unicode_totitle((ch))
-#define tomirror(ch)               ff_unicode_tomirror((ch))
+#define isunicodepointassigned(ch)   ff_unicode_isunicodepointassigned((ch))
+#define isalpha(ch)                  ff_unicode_isalpha((ch))
+#define isideographic(ch)            ff_unicode_isideographic((ch))
+#define islefttoright(ch)            ff_unicode_islefttoright((ch))
+#define isrighttoleft(ch)            ff_unicode_isrighttoleft((ch))
+#define islower(ch)                  ff_unicode_islower((ch))
+#define isupper(ch)                  ff_unicode_isupper((ch))
+#define isdigit(ch)                  ff_unicode_isdigit((ch))
+#define isnumeric(ch)                ff_unicode_isnumeric((ch))
+#define isligvulgfrac(ch)            ff_unicode_isligvulgfrac((ch))
+#define iscombining(ch)              ff_unicode_iscombining((ch))
+#define iszerowidth(ch)              ff_unicode_iszerowidth((ch))
+#define iseuronumeric(ch)            ff_unicode_iseuronumeric((ch))
+#define iseuronumterm(ch)            ff_unicode_iseuronumterm((ch))
+#define isideoalpha(ch)              ff_unicode_isideoalpha((ch))
+#define isalnum(ch)                  ff_unicode_isalnum((ch))
+#define isspace(ch)                  ff_unicode_isspace((ch))
+#define iseuronumsep(ch)             ff_unicode_iseuronumsep((ch))
+#define iscommonsep(ch)              ff_unicode_iscommonsep((ch))
+#define ishexdigit(ch)               ff_unicode_ishexdigit((ch))
+#define istitle(ch)                  ff_unicode_istitle((ch))
+#define isarabnumeric(ch)            ff_unicode_isarabnumeric((ch))
+#define tolower(ch)                  ff_unicode_tolower((ch))
+#define toupper(ch)                  ff_unicode_toupper((ch))
+#define totitle(ch)                  ff_unicode_totitle((ch))
+#define tomirror(ch)                 ff_unicode_tomirror((ch))
+#define hasdecomposition(ch)         ff_unicode_hasdecomposition((ch))
+#define decompositioncategory(ch)    ff_unicode_decompositioncategory((ch))
+#define isdecompositionnormative(ch) ff_unicode_isdecompositionnormative((ch))
+#define decomposition(ch)            ff_unicode_decomposition((ch))
+
+extern struct arabicforms {
+    unsigned short initial, medial, final, isolated;
+    unsigned int isletter: 1;
+    unsigned int joindual: 1;
+    unsigned int required_lig_with_alef: 1;
+} ArabicForms[256];	/* for chars 0x600-0x6ff, subtract 0x600 to use array */
 
 #endif /* FONTFORGE_UNICODE_UTYPE2_H */
