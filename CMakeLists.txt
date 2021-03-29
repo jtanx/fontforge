@@ -12,9 +12,9 @@ project(fontforge VERSION 20201107 LANGUAGES C CXX)
 
 # Add folder for custom cmake modules
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/packages)
-if(${CMAKE_VERSION} VERSION_LESS "3.15.7")
+if(${CMAKE_VERSION} VERSION_LESS "3.20.1")
   # This could be more targeted, but keep it simple
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/backports/3.15.7)
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/backports/3.20.1)
 endif()
 
 # Include any required modules
@@ -98,7 +98,7 @@ enable_sanitizer("${ENABLE_SANITIZER}")
 # Note: When adding a dependency, ensure it has an imported target (wherever appropriate) 
 find_package(Freetype 2.3.7 REQUIRED)
 find_package(Gettext REQUIRED)
-find_package_with_target(Intl REQUIRED)
+find_package(Intl REQUIRED)
 find_package(GLIB 2.6 REQUIRED COMPONENTS gio)
 find_package(Iconv REQUIRED)
 find_package(LibXml2 REQUIRED)
