@@ -1,7 +1,7 @@
 # Based on makeunicodedata.py from CPython
 
 from __future__ import annotations
-from data.makeutypedata import VISUAL_ALTS, get_pose
+from data.makeutypedata import VISUAL_ALTS, Pose, get_pose
 from functools import partial
 from itertools import chain
 from typing import Iterator, List, Optional, Set, Tuple
@@ -73,6 +73,12 @@ class UcdTypeFlags(enum.IntFlag):  # rough character counts:
     FF_UNICODE_ISEURONUMERIC = 0x1000  # 168
     FF_UNICODE_ISEURONUMTERM = 0x2000  # 76
     FF_UNICODE_ISARABNUMERIC = 0x4000
+    FF_UNICODE_ISDECOMPOSITIONNORMATIVE = 0x8000
+    FF_UNICODE_ISDECOMPCIRCLE = 0x10000
+    FF_UNICODE_ISARABINITIAL = 0x20000
+    FF_UNICODE_ISARABMEDIAL = 0x40000
+    FF_UNICODE_ISARABFINAL = 0x80000
+    FF_UNICODE_ISARABISOLATED = 0x100000
 
 
 @dataclasses.dataclass
@@ -303,6 +309,20 @@ def makeutype(unicode, trace):
                 if char != 0x2044:  # FRACTION SLASH
                     flags |= UcdTypeFlags.FF_UNICODE_ISLIGVULGFRAC
 
+            if record.decomposition_type:
+                flags |= UcdTypeFlags.FF_UNICODE_ISDECOMPOSITIONNORMATIVE
+
+                if record.decomposition_type.startswith("<circle>"):
+                    flags |= UcdTypeFlags.FF_UNICODE_ISDECOMPCIRCLE
+                elif record.decomposition_type.startswith("<initial>"):
+                    flags |= UcdTypeFlags.FF_UNICODE_ISARABINITIAL
+                elif record.decomposition_type.startswith("<medial>"):
+                    flags |= UcdTypeFlags.FF_UNICODE_ISARABMEDIAL
+                elif record.decomposition_type.startswith("<final>"):
+                    flags |= UcdTypeFlags.FF_UNICODE_ISARABFINAL
+                elif record.decomposition_type.startswith("<isolated>"):
+                    flags |= UcdTypeFlags.FF_UNICODE_ISARABISOLATED
+
             if record.simple_uppercase_mapping:
                 upper = int(record.simple_uppercase_mapping, 16)
             else:
@@ -434,6 +454,15 @@ def makeutype(unicode, trace):
         for k in sorted(switches.keys()):
             Switch("ff_unicode_is" + k, switches[k]).dump(fp)
 
+        fprint("int ff_unicode_pose(unichar_t ch) {")
+        fprint("   return GetType(ch)->pose & ~0xff;")
+        fprint("}")
+        fprint()
+        fprint("int ff_unicode_combiningclass(unichar_t ch) {")
+        fprint("    return GetType(ch)->pose & 0xff;")
+        fprint("}")
+        fprint()
+
         conv_types = ("lower", "upper", "title", "mirror")
         for n in conv_types:
             fprint("unichar_t ff_unicode_to%s(unichar_t ch) {" % n)
@@ -452,6 +481,7 @@ def makeutype(unicode, trace):
             ("int", "ff_unicode_is" + k)
             for k in chain(["ideoalpha", "alnum"], switches)
         ]
+        + [("int", "ff_unicode_pose"), ("int", "ff_unicode_combiningclass")]
         + [("unichar_t", "ff_unicode_to" + n) for n in conv_types]
     )
 
@@ -462,7 +492,6 @@ def makeunialt(unicode, trace):
     print("--- Preparing", FILE, "...")
 
     decomp_data = [0]
-    decomp_category = ["", "FF_UNICODE_DECOMP_VISUAL", "FF_UNICODE_DECOMP_CANONICAL"]
     decomp_index = [0] * len(unicode.chars)
     decomp_chars = set()  # excl. visual alts
 
@@ -480,27 +509,16 @@ def makeunialt(unicode, trace):
                 raise Exception(
                     "character %x has a decomposition too large for nfd_nfkd" % char
                 )
-            category = "FF_UNICODE_DECOMP_CANONICAL"
             if decomp[0].startswith("<"):
-                category = re.sub(r"(?<!^)(?=[A-Z])", "_", decomp.pop(0)[1:-1]).upper()
-                category = "FF_UNICODE_DECOMP_" + category
+                decomp.pop(0)  # subset of category info stored in utype flags
             decomp = [int(s, 16) for s in decomp]
             decomp_chars.add(char)
         else:
-            category = "FF_UNICODE_DECOMP_VISUAL"
             decomp = VISUAL_ALTS[char]
             assert len(decomp) <= 19
 
-        # Now add to the data/index
-        try:
-            i = decomp_category.index(category)
-        except ValueError:
-            i = len(decomp_category)
-            decomp_category.append(category)
-        category = i
-        assert category < 256
         # content
-        decomp = [category + (len(decomp) << 8)] + decomp + [0]
+        decomp = decomp + [0]
         try:
             i = decomp_data.index(decomp)
         except ValueError:
@@ -512,8 +530,7 @@ def makeunialt(unicode, trace):
         "Ignored visual alts:",
         ", ".join("U+%04x" % x for x in VISUAL_ALTS.keys() & decomp_chars),
     )
-    print(len(decomp_category), "unique decomposition categories")
-    print(len(decomp_data), "unique decomposition entries:", end=" ")
+    print(len(decomp_data), "unique decomposition entries")
 
     print("--- Writing", FILE, "...")
 
@@ -536,33 +553,19 @@ def makeunialt(unicode, trace):
         fprint("}")
         fprint()
 
-        fprint("int ff_unicode_decompositioncategory(unichar_t ch) {")
-        fprint("    return *GetDecomp(ch) & 0xff;")
-        fprint("}")
-        fprint()
-
-        fprint("int ff_unicode_isdecompositionnormative(unichar_t ch) {")
-        fprint("    unichar_t index = *GetDecomp(ch);")
-        fprint("    return index && (index & 0xff) != FF_UNICODE_DECOMP_VISUAL;")
-        fprint("}")
-        fprint()
-
         fprint("const unichar_t* ff_unicode_decomposition(unichar_t ch) {")
         fprint("    const unichar_t* ptr = GetDecomp(ch);")
         fprint("    if (!*ptr) {")
         fprint("        return NULL;")
         fprint("    }")
-        fprint("    assert(u_strlen(ptr+1) == ((*ptr)>>8));")
-        fprint("    return ptr+1;")
+        fprint("    return ptr;")
         fprint("}")
         fprint()
 
         return [
             ("int", "ff_unicode_hasdecomposition"),
-            ("int", "ff_unicode_decompositioncategory"),
-            ("int", "ff_unicode_isdecompositionnormative"),
             ("const unichar_t*", "ff_unicode_decomposition"),
-        ], decomp_category
+        ]
 
 
 def makearabicforms(unicode, trace):
@@ -621,7 +624,7 @@ def makearabicforms(unicode, trace):
         fprint("};")
 
 
-def makeutypeheader(utype_funcs, unialt_categories):
+def makeutypeheader(utype_funcs):
     FILE = "utype2.h"
     utype_funcs = [(t, n, n.replace("ff_unicode_", "")) for t, n in utype_funcs]
 
@@ -642,11 +645,10 @@ def makeutypeheader(utype_funcs, unialt_categories):
         )
         fprint()
 
-        alignment = max(len(x) for x in unialt_categories)
-        for i, v in enumerate(unialt_categories):
-            if not v:
-                continue
-            fprint("#define %-*s %d" % (alignment, v, i))
+        alignment = len("FF_UNICODE_") + max(len(x.name) for x in Pose)
+        fprint("/* Pose flags */")
+        for c in Pose:
+            fprint("#define %-*s 0x%08X" % (alignment, "FF_UNICODE_" + c.name, c))
         fprint()
 
         for rettype, fn, _ in utype_funcs:
@@ -660,13 +662,6 @@ def makeutypeheader(utype_funcs, unialt_categories):
         alignment = max(len(x) + 4 for _, _, x in utype_funcs)
         for _, fn, realfn in utype_funcs:
             fprint("#define %-*s %s((ch))" % (alignment, realfn + "(ch)", fn))
-        fprint()
-
-        for cat in ("initial", "medial", "final", "isolated"):
-            fprint(
-                "#define isarab%-12s (decompositioncategory(ch) & FF_UNICODE_DECOMP_%s)"
-                % (cat + "(ch)", cat.upper())
-            )
         fprint()
 
         fprint("extern struct arabicforms {")
@@ -851,9 +846,9 @@ def maketables(trace=0):
 
     unicode = UnicodeData(UNIDATA_VERSION)
     utype_funcs = makeutype(unicode, trace)
-    unialt_funcs, unialt_categories = makeunialt(unicode, trace)
+    unialt_funcs = makeunialt(unicode, trace)
     makearabicforms(unicode, trace)
-    makeutypeheader(utype_funcs + unialt_funcs, unialt_categories)
+    makeutypeheader(utype_funcs + unialt_funcs)
 
 
 if __name__ == "__main__":
