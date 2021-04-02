@@ -1,7 +1,6 @@
 /* This is a GENERATED file - from makeutype.py with Unicode 13.0.0 */
 
 /* Copyright (C) 2000-2012 by George Williams */
-/* Contributions: Werner Lemberg, Khaled Hosny, Joe Da Silva */
 /*
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,6 +29,7 @@
 
 #include <ustring.h>
 #include <utype.h>
+
 /* decomposition data */
 static const unsigned int decomp_data[] = {
     0, 259, 32, 0, 516, 32, 776, 0, 261, 97, 0, 516, 32, 772, 0, 261, 50, 0,
@@ -1443,7 +1443,7 @@ static const unsigned int decomp_data[] = {
     258, 40719, 0, 258, 40726, 0, 258, 40763, 0, 258, 173568, 0,
 };
 
-/* index tables for the decomposition data */
+/* decomp indexes */
 #define DECOMP_SHIFT 7
 static const unsigned char decomp_index1[] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 0, 0, 0, 0, 14, 15, 16, 0,

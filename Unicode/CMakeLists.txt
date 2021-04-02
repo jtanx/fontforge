@@ -11,7 +11,7 @@ add_library(gunicode OBJECT
   unialt.c
   ustring.c
   utype.c
-  utype2.c
+  #utype2.c
 )
 
 if(BUILD_SHARED_LIBS)

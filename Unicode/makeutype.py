@@ -1,6 +1,7 @@
 # Based on makeunicodedata.py from CPython
 
-from data.makeutypedata import VISUAL_ALTS
+from __future__ import annotations
+from data.makeutypedata import VISUAL_ALTS, get_pose
 from functools import partial
 from itertools import chain
 from typing import Iterator, List, Optional, Set, Tuple
@@ -16,7 +17,6 @@ SCRIPT = sys.argv[0]
 
 UNIDATA_VERSION = "13.0.0"
 UNICODE_DATA = "UnicodeData%s.txt"
-UNIHAN = "Unihan%s.zip"
 DERIVED_CORE_PROPERTIES = "DerivedCoreProperties%s.txt"
 PROP_LIST = "PropList%s.txt"
 LINE_BREAK = "LineBreak%s.txt"
@@ -30,8 +30,7 @@ MANDATORY_LINE_BREAKS = ["BK", "CR", "LF", "NL"]
 LICENSE = f"""/* This is a GENERATED file - from {SCRIPT} with Unicode {UNIDATA_VERSION} */
 
 /* Copyright (C) 2000-2012 by George Williams */
-/* Contributions: Werner Lemberg, Khaled Hosny, Joe Da Silva */
-/*
+{{extra}}/*
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
 
@@ -68,57 +67,12 @@ class UcdTypeFlags(enum.IntFlag):  # rough character counts:
     FF_UNICODE_ISLOWER = 0x40  # 1434
     FF_UNICODE_ISUPPER = 0x80  # 1119
     FF_UNICODE_ISDIGIT = 0x100  # 758
-    FF_UNICODE_ISNUMERIC = 0x200  # 1835
-    FF_UNICODE_ISLIGVULGFRAC = 0x400  # 615
-    FF_UNICODE_ISCOMBINING = 0x800  # 2295
-    FF_UNICODE_ISZEROWIDTH = 0x1000  # 404 Really ISDEFAULTIGNORABLE now
-    FF_UNICODE_ISEURONUMERIC = 0x2000  # 168
-    FF_UNICODE_ISEURONUMTERM = 0x4000  # 76
-
-
-class CombiningClass(enum.IntFlag):
-    ABOVE = 0x100
-    BELOW = 0x200
-    OVERSTRIKE = 0x400
-    LEFT = 0x800
-    RIGHT = 0x1000
-    JOINS2 = 0x2000
-    CENTERLEFT = 0x4000
-    CENTERRIGHT = 0x8000
-    CENTEREDOUTSIDE = 0x10000
-    OUTSIDE = 0x20000
-    RIGHTEDGE = 0x40000
-    LEFTEDGE = 0x80000
-    TOUCHING = 0x100000
-
-
-def open_data(template, version):
-    local = os.path.join(DATA_DIR, template % ("-" + version,))
-    if not os.path.exists(local):
-        import urllib.request
-
-        url = ("https://www.unicode.org/Public/%s/ucd/" + template) % (version, "")
-        print("Fetching", url)
-        os.makedirs(DATA_DIR, exist_ok=True)
-        urllib.request.urlretrieve(url, filename=local)
-    if local.endswith(".txt"):
-        return open(local, encoding="utf-8")
-    else:
-        # Unihan.zip
-        return open(local, "rb")
-
-
-def expand_range(char_range: str) -> Iterator[int]:
-    """
-    Parses ranges of code points, as described in UAX #44:
-      https://www.unicode.org/reports/tr44/#Code_Point_Ranges
-    """
-    if ".." in char_range:
-        first, last = [int(c, 16) for c in char_range.split("..")]
-    else:
-        first = last = int(char_range, 16)
-    for char in range(first, last + 1):
-        yield char
+    FF_UNICODE_ISLIGVULGFRAC = 0x200  # 615
+    FF_UNICODE_ISCOMBINING = 0x400  # 2295
+    FF_UNICODE_ISZEROWIDTH = 0x800  # 404 Really ISDEFAULTIGNORABLE now
+    FF_UNICODE_ISEURONUMERIC = 0x1000  # 168
+    FF_UNICODE_ISEURONUMTERM = 0x2000  # 76
+    FF_UNICODE_ISARABNUMERIC = 0x4000
 
 
 @dataclasses.dataclass
@@ -152,9 +106,9 @@ class UcdRecord:
     #   https://www.unicode.org/reports/tr44/#BidiMirroring.txt
     bidi_mirroring: str
 
-
-def from_row(row: List[str]) -> UcdRecord:
-    return UcdRecord(*row, set(), "")
+    @staticmethod
+    def from_row(row: List[str]) -> UcdRecord:
+        return UcdRecord(*row, set(), "")
 
 
 class UcdFile:
@@ -167,12 +121,41 @@ class UcdFile:
     own separate format.
     """
 
+    @staticmethod
+    def open_data(template, version):
+        local = os.path.join(DATA_DIR, template % ("-" + version,))
+        if not os.path.exists(local):
+            import urllib.request
+
+            url = ("https://www.unicode.org/Public/%s/ucd/" + template) % (version, "")
+            print("Fetching", url)
+            os.makedirs(DATA_DIR, exist_ok=True)
+            urllib.request.urlretrieve(url, filename=local)
+        if local.endswith(".txt"):
+            return open(local, encoding="utf-8")
+        else:
+            # Unihan.zip
+            return open(local, "rb")
+
+    @staticmethod
+    def expand_range(char_range: str) -> Iterator[int]:
+        """
+        Parses ranges of code points, as described in UAX #44:
+        https://www.unicode.org/reports/tr44/#Code_Point_Ranges
+        """
+        if ".." in char_range:
+            first, last = [int(c, 16) for c in char_range.split("..")]
+        else:
+            first = last = int(char_range, 16)
+        for char in range(first, last + 1):
+            yield char
+
     def __init__(self, template: str, version: str) -> None:
         self.template = template
         self.version = version
 
     def records(self) -> Iterator[List[str]]:
-        with open_data(self.template, self.version) as file:
+        with self.open_data(self.template, self.version) as file:
             for line in file:
                 line = line.split("#", 1)[0].strip()
                 if not line:
@@ -185,7 +168,7 @@ class UcdFile:
     def expanded(self) -> Iterator[Tuple[int, List[str]]]:
         for record in self.records():
             char_range, rest = record[0], record[1:]
-            for char in expand_range(char_range):
+            for char in self.expand_range(char_range):
                 yield char, rest
 
 
@@ -203,7 +186,7 @@ class UnicodeData:
         table = [None] * UNICODE_MAX
         for s in UcdFile(UNICODE_DATA, version):
             char = int(s[0], 16)
-            table[char] = from_row(s)
+            table[char] = UcdRecord.from_row(s)
 
         # expand first-last ranges
         field = None
@@ -220,7 +203,7 @@ class UnicodeData:
                     s.name = ""
                     field = None
             elif field:
-                table[i] = from_row(("%X" % i,) + field[1:])
+                table[i] = UcdRecord.from_row(("%X" % i,) + field[1:])
 
         # public attributes
         self.filename = UNICODE_DATA % ""
@@ -240,30 +223,12 @@ class UnicodeData:
         for char_range, value in UcdFile(LINE_BREAK, version):
             if value not in MANDATORY_LINE_BREAKS:
                 continue
-            for char in expand_range(char_range):
+            for char in UcdFile.expand_range(char_range):
                 table[char].binary_properties.add("Line_Break")
 
         for data in UcdFile(BIDI_MIRRORING, version):
             c = int(data[0], 16)
             table[c].bidi_mirroring = data[1]
-
-        with open_data(UNIHAN, version) as file:
-            zip = zipfile.ZipFile(file)
-            if version == "3.2.0":
-                data = zip.open("Unihan-3.2.0.txt").read()
-            else:
-                data = zip.open("Unihan_NumericValues.txt").read()
-        for line in data.decode("utf-8").splitlines():
-            if not line.startswith("U+"):
-                continue
-            code, tag, value = line.split(None, 3)[:3]
-            if tag not in ("kAccountingNumeric", "kPrimaryNumeric", "kOtherNumeric"):
-                continue
-            value = value.strip().replace(",", "")
-            i = int(code[2:], 16)
-            # Patch the numeric field
-            if table[i] is not None:
-                table[i].numeric_value = value
 
 
 # --------------------------------------------------------------------
@@ -276,11 +241,16 @@ def makeutype(unicode, trace):
 
     print("--- Preparing", FILE, "...")
 
-    # extract unicode types
-    dummy = (0, 0, 0, 0, 0)
-    table = [dummy]
-    cache = {dummy: 0}
-    index = [0] * len(unicode.chars)
+    # extract simple case mappings
+    case_dummy = (0, 0, 0, 0)
+    case_table = [case_dummy]
+    case_cache = {case_dummy: 0}
+    case_index = [0] * len(unicode.chars)
+    # extract unicode type info
+    type_dummy = (0, 0)
+    type_table = [type_dummy]
+    type_cache = {type_dummy: 0}
+    type_index = [0] * len(unicode.chars)
     # use switch statements for properties with low instance counts
     switches = {}
 
@@ -311,7 +281,7 @@ def makeutype(unicode, trace):
             elif bidirectional == "EN":
                 flags |= UcdTypeFlags.FF_UNICODE_ISEURONUMERIC
             elif bidirectional == "AN":
-                switches.setdefault("arabnumeric", []).append(char)
+                flags |= UcdTypeFlags.FF_UNICODE_ISARABNUMERIC
             elif bidirectional == "ES":
                 switches.setdefault("euronumsep", []).append(char)
             elif bidirectional == "CS":
@@ -369,19 +339,31 @@ def makeutype(unicode, trace):
             if record.numeric_type:
                 flags |= UcdTypeFlags.FF_UNICODE_ISDIGIT
                 digit = int(record.numeric_type)
-            if record.numeric_value:
-                flags |= UcdTypeFlags.FF_UNICODE_ISNUMERIC
-            item = (upper, lower, title, mirror, flags)
-            # add entry to index and item tables
-            i = cache.get(item)
+
+            # pose info
+            ccc = int(record.canonical_combining_class)
+            pose = get_pose(char, ccc, with_ccc=True)
+
+            # construct the case mapping entry
+            item = (upper, lower, title, mirror)
+            i = case_cache.get(item)
             if i is None:
-                cache[item] = i = len(table)
-                table.append(item)
-            index[char] = i
+                case_cache[item] = i = len(case_table)
+                case_table.append(item)
+            case_index[char] = i
+
+            # construct the type mapping entry
+            item = (flags, pose)
+            i = type_cache.get(item)
+            if i is None:
+                type_cache[item] = i = len(type_table)
+                type_table.append(item)
+            type_index[char] = i
 
     # You want to keep this generally below 255 so the index can fit in one
     # byte. Once it exceeds you double the size requirement for index2.
-    print(len(table), "unique character type entries")
+    print(len(case_table), "unique case mapping entries")
+    print(len(type_table), "unique character type entries")
     for k, v in switches.items():
         print(len(v), k, "code points")
 
@@ -391,61 +373,61 @@ def makeutype(unicode, trace):
         fprint = partial(print, file=fp)
         alignment = max(len(flag.name) for flag in UcdTypeFlags)
 
-        fprint(LICENSE)
+        fprint(
+            LICENSE.format(
+                extra="/* Contributions: Werner Lemberg, Khaled Hosny, Joe Da Silva */\n"
+            )
+        )
         fprint("#include <assert.h>")
         fprint("#include <utype2.h>")
         fprint()
         for flag in UcdTypeFlags:
             fprint("#define %-*s 0x%x" % (alignment, flag.name, flag.value))
         fprint()
-        fprint("struct utyperecord {")
-        fprint(
-            "    int32_t upper, lower, title, mirror; /* delta from current character */"
-        )
-        fprint("    uint32_t flags; /* one or more of the above flags */")
+        fprint("struct utypecasing {")
+        fprint("    /* deltas from the current character */")
+        fprint("    int32_t upper, lower, title, mirror;")
         fprint("};")
         fprint()
-        fprint("/* a list of unique character type descriptors */")
-        fprint("static const struct utyperecord utype_records[] = {")
-        for item in table:
-            fprint("    {%d, %d, %d, %d, %d}," % item)
+        fprint("struct utypeflags {")
+        fprint("    uint32_t flags; /* One or more of the above flags */")
+        fprint("    uint32_t pose; /* Positioning info */")
+        fprint("};")
+        fprint()
+        fprint("/* a list of unique simple case mappings */")
+        fprint("static const struct utypecasing casing_data[] = {")
+        for item in case_table:
+            fprint("    {%d, %d, %d, %d}," % item)
+        fprint("};")
+        fprint()
+        fprint("/* a list of unique type flags */")
+        fprint("static const struct utypeflags type_data[] = {")
+        for item in type_table:
+            fprint("    {%d, %d}," % item)
         fprint("};")
         fprint()
 
-        # split decomposition index table
-        # splitbins3(index)
-        index1, index2, shift = splitbins(index, trace)
+        case_ind = Index("casing", "struct utypecasing", case_index)
+        type_ind = Index("type", "struct utypeflags", type_index)
 
-        fprint("/* type indexes */")
-        fprint("#define SHIFT", shift)
-        Array("index1", index1).dump(fp, trace)
-        Array("index2", index2).dump(fp, trace)
+        case_ind.dump(fp, trace, accessor=False)
+        type_ind.dump(fp, trace, accessor=False)
 
-        fprint("static const struct utyperecord* GetRecord(unichar_t ch) {")
-        fprint("    int index = 0;")
-        fprint("    if (ch < 0x%x) {" % UNICODE_MAX)
-        fprint("        index = index1[ch >> SHIFT];")
-        fprint("        index = index2[(index << SHIFT) + (ch & ((1 << SHIFT) - 1))];")
-        fprint("    }")
-        fprint(
-            "    assert(index >= 0 && index < sizeof(utype_records)/sizeof(utype_records[0]));"
-        )
-        fprint("    return &utype_records[index];")
-        fprint("}")
-        fprint()
+        case_ind.dump(fp, trace, index=False)
+        type_ind.dump(fp, trace, index=False)
 
         for flag in UcdTypeFlags:
             fprint("int %s(unichar_t ch) {" % flag.name.lower())
-            fprint("    return GetRecord(ch)->flags & %s;" % (flag.name,))
+            fprint("    return GetType(ch)->flags & %s;" % (flag.name,))
             fprint("}")
             fprint()
 
         for name, flag in [
             ("ff_unicode_isideoalpha", "FF_UNICODE_ISALPHA | FF_UNICODE_ISIDEOGRAPHIC"),
-            ("ff_unicode_isalnum", "FF_UNICODE_ISALPHA | FF_UNICODE_ISNUMERIC"),
+            ("ff_unicode_isalnum", "FF_UNICODE_ISALPHA | FF_UNICODE_ISDIGIT"),
         ]:
             fprint("int %s(unichar_t ch) {" % name)
-            fprint("    return GetRecord(ch)->flags & (%s);" % flag)
+            fprint("    return GetType(ch)->flags & (%s);" % flag)
             fprint("}")
             fprint()
 
@@ -455,7 +437,7 @@ def makeutype(unicode, trace):
         conv_types = ("lower", "upper", "title", "mirror")
         for n in conv_types:
             fprint("unichar_t ff_unicode_to%s(unichar_t ch) {" % n)
-            fprint("    const struct utyperecord* rec = GetRecord(ch);")
+            fprint("    const struct utypecasing* rec = GetCasing(ch);")
             if n == "mirror":
                 fprint("    if (rec->mirror == 0) {")
                 fprint("        return 0;")  # special case...
@@ -538,37 +520,16 @@ def makeunialt(unicode, trace):
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
 
-        fprint(LICENSE)
+        fprint(LICENSE.format(extra=""))
 
         fprint("#include <ustring.h>")
         fprint("#include <utype.h>")
-
-        # split decomposition index table
-        # splitbins3(decomp_index)
-        index1, index2, shift = splitbins(decomp_index, trace)
+        fprint()
 
         fprint("/* decomposition data */")
         Array("decomp_data", decomp_data).dump(fp, trace)
 
-        fprint("/* index tables for the decomposition data */")
-        fprint("#define DECOMP_SHIFT", shift)
-        Array("decomp_index1", index1).dump(fp, trace)
-        Array("decomp_index2", index2).dump(fp, trace)
-
-        fprint("static const unichar_t* GetDecomp(unichar_t ch) {")
-        fprint("    int index = 0;")
-        fprint("    if (ch < 0x%x) {" % UNICODE_MAX)
-        fprint("        index = decomp_index1[ch >> DECOMP_SHIFT];")
-        fprint(
-            "        index = decomp_index2[(index << DECOMP_SHIFT) + (ch & ((1 << DECOMP_SHIFT) - 1))];"
-        )
-        fprint("    }")
-        fprint(
-            "    assert(index >= 0 && index < sizeof(decomp_data)/sizeof(decomp_data[0]));"
-        )
-        fprint("    return &decomp_data[index];")
-        fprint("}")
-        fprint()
+        Index("decomp", "unichar_t", decomp_index).dump(fp, trace)
 
         fprint("int ff_unicode_hasdecomposition(unichar_t ch) {")
         fprint("   return *GetDecomp(ch) != 0;")
@@ -645,16 +606,18 @@ def makearabicforms(unicode, trace):
 
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
-        fprint(LICENSE)
+        fprint(
+            LICENSE.format(extra="/* Contributions: Khaled Hosny, Joe Da Silva */\n")
+        )
         fprint("#include <utype.h>")
         fprint()
         fprint("struct arabicforms ArabicForms[] = {")
         fprint(
-            "\t/* initial, medial, final, isolated, isletter, joindual, required_lig_with_alef */"
+            "    /* initial, medial, final, isolated, isletter, joindual, required_lig_with_alef */"
         )
         for i, form in enumerate(table):
-            fp.write("\t{ 0x%04x, 0x%04x, 0x%04x, 0x%04x, %d, %d, %d }," % form)
-            fprint(f"\t/* 0x{0x600+i:04x} */" if (i % 32) == 0 else "")
+            fp.write("    { 0x%04x, 0x%04x, 0x%04x, 0x%04x, %d, %d, %d }," % form)
+            fprint(f"    /* 0x{0x600+i:04x} */" if (i % 32) == 0 else "")
         fprint("};")
 
 
@@ -667,15 +630,15 @@ def makeutypeheader(utype_funcs, unialt_categories):
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
 
-        fprint(LICENSE)
+        fprint(LICENSE.format(extra=""))
         fprint("#ifndef FONTFORGE_UNICODE_UTYPE2_H")
         fprint("#define FONTFORGE_UNICODE_UTYPE2_H")
         fprint()
         fprint(
-            "#include <ctype.h>	/* Include here so we can control it. If a system header includes it later bad things happen */"
+            "#include <ctype.h> /* Include here so we can control it. If a system header includes it later bad things happen */"
         )
         fprint(
-            '#include "basics.h"	/* Include here so we can use pre-defined int types to correctly size constant data arrays. */'
+            '#include "basics.h" /* Include here so we can use pre-defined int types to correctly size constant data arrays. */'
         )
         fprint()
 
@@ -699,13 +662,20 @@ def makeutypeheader(utype_funcs, unialt_categories):
             fprint("#define %-*s %s((ch))" % (alignment, realfn + "(ch)", fn))
         fprint()
 
+        for cat in ("initial", "medial", "final", "isolated"):
+            fprint(
+                "#define isarab%-12s (decompositioncategory(ch) & FF_UNICODE_DECOMP_%s)"
+                % (cat + "(ch)", cat.upper())
+            )
+        fprint()
+
         fprint("extern struct arabicforms {")
         fprint("    unsigned short initial, medial, final, isolated;")
         fprint("    unsigned int isletter: 1;")
         fprint("    unsigned int joindual: 1;")
         fprint("    unsigned int required_lig_with_alef: 1;")
         fprint(
-            "} ArabicForms[256];	/* for chars 0x600-0x6ff, subtract 0x600 to use array */"
+            "} ArabicForms[256]; /* for chars 0x600-0x6ff, subtract 0x600 to use array */"
         )
         fprint()
 
@@ -736,7 +706,7 @@ class Array:
         if self.data:
             s = "    "
             for item in self.data:
-                i = str(item) + ", "
+                i = str(int(item)) + ", "
                 if len(s) + len(i) > 78:
                     file.write(s.rstrip() + "\n")
                     s = "    " + i
@@ -765,6 +735,39 @@ class Switch:
         fprint("    return 0;")
         fprint("}")
         fprint()
+
+
+class Index:
+    def __init__(self, prefix, rectype, index):
+        self.prefix = prefix
+        self.rectype = rectype
+        self.index = index
+
+    def dump(self, file, trace, index=True, accessor=True):
+        fprint = partial(print, file=file)
+        if index:
+            index1, index2, shift = splitbins(self.index, trace)
+            fprint("/* %s indexes */" % self.prefix)
+            fprint("#define %s_SHIFT" % self.prefix.upper(), shift)
+            Array(self.prefix + "_index1", index1).dump(file, trace)
+            Array(self.prefix + "_index2", index2).dump(file, trace)
+        if accessor:
+            prefix, rectype = self.prefix, self.rectype
+            func = f"Get{self.prefix.title()}"
+            shift = self.prefix.upper() + "_SHIFT"
+
+            # fmt: off
+            fprint(f"static const {rectype}* {func}(unichar_t ch) {{")
+            fprint(f"    int index = 0;")
+            fprint(f"    if (ch < 0x{UNICODE_MAX:x}) {{")
+            fprint(f"        index = {prefix}_index1[ch >> {shift}];")
+            fprint(f"        index = {prefix}_index2[(index << {shift}) + (ch & ((1 << {shift}) - 1))];")
+            fprint(f"    }}")
+            fprint(f"    assert(index >= 0 && index < sizeof({prefix}_data)/sizeof({prefix}_data[0]));")
+            fprint(f"    return &{prefix}_data[index];")
+            fprint(f"}}")
+            fprint()
+            # fmt: on
 
 
 def getsize(data: List[int]) -> int:
@@ -855,3 +858,29 @@ def maketables(trace=0):
 
 if __name__ == "__main__":
     maketables(1)
+
+
+class NamesList:
+    def __init__(self, template: str, version: str) -> None:
+        self.template = template
+        self.version = version
+
+    def records(self) -> Iterator[List[str]]:
+        with UcdFile.open_data(self.template, self.version) as file:
+            parts = []
+            for line in file:
+                line = line.split(";", 1)[0]
+                if not line:
+                    continue
+                line = [field.strip() for field in line.split("\t")]
+                if not line:
+                    continue
+                if line[0] and parts:
+                    yield parts
+                    parts.clear()
+                parts.append(line)
+            if parts:
+                yield parts
+
+    def __iter__(self) -> Iterator[List[str]]:
+        return self.records()
