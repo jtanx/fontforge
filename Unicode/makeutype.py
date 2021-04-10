@@ -9,7 +9,6 @@ from typing import Iterator, List, Optional, Set, Tuple
 
 import dataclasses
 import enum
-import math
 import os
 import re
 import sys
@@ -176,9 +175,11 @@ class UcdFile:
             for char in self.expand_range(char_range):
                 yield char, rest
 
+
 # two encoding schemes:
 # 10xxxxxx xxxxxxxx (basically a leading byte without a start byte)
 # 11111xxx xxxxxxxx (too large to be valid utf-8)
+
 
 class NamesList:
     def __init__(self, template: str, version: str) -> None:
@@ -206,7 +207,6 @@ class NamesList:
         return self.records()
 
 
-
 # --------------------------------------------------------------------
 # the following support code is taken from the unidb utilities
 # Copyright (c) 1999-2000 by Secret Labs AB
@@ -223,6 +223,13 @@ class UnicodeData:
             char = int(s[0], 16)
             table[char] = UcdRecord.from_row(s)
 
+        # See Unicode Chapter 4.8 "Name Derivation Rule Prefix Strings"
+        special_name_ranges = {
+            "HANGUL SYLLABLE": [],
+            "CJK UNIFIED IDEOGRAPH": [],
+            "TANGUT IDEOGRAPH": [],
+        }
+
         # expand first-last ranges
         field = None
         for i in range(0, UNICODE_MAX):
@@ -235,6 +242,13 @@ class UnicodeData:
                     s.name = ""
                     field = dataclasses.astuple(s)[:15]
                 elif s.name[-5:] == "Last>":
+                    field_range = (int(field[0], 16), int(s.codepoint, 16) + 1)
+                    if s.name.startswith("<Hangul Syllable"):
+                        special_name_ranges["HANGUL SYLLABLE"].append(field_range)
+                    elif s.name.startswith("<CJK Ideograph"):
+                        special_name_ranges["CJK UNIFIED IDEOGRAPH"].append(field_range)
+                    elif s.name.startswith("<Tangut Ideograph"):
+                        special_name_ranges["TANGUT IDEOGRAPH"].append(field_range)
                     s.name = ""
                     field = None
             elif field:
@@ -244,7 +258,7 @@ class UnicodeData:
         names = {}
         blocks = []
         for l in NamesList(NAMES_LIST, version):
-            if l[0][0] == '@@':
+            if l[0][0] == "@@":
                 start = int(l[0][1], 16)
                 end = int(l[0][3], 16)
                 block = l[0][2]
@@ -252,17 +266,19 @@ class UnicodeData:
             elif l[0][0].isalnum():
                 char = int(l[0][0], 16)
                 name = [x[1] for x in l]
-                assert(len(x) == 2 for x in l) # should only be two parts on the line
-                m = re.match(r'^(CJK COMPATIBILITY IDEOGRAPH|KHITAN SMALL SCRIPT CHARACTER|NUSHU CHARACTER)-[A-F0-9]+$', name[0])
-                if name[0].startswith('<') or m:
+                assert (len(x) == 2 for x in l)  # should only be two parts on the line
+                m = re.match(
+                    r"^(CJK COMPATIBILITY IDEOGRAPH|KHITAN SMALL SCRIPT CHARACTER|NUSHU CHARACTER)-[A-F0-9]+$",
+                    name[0],
+                )
+                if name[0].startswith("<") or m:
                     name[0] = ""
                     if m:
                         specials = special_names.setdefault(m.group(1), set())
                         specials.add(char)
                 if any(l for l in name):
-                    names[char] = '\n'.join(name).encode('utf-8') + b'\0'
-        
-        special_name_ranges = {}
+                    names[char] = "\n".join(name).encode("utf-8") + b"\0"
+
         for k, v in special_names.items():
             ranges = []
             min_range, prev_char = None, None
@@ -274,7 +290,7 @@ class UnicodeData:
                     min_range = char
                 prev_char = char
             if min_range is not None:
-                ranges.append((min_range, prev_char+1))
+                ranges.append((min_range, prev_char + 1))
             special_name_ranges[k] = ranges
 
         # public attributes
@@ -692,45 +708,42 @@ def makeuninames(unicode, trace):
 
     print("--- Preparing", FILE, "...")
 
-    def benefit(w, f):
-        # The max *possible* benefit realised by using this replacement,
-        # may not be fully realised if other replacements preclude this one
-        # Benefit is: (string length - 2 bytes (for size of replacement)) *
-        #             frequency - string length (for size in lexicon)
-        return (len(w) - 2) * f - len(w)
-
-    # Chosen from experimentation, feel free to tweak with the frequencies
-    # and regexes. The only requirement is to only match ascii characters
-    # due to how the lexicon is encoded. Gist is to do replacements of
-    # the greatest length first so shorter length replacements don't prevent
-    # longer replacements from working. 
+    # Chosen empirically, tweak as desired. Only ascii is allowed due to
+    # how the lexicon is encoded. Generally longer replacements go first
+    # so shorter replacements don't prevent them from working.
     regexes = [
-        (500, re.compile(rb'[\x20-\x7F]{3,}[ -]')),
-        (100, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (100, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (300, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (1900, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (3000, re.compile(rb'[\x21-\x7F]{3,}')),
-        (5000, re.compile(rb'\b[\x21-\x7F]{3,}\b')),
+        (500, re.compile(rb"[\x20-\x7F]{3,}[ -]")),
+        (100, re.compile(rb"(?:[\x21-\x7F]+[ -]+){5}")),
+        (100, re.compile(rb"(?:[\x21-\x7F]+[ -]+){4}")),
+        (300, re.compile(rb"(?:[\x21-\x7F]+[ -]+){3}")),
+        (1900, re.compile(rb"(?:[\x21-\x7F]+[ -]+){2}")),
+        (1500, re.compile(rb"(?:[\x21-\x7F]+[ -]+){1}")),
+        (5000, re.compile(rb"\b[\x21-\x7F]{3,}\b")),
     ]
 
+    # Max realisable saving for given replacement. Other replacements may
+    # preclude realising the full benefit. Each replacement costs 2 bytes,
+    # plus space in the lexicon (equal to length of replacement).
+    def benefit(w: bytes, f: int) -> int:
+        return (len(w) - 2) * f - len(w)
+
+    # Lexicon encoding scheme: 0b10xxxxxx 0b1xxxxxxx (13 usable bits)
+    # Decoder must also be utf-8 aware, and skip valid utf-8 sequences.
+    # Possible alternative: Allow any value > 0x20 for second byte, to keep
+    # newlines/nul chars in the raw string (permits strstr). (14 usable bits)
     intermediate = {**unicode.names}
     names = {**unicode.names}
     replacements = set()
     wordlist = {}
     for count, regex in regexes:
-        replacements.update(x[0] for x in Counter(
-            chain.from_iterable(
-                regex.findall(name) for name in intermediate.values()
-            )).most_common(count)
+        replacements.update(
+            x[0]
+            for x in Counter(
+                part for name in intermediate.values() for part in regex.findall(name)
+            ).most_common(count)
             if benefit(*x) > 0
         )
 
-        # Lexicon encoding scheme: 0b10xxxxxx 0b1xxxxxxx (13 usable bits)
-        # Decoder must also be utf-8 aware, and skip valid utf-8 sequences
-        # Alternate scheme: Allow arbitrary values for second byte, except
-        # to exclude < 0x20 (specifically at least exclude newline/nul chars,
-        # which indicate where names/annotations start/end). (14 usable bits)
         for char, name in intermediate.items():
             wn = names[char]
             for part in regex.findall(name):
@@ -738,31 +751,28 @@ def makeuninames(unicode, trace):
                     i = wordlist.get(part)
                     if i is None:
                         i = len(wordlist)
-                        assert i < 2**13, "lexicon overflow; adjust regexes"
-                        i = bytes((0x80 | ((i >> 7) & 0x3f), 0x80 | (i & 0x7f)))
+                        assert i < 2 ** 13, "lexicon overflow; adjust regexes"
+                        i = bytes((0x80 | ((i >> 7) & 0x3F), 0x80 | (i & 0x7F)))
                         wordlist[part] = i
                     wn = wn.replace(part, i)
-                    name = name.replace(part, b'')
+                    name = name.replace(part, b"")
             intermediate[char] = name
             names[char] = wn
-        print("LEXICON SIZE %d (%d bytes)" %
-            (len(wordlist), sum(len(x) for x in wordlist.keys())))
 
     lexicon = b""
     lexicon_offset = []
     lexicon_shifts = []
-    lexicon_shift = int(math.log2(len(wordlist)/2)+0.5)
+    lexicon_shift = 12  # 2^12=4096; midpoint of the lexicon
 
-    print("SHIFT", lexicon_shift)
     current_offset = 0
     # build a lexicon string
     for w in wordlist.keys():
         # encoding: high bit indicates last character in word (assumes ascii)
-        assert(w.isascii())
-        ww = w[:-1] + bytes([int(w[-1])|0x80])
+        assert w.isascii()
+        ww = w[:-1] + bytes([int(w[-1]) | 0x80])
         offset = len(lexicon)
         offset_index = len(lexicon_offset) >> lexicon_shift
-        if offset_index+1 > len(lexicon_shifts):
+        if offset_index + 1 > len(lexicon_shifts):
             current_offset = offset
             lexicon_shifts.append(current_offset)
         offset -= current_offset
@@ -777,39 +787,66 @@ def makeuninames(unicode, trace):
     phrasebook = [0]
     phrasebook_offset = [0] * len(unicode.chars)
     phrasebook_shifts = []
-    phrasebook_shift = 11
+    phrasebook_shift = 11  # Empirical choice to keep offsets below 64k
+    phrasebook_shift_cap = 64  # Highly concentrated in the first/second planes
     current_offset = 0
 
     for char in unicode.chars:
         name = names.get(char)
         if name is not None:
             offset = len(phrasebook)
-            offset_index = char >> phrasebook_shift
-            if offset_index+1 > len(phrasebook_shifts):
+            offset_index = min(char >> phrasebook_shift, phrasebook_shift_cap - 1)
+            if offset_index + 1 > len(phrasebook_shifts):
                 current_offset = offset - 1
                 phrasebook_shifts.append(current_offset)
             offset -= current_offset
-            assert offset > 0
+            assert offset > 0  # retain special meaning of 0 being no entry
             phrasebook_offset[char] = offset
             phrasebook += list(name)
-    
+
     assert getsize(phrasebook) == 1
+    assert getsize(phrasebook_offset) < 4
 
-    index1, index2, shift = splitbins(phrasebook_offset, 1)
+    print("--- Writing", FILE, "...")
 
-    
-    print(
-        "NUM ENTRIES", len(unicode.names),
-        "NUM LEXICON ENTRIES", len(lexicon_offset),
-        "TOTAL SIZE", len(phrasebook) + len(lexicon)
-            + getsize(lexicon_offset) * len(lexicon_offset)
-            + getsize(lexicon_shifts) * len(lexicon_shifts)
-            + getsize(index1) * len(index1)
-            + getsize(index2) * len(index2)
-            + getsize(phrasebook_shifts) * len(phrasebook_shifts),
+    with open(FILE, "w") as fp:
+        fprint = partial(print, file=fp)
+
+        fprint(LICENSE.format(extra=""))
+
+        fprint("#include <ustring.h>")
+        fprint("#include <utype.h>")
+        fprint()
+
+        fprint("/* lexicon data */")
+        fprint("#define LEXICON_SHIFT", lexicon_shift)
+        Array("lexicon", lexicon).dump(fp, trace)
+        Array("lexicon_offset", lexicon_offset).dump(fp, trace)
+        Array("lexicon_shift", lexicon_shifts).dump(fp, trace)
+
+        index1, index2, shift = splitbins(phrasebook_offset, 1)
+
+        fprint("/* phrasebook data */")
+        fprint("#define PHRASEBOOK_SHIFT1", shift)
+        fprint("#define PHRASEBOOK_SHIFT2", phrasebook_shift)
+        fprint("#define PHRASEBOOK_SHIFT2_CAP", phrasebook_shift_cap)
+        Array("phrasebook", phrasebook).dump(fp, trace)
+        Array("phrasebook_index1", index1).dump(fp, trace)
+        Array("phrasebook_index2", index2).dump(fp, trace)
+        Array("phrasebook_shift", phrasebook_shifts).dump(fp, trace)
+
+        # accessors
+        # special names
+
+    return (
+        phrasebook,
+        phrasebook_offset,
+        phrasebook_shifts,
+        lexicon,
+        lexicon_offset,
+        lexicon_shifts,
+        lexicon_shift,
     )
-
-    return phrasebook, phrasebook_offset, phrasebook_shifts, lexicon, lexicon_offset, lexicon_shifts, lexicon_shift
 
 
 def makeutypeheader(utype_funcs):
