@@ -9,6 +9,7 @@ from typing import Iterator, List, Optional, Set, Tuple
 
 import dataclasses
 import enum
+import math
 import os
 import re
 import sys
@@ -259,7 +260,7 @@ class UnicodeData:
                         specials = special_names.setdefault(m.group(1), set())
                         specials.add(char)
                 if any(l for l in name):
-                    names[char] = '\n'.join(name).encode('utf-8')
+                    names[char] = '\n'.join(name).encode('utf-8') + b'\0'
         
         special_name_ranges = {}
         for k, v in special_names.items():
@@ -691,16 +692,6 @@ def makeuninames(unicode, trace):
 
     print("--- Preparing", FILE, "...")
 
-    regexes = [
-        (500, re.compile(r'[\x20-\x7F]{3,}[ -]')),
-        (100, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (100, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (200, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (2000, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
-        (3000, re.compile(r'[\x21-\x7F]{3,}')),
-        (5000, re.compile(r'\b[\x21-\x7F]{3,}\b')),
-    ]
-
     def benefit(w, f):
         # The max *possible* benefit realised by using this replacement,
         # may not be fully realised if other replacements preclude this one
@@ -708,98 +699,117 @@ def makeuninames(unicode, trace):
         #             frequency - string length (for size in lexicon)
         return (len(w) - 2) * f - len(w)
 
-    
-    lexicon = set()
-    actual_lexicon = {}
-    intermediate = {k: (v, v) for k,v in unicode.names.items()}
-    
+    # Chosen from experimentation, feel free to tweak with the frequencies
+    # and regexes. The only requirement is to only match ascii characters
+    # due to how the lexicon is encoded. Gist is to do replacements of
+    # the greatest length first so shorter length replacements don't prevent
+    # longer replacements from working. 
+    regexes = [
+        (500, re.compile(rb'[\x20-\x7F]{3,}[ -]')),
+        (100, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (100, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (300, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (1900, re.compile(rb'[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (3000, re.compile(rb'[\x21-\x7F]{3,}')),
+        (5000, re.compile(rb'\b[\x21-\x7F]{3,}\b')),
+    ]
+
+    intermediate = {**unicode.names}
+    names = {**unicode.names}
+    replacements = set()
+    wordlist = {}
     for count, regex in regexes:
-        used = set(lexicon)
-        lexicon.update(x[0] for x in Counter(
+        replacements.update(x[0] for x in Counter(
             chain.from_iterable(
-                regex.findall(y) for x in intermediate.values() for y in x[1]
+                regex.findall(name) for name in intermediate.values()
             )).most_common(count)
             if benefit(*x) > 0
         )
 
-        new_intermediate = {}
-        for k, (v, vl) in intermediate.items():
-            xk = '%04X' % k
-            res = []
-            resl = []
-            for i, ll in enumerate(vl):
-                l = v[i]
-                #if xk in ll:
-                #    print("DOING REP in U+%04X %s" % (k, ll))
-                #    ll = l.replace(xk, '')
-                #    l = l.replace(xk, '\xa0')
-                for vv in regex.findall(ll):
-                    if vv in lexicon and vv in l:
-                        used.add(vv)
-                        i = actual_lexicon.get(vv)
-                        if i is None:
-                            i = len(actual_lexicon)
-                            actual_lexicon[vv] = i
-                        i = ''.join((chr(0b10000000 | i >> 8), chr(i & 0xff)))
-                        ll = ll.replace(vv, '')
-                        l = l.replace(vv, i)
-                res.append(l)
-                resl.append(ll)
-            new_intermediate[k] = (res, resl)
-        
-        intermediate = new_intermediate
-        print("NOT USED:", len(lexicon - used), "/", len(lexicon))
-        lexicon = used
+        # Lexicon encoding scheme: 0b10xxxxxx 0b1xxxxxxx (13 usable bits)
+        # Decoder must also be utf-8 aware, and skip valid utf-8 sequences
+        # Alternate scheme: Allow arbitrary values for second byte, except
+        # to exclude < 0x20 (specifically at least exclude newline/nul chars,
+        # which indicate where names/annotations start/end). (14 usable bits)
+        for char, name in intermediate.items():
+            wn = names[char]
+            for part in regex.findall(name):
+                if part in replacements:
+                    i = wordlist.get(part)
+                    if i is None:
+                        i = len(wordlist)
+                        assert i < 2**13, "lexicon overflow; adjust regexes"
+                        i = bytes((0x80 | ((i >> 7) & 0x3f), 0x80 | (i & 0x7f)))
+                        wordlist[part] = i
+                    wn = wn.replace(part, i)
+                    name = name.replace(part, b'')
+            intermediate[char] = name
+            names[char] = wn
+        print("LEXICON SIZE %d (%d bytes)" %
+            (len(wordlist), sum(len(x) for x in wordlist.keys())))
 
+    lexicon = b""
+    lexicon_offset = []
+    lexicon_shifts = []
+    lexicon_shift = int(math.log2(len(wordlist)/2)+0.5)
+
+    print("SHIFT", lexicon_shift)
+    current_offset = 0
+    # build a lexicon string
+    for w in wordlist.keys():
+        # encoding: high bit indicates last character in word (assumes ascii)
+        assert(w.isascii())
+        ww = w[:-1] + bytes([int(w[-1])|0x80])
+        offset = len(lexicon)
+        offset_index = len(lexicon_offset) >> lexicon_shift
+        if offset_index+1 > len(lexicon_shifts):
+            current_offset = offset
+            lexicon_shifts.append(current_offset)
+        offset -= current_offset
+        lexicon_offset.append(offset)
+        lexicon += ww
+
+    lexicon = list(lexicon)
+    assert getsize(lexicon) == 1
+    assert getsize(lexicon_offset) < 4
+    assert getsize(lexicon_shifts) < 4
+
+    phrasebook = [0]
+    phrasebook_offset = [0] * len(unicode.chars)
+    phrasebook_shifts = []
+    phrasebook_shift = 11
+    current_offset = 0
+
+    for char in unicode.chars:
+        name = names.get(char)
+        if name is not None:
+            offset = len(phrasebook)
+            offset_index = char >> phrasebook_shift
+            if offset_index+1 > len(phrasebook_shifts):
+                current_offset = offset - 1
+                phrasebook_shifts.append(current_offset)
+            offset -= current_offset
+            assert offset > 0
+            phrasebook_offset[char] = offset
+            phrasebook += list(name)
+    
+    assert getsize(phrasebook) == 1
+
+    index1, index2, shift = splitbins(phrasebook_offset, 1)
+
+    
     print(
         "NUM ENTRIES", len(unicode.names),
-        "LEXICON", len(lexicon),
-        "TOTAL SIZE", sum(len(y) for x in intermediate.values() for y in x[0])
-            + sum(len(x) for x in lexicon)
-            + len(unicode.names) # nul bytes
+        "NUM LEXICON ENTRIES", len(lexicon_offset),
+        "TOTAL SIZE", len(phrasebook) + len(lexicon)
+            + getsize(lexicon_offset) * len(lexicon_offset)
+            + getsize(lexicon_shifts) * len(lexicon_shifts)
+            + getsize(index1) * len(index1)
+            + getsize(index2) * len(index2)
+            + getsize(phrasebook_shifts) * len(phrasebook_shifts),
     )
-    
-    return intermediate, lexicon
 
-    aa = [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x00-\x7F]{3,}[ -]', y) for x in unicode.names.values() for y in x)).most_common(1000)
-        if benefit(*x) > 0]
-    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x21-\x7F]+\s+[\x21-\x7F]+\s+[\x21-\x7F]+[ -]', y) for x in unicode.names.values() for y in x)).most_common(1000)
-        if benefit(*x) > 0 and x[0] not in aa]
-    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x21-\x7F]+\s+[\x21-\x7F]+[ -]', y) for x in unicode.names.values() for y in x)).most_common(1500)
-        if benefit(*x) > 0 and x[0] not in aa]
-    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x21-\x7F]{3,}', y) for x in unicode.names.values() for y in x)).most_common(5000)
-        if benefit(*x) > 0 and x[0] not in aa]
-    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'\b[\x21-\x7F]{3,}\b', y) for x in unicode.names.values() for y in x)).most_common(5000)
-        if benefit(*x) > 0 and x[0] not in aa]
-    
-    #jv = [x for x, _, _ in wordfreq if any(y != x and y.endswith(x) for y, _, _ in wordfreq)]
-    #jvl = sum(len(x) for x in jv)
-    print('NUM entries', len(aa), 'size', sum(len(x) for x in aa))#, 'NUM tails', len(jv), jvl)
-    used = set()
-    lookup = {x: i for i, x in enumerate(aa)}
-    intermediate = {}
-    for k, v in unicode.names.items():
-        xk = '%04X' % k
-        res = []
-        for l in v:
-            ll = l
-            if xk in l:
-                ll = l.replace(xk, '')
-                l = l.replace(xk, '\xa0')
-            for _, regex in regexes:
-                for vv in regex.findall(ll):
-                    i = lookup.get(vv)
-                    if i is not None and vv in ll:
-                        used.add(vv)
-                        i = ''.join((chr(0b10000000 | i >> 8), chr(i & 0xff)))
-                        ll = ll.replace(vv, '')
-                        l = l.replace(vv, i)
-            res.append(l)
-        intermediate[k] = res
-
-    print("USED", len(used), 'size', sum(len(x) for x in used))
-    return intermediate
-    
+    return phrasebook, phrasebook_offset, phrasebook_shifts, lexicon, lexicon_offset, lexicon_shifts, lexicon_shift
 
 
 def makeutypeheader(utype_funcs):
