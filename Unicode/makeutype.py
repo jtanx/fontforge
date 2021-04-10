@@ -1,6 +1,7 @@
 # Based on makeunicodedata.py from CPython
 
 from __future__ import annotations
+from collections import Counter
 from data.makeutypedata import VISUAL_ALTS, Pose, get_pose
 from functools import partial
 from itertools import chain
@@ -19,13 +20,11 @@ UNIDATA_VERSION = "13.0.0"
 UNICODE_DATA = "UnicodeData%s.txt"
 DERIVED_CORE_PROPERTIES = "DerivedCoreProperties%s.txt"
 PROP_LIST = "PropList%s.txt"
-LINE_BREAK = "LineBreak%s.txt"
 BIDI_MIRRORING = "BidiMirroring%s.txt"
+NAMES_LIST = "NamesList%s.txt"
 UNICODE_MAX = 0x110000
 
 DATA_DIR = "data"
-
-MANDATORY_LINE_BREAKS = ["BK", "CR", "LF", "NL"]
 
 LICENSE = f"""/* This is a GENERATED file - from {SCRIPT} with Unicode {UNIDATA_VERSION} */
 
@@ -104,7 +103,6 @@ class UcdRecord:
     # Binary properties, as a set of those that are true.
     # Taken from multiple files:
     #   https://www.unicode.org/reports/tr44/#DerivedCoreProperties.txt
-    #   https://www.unicode.org/reports/tr44/#LineBreak.txt
     #   https://www.unicode.org/reports/tr44/#PropList.txt
     binary_properties: Set[str]
 
@@ -177,6 +175,36 @@ class UcdFile:
             for char in self.expand_range(char_range):
                 yield char, rest
 
+# two encoding schemes:
+# 10xxxxxx xxxxxxxx (basically a leading byte without a start byte)
+# 11111xxx xxxxxxxx (too large to be valid utf-8)
+
+class NamesList:
+    def __init__(self, template: str, version: str) -> None:
+        self.template = template
+        self.version = version
+
+    def records(self) -> Iterator[List[str]]:
+        with UcdFile.open_data(self.template, self.version) as file:
+            parts = []
+            for line in file:
+                line = line.split(";", 1)[0]
+                if not line:
+                    continue
+                line = [field.strip() for field in line.split("\t")]
+                if not line:
+                    continue
+                if line[0] and parts:
+                    yield parts
+                    parts.clear()
+                parts.append(line)
+            if parts:
+                yield parts
+
+    def __iter__(self) -> Iterator[List[str]]:
+        return self.records()
+
+
 
 # --------------------------------------------------------------------
 # the following support code is taken from the unidb utilities
@@ -211,10 +239,50 @@ class UnicodeData:
             elif field:
                 table[i] = UcdRecord.from_row(("%X" % i,) + field[1:])
 
+        special_names = {}
+        names = {}
+        blocks = []
+        for l in NamesList(NAMES_LIST, version):
+            if l[0][0] == '@@':
+                start = int(l[0][1], 16)
+                end = int(l[0][3], 16)
+                block = l[0][2]
+                blocks.append((start, end, block))
+            elif l[0][0].isalnum():
+                char = int(l[0][0], 16)
+                name = [x[1] for x in l]
+                assert(len(x) == 2 for x in l) # should only be two parts on the line
+                m = re.match(r'^(CJK COMPATIBILITY IDEOGRAPH|KHITAN SMALL SCRIPT CHARACTER|NUSHU CHARACTER)-[A-F0-9]+$', name[0])
+                if name[0].startswith('<') or m:
+                    name[0] = ""
+                    if m:
+                        specials = special_names.setdefault(m.group(1), set())
+                        specials.add(char)
+                if any(l for l in name):
+                    names[char] = '\n'.join(name).encode('utf-8')
+        
+        special_name_ranges = {}
+        for k, v in special_names.items():
+            ranges = []
+            min_range, prev_char = None, None
+            for char in sorted(v):
+                if min_range is None:
+                    min_range = char
+                elif char != prev_char + 1:
+                    ranges.append((min_range, prev_char + 1))
+                    min_range = char
+                prev_char = char
+            if min_range is not None:
+                ranges.append((min_range, prev_char+1))
+            special_name_ranges[k] = ranges
+
         # public attributes
         self.filename = UNICODE_DATA % ""
         self.table = table
         self.chars = list(range(UNICODE_MAX))  # unicode 3.2
+        self.names = names
+        self.special_name_ranges = special_name_ranges
+        self.blocks = blocks
 
         for char, (p,) in UcdFile(DERIVED_CORE_PROPERTIES, version).expanded():
             if table[char]:
@@ -225,12 +293,6 @@ class UnicodeData:
         for char, (p,) in UcdFile(PROP_LIST, version).expanded():
             if table[char]:
                 table[char].binary_properties.add(p)
-
-        for char_range, value in UcdFile(LINE_BREAK, version):
-            if value not in MANDATORY_LINE_BREAKS:
-                continue
-            for char in UcdFile.expand_range(char_range):
-                table[char].binary_properties.add("Line_Break")
 
         for data in UcdFile(BIDI_MIRRORING, version):
             c = int(data[0], 16)
@@ -624,6 +686,122 @@ def makearabicforms(unicode, trace):
         fprint("};")
 
 
+def makeuninames(unicode, trace):
+    FILE = "uninames.c"
+
+    print("--- Preparing", FILE, "...")
+
+    regexes = [
+        (500, re.compile(r'[\x20-\x7F]{3,}[ -]')),
+        (100, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (100, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (200, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (2000, re.compile(r'[\x21-\x7F]+ +[\x21-\x7F]+[ -]')),
+        (3000, re.compile(r'[\x21-\x7F]{3,}')),
+        (5000, re.compile(r'\b[\x21-\x7F]{3,}\b')),
+    ]
+
+    def benefit(w, f):
+        # The max *possible* benefit realised by using this replacement,
+        # may not be fully realised if other replacements preclude this one
+        # Benefit is: (string length - 2 bytes (for size of replacement)) *
+        #             frequency - string length (for size in lexicon)
+        return (len(w) - 2) * f - len(w)
+
+    
+    lexicon = set()
+    actual_lexicon = {}
+    intermediate = {k: (v, v) for k,v in unicode.names.items()}
+    
+    for count, regex in regexes:
+        used = set(lexicon)
+        lexicon.update(x[0] for x in Counter(
+            chain.from_iterable(
+                regex.findall(y) for x in intermediate.values() for y in x[1]
+            )).most_common(count)
+            if benefit(*x) > 0
+        )
+
+        new_intermediate = {}
+        for k, (v, vl) in intermediate.items():
+            xk = '%04X' % k
+            res = []
+            resl = []
+            for i, ll in enumerate(vl):
+                l = v[i]
+                #if xk in ll:
+                #    print("DOING REP in U+%04X %s" % (k, ll))
+                #    ll = l.replace(xk, '')
+                #    l = l.replace(xk, '\xa0')
+                for vv in regex.findall(ll):
+                    if vv in lexicon and vv in l:
+                        used.add(vv)
+                        i = actual_lexicon.get(vv)
+                        if i is None:
+                            i = len(actual_lexicon)
+                            actual_lexicon[vv] = i
+                        i = ''.join((chr(0b10000000 | i >> 8), chr(i & 0xff)))
+                        ll = ll.replace(vv, '')
+                        l = l.replace(vv, i)
+                res.append(l)
+                resl.append(ll)
+            new_intermediate[k] = (res, resl)
+        
+        intermediate = new_intermediate
+        print("NOT USED:", len(lexicon - used), "/", len(lexicon))
+        lexicon = used
+
+    print(
+        "NUM ENTRIES", len(unicode.names),
+        "LEXICON", len(lexicon),
+        "TOTAL SIZE", sum(len(y) for x in intermediate.values() for y in x[0])
+            + sum(len(x) for x in lexicon)
+            + len(unicode.names) # nul bytes
+    )
+    
+    return intermediate, lexicon
+
+    aa = [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x00-\x7F]{3,}[ -]', y) for x in unicode.names.values() for y in x)).most_common(1000)
+        if benefit(*x) > 0]
+    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x21-\x7F]+\s+[\x21-\x7F]+\s+[\x21-\x7F]+[ -]', y) for x in unicode.names.values() for y in x)).most_common(1000)
+        if benefit(*x) > 0 and x[0] not in aa]
+    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x21-\x7F]+\s+[\x21-\x7F]+[ -]', y) for x in unicode.names.values() for y in x)).most_common(1500)
+        if benefit(*x) > 0 and x[0] not in aa]
+    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'[\x21-\x7F]{3,}', y) for x in unicode.names.values() for y in x)).most_common(5000)
+        if benefit(*x) > 0 and x[0] not in aa]
+    aa += [x[0] for x in Counter(chain.from_iterable(re.findall(r'\b[\x21-\x7F]{3,}\b', y) for x in unicode.names.values() for y in x)).most_common(5000)
+        if benefit(*x) > 0 and x[0] not in aa]
+    
+    #jv = [x for x, _, _ in wordfreq if any(y != x and y.endswith(x) for y, _, _ in wordfreq)]
+    #jvl = sum(len(x) for x in jv)
+    print('NUM entries', len(aa), 'size', sum(len(x) for x in aa))#, 'NUM tails', len(jv), jvl)
+    used = set()
+    lookup = {x: i for i, x in enumerate(aa)}
+    intermediate = {}
+    for k, v in unicode.names.items():
+        xk = '%04X' % k
+        res = []
+        for l in v:
+            ll = l
+            if xk in l:
+                ll = l.replace(xk, '')
+                l = l.replace(xk, '\xa0')
+            for _, regex in regexes:
+                for vv in regex.findall(ll):
+                    i = lookup.get(vv)
+                    if i is not None and vv in ll:
+                        used.add(vv)
+                        i = ''.join((chr(0b10000000 | i >> 8), chr(i & 0xff)))
+                        ll = ll.replace(vv, '')
+                        l = l.replace(vv, i)
+            res.append(l)
+        intermediate[k] = res
+
+    print("USED", len(used), 'size', sum(len(x) for x in used))
+    return intermediate
+    
+
+
 def makeutypeheader(utype_funcs):
     FILE = "utype2.h"
     utype_funcs = [(t, n, n.replace("ff_unicode_", "")) for t, n in utype_funcs]
@@ -648,7 +826,7 @@ def makeutypeheader(utype_funcs):
         alignment = len("FF_UNICODE_") + max(len(x.name) for x in Pose)
         fprint("/* Pose flags */")
         for c in Pose:
-            fprint("#define %-*s 0x%08X" % (alignment, "FF_UNICODE_" + c.name, c))
+            fprint("#define %-*s 0x%x" % (alignment, "FF_UNICODE_" + c.name, c))
         fprint()
 
         for rettype, fn, _ in utype_funcs:
@@ -853,29 +1031,3 @@ def maketables(trace=0):
 
 if __name__ == "__main__":
     maketables(1)
-
-
-class NamesList:
-    def __init__(self, template: str, version: str) -> None:
-        self.template = template
-        self.version = version
-
-    def records(self) -> Iterator[List[str]]:
-        with UcdFile.open_data(self.template, self.version) as file:
-            parts = []
-            for line in file:
-                line = line.split(";", 1)[0]
-                if not line:
-                    continue
-                line = [field.strip() for field in line.split("\t")]
-                if not line:
-                    continue
-                if line[0] and parts:
-                    yield parts
-                    parts.clear()
-                parts.append(line)
-            if parts:
-                yield parts
-
-    def __iter__(self) -> Iterator[List[str]]:
-        return self.records()

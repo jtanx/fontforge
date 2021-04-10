@@ -34,19 +34,19 @@
 #include "basics.h" /* Include here so we can use pre-defined int types to correctly size constant data arrays. */
 
 /* Pose flags */
-#define FF_UNICODE_ABOVE           0x00000100
-#define FF_UNICODE_BELOW           0x00000200
-#define FF_UNICODE_OVERSTRIKE      0x00000400
-#define FF_UNICODE_LEFT            0x00000800
-#define FF_UNICODE_RIGHT           0x00001000
-#define FF_UNICODE_JOINS2          0x00002000
-#define FF_UNICODE_CENTERLEFT      0x00004000
-#define FF_UNICODE_CENTERRIGHT     0x00008000
-#define FF_UNICODE_CENTEREDOUTSIDE 0x00010000
-#define FF_UNICODE_OUTSIDE         0x00020000
-#define FF_UNICODE_RIGHTEDGE       0x00040000
-#define FF_UNICODE_LEFTEDGE        0x00080000
-#define FF_UNICODE_TOUCHING        0x00100000
+#define FF_UNICODE_ABOVE           0x100
+#define FF_UNICODE_BELOW           0x200
+#define FF_UNICODE_OVERSTRIKE      0x400
+#define FF_UNICODE_LEFT            0x800
+#define FF_UNICODE_RIGHT           0x1000
+#define FF_UNICODE_JOINS2          0x2000
+#define FF_UNICODE_CENTERLEFT      0x4000
+#define FF_UNICODE_CENTERRIGHT     0x8000
+#define FF_UNICODE_CENTEREDOUTSIDE 0x10000
+#define FF_UNICODE_OUTSIDE         0x20000
+#define FF_UNICODE_RIGHTEDGE       0x40000
+#define FF_UNICODE_LEFTEDGE        0x80000
+#define FF_UNICODE_TOUCHING        0x100000
 
 extern int ff_unicode_isunicodepointassigned(unichar_t ch);
 extern int ff_unicode_isalpha(unichar_t ch);
