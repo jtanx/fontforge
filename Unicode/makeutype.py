@@ -176,11 +176,6 @@ class UcdFile:
                 yield char, rest
 
 
-# two encoding schemes:
-# 10xxxxxx xxxxxxxx (basically a leading byte without a start byte)
-# 11111xxx xxxxxxxx (too large to be valid utf-8)
-
-
 class NamesList:
     def __init__(self, template: str, version: str) -> None:
         self.template = template
@@ -254,6 +249,7 @@ class UnicodeData:
             elif field:
                 table[i] = UcdRecord.from_row(("%X" % i,) + field[1:])
 
+        max_name, max_annot = 0, 0
         special_names = {}
         names = {}
         blocks = []
@@ -277,7 +273,12 @@ class UnicodeData:
                         specials = special_names.setdefault(m.group(1), set())
                         specials.add(char)
                 if any(l for l in name):
-                    names[char] = "\n".join(name).encode("utf-8") + b"\0"
+                    name = "\n".join(name).encode("utf-8") + b"\0"
+                    name_split = name.split(b"\n", 1)
+                    max_name = max(max_name, len(name_split[0]) + 1)
+                    if len(name_split) > 1:
+                        max_annot = max(max_annot, len(name_split[1]) + 1)
+                    names[char] = name
 
         for k, v in special_names.items():
             ranges = []
@@ -299,6 +300,8 @@ class UnicodeData:
         self.chars = list(range(UNICODE_MAX))  # unicode 3.2
         self.names = names
         self.special_name_ranges = special_name_ranges
+        self.max_name = ((max_name + 31) // 32) * 32
+        self.max_annot = ((max_annot + 31) // 32) * 32
         self.blocks = blocks
 
         for char, (p,) in UcdFile(DERIVED_CORE_PROPERTIES, version).expanded():
@@ -788,14 +791,14 @@ def makeuninames(unicode, trace):
     phrasebook_offset = [0] * len(unicode.chars)
     phrasebook_shifts = []
     phrasebook_shift = 11  # Empirical choice to keep offsets below 64k
-    phrasebook_shift_cap = 64  # Highly concentrated in the first/second planes
+    phrasebook_shift_cap = 63  # Highly concentrated in the first/second planes
     current_offset = 0
 
     for char in unicode.chars:
         name = names.get(char)
         if name is not None:
             offset = len(phrasebook)
-            offset_index = min(char >> phrasebook_shift, phrasebook_shift_cap - 1)
+            offset_index = min(char >> phrasebook_shift, phrasebook_shift_cap)
             if offset_index + 1 > len(phrasebook_shifts):
                 current_offset = offset - 1
                 phrasebook_shifts.append(current_offset)
@@ -820,7 +823,7 @@ def makeuninames(unicode, trace):
 
         fprint("/* lexicon data */")
         fprint("#define LEXICON_SHIFT", lexicon_shift)
-        Array("lexicon", lexicon).dump(fp, trace)
+        Array("lexicon_data", lexicon).dump(fp, trace)
         Array("lexicon_offset", lexicon_offset).dump(fp, trace)
         Array("lexicon_shift", lexicon_shifts).dump(fp, trace)
 
@@ -830,10 +833,74 @@ def makeuninames(unicode, trace):
         fprint("#define PHRASEBOOK_SHIFT1", shift)
         fprint("#define PHRASEBOOK_SHIFT2", phrasebook_shift)
         fprint("#define PHRASEBOOK_SHIFT2_CAP", phrasebook_shift_cap)
-        Array("phrasebook", phrasebook).dump(fp, trace)
+        Array("phrasebook_data", phrasebook).dump(fp, trace)
         Array("phrasebook_index1", index1).dump(fp, trace)
         Array("phrasebook_index2", index2).dump(fp, trace)
         Array("phrasebook_shift", phrasebook_shifts).dump(fp, trace)
+
+        fprint("char* uniname_name(unichar_t ch) {")
+        fprint("    int index = 0, shift_index;")
+        fprint("    const char *ptr;")
+        fprint("    char *ret = NULL, *ptr2;")
+        fprint()
+        fprint("    if (ch < UNICODE_MAX) {")
+        fprint("        index = phrasebook_index1[ch >> PHRASEBOOK_SHIFT1];")
+        fprint(
+            "        index = phrasebook_index2[(index << PHRASEBOOK_SHIFT1) + (ch & ((1 << PHRASEBOOK_SHIFT1) - 1))];"
+        )
+        fprint("    }")
+        fprint("    if (index == 0) {")
+        fprint("        return NULL;")
+        fprint("    }")
+        fprint()
+        fprint("    shift_index = ch >> PHRASEBOOK_SHIFT2")
+        fprint("    if (shift_index > PHRASEBOOK_SHIFT2_CAP) {")
+        fprint("        shift_index = PHRASEBOOK_SHIFT2_CAP;")
+        fprint("    }")
+        fprint("    index += phrasebook_shift[shift_index];")
+        fprint(
+            "    assert(index >= 0 && index < sizeof(phrasebook_data)/sizeof(phrasebook_data[0]));"
+        )
+        fprint()
+        fprint("    ptr = &phrasebook_data[index];")
+        fprint("    if (*ptr == '\\n' || *ptr == '\\0') {")
+        fprint("        return NULL;")
+        fprint("    }")
+        fprint("    ret = malloc(255);")  # TODO: max sizes
+        fprint("    if (ret == NULL) {")
+        fprint("         return NULL;")
+        fprint("    }")
+        fprint("    while (*ptr != '\\n' && *ptr != '\\0') {")
+        fprint("        switch (((unsigned char)*src) >> 4) {")
+        fprint(
+            "        case 8: case 9: case 10: case 11: // 0b10xx -> invalid utf-8; our escape"
+        )
+        fprint(
+            "            int lexicon_index = (((*ptr++) & 0x3f) << 7) | ((*ptr++) & 0x7f);"
+        )
+        fprint(
+            "            lexicon_index = lexicon_offset[lexicon_index] + lexicon_shift[lexicon_index >> LEXICON_SHIFT];"
+        )
+        fprint("            const char* lexptr = &lexicon_data[lexicon_index];")
+        fprint(
+            "            dst = read_lexicon(dst, (((*src++) & 0x3f) << 7) | ((*src++) & 0x7f));"
+        )
+        fprint("            break;")
+        fprint("        case 15: // 0b1111 -> 4 bytes")
+        fprint("            *dst++ = *src++;")
+        fprint("            // fallthrough")
+        fprint("        case 14: // 0b1110 -> 3 bytes")
+        fprint("            *dst++ = *src++;")
+        fprint("            // fallthrough")
+        fprint("        case 12: case 13: // 0b110x -> 2 bytes")
+        fprint("            *dst++ = *src++;")
+        fprint("            // fallthrough")
+        fprint("        default: // 0b0xxx -> 1 byte")
+        fprint("            *dst++ = *src++;")
+        fprint("        }")
+        fprint("    }")
+        fprint("}")
+        fprint()
 
         # accessors
         # special names
@@ -868,6 +935,10 @@ def makeutypeheader(utype_funcs):
         fprint(
             '#include "basics.h" /* Include here so we can use pre-defined int types to correctly size constant data arrays. */'
         )
+        fprint()
+
+        fprint("/* Unicode basics */")
+        fprint("#define UNICODE_MAX 0x%x" % UNICODE_MAX)
         fprint()
 
         alignment = len("FF_UNICODE_") + max(len(x.name) for x in Pose)
@@ -937,6 +1008,37 @@ class Array:
         file.write("};\n\n")
 
 
+class CharArray:
+    def __init__(self, name, data):
+        self.name = name
+        self.data = data
+
+        if getsize(data) != 1:
+            raise ValueError("data unit size must be 1")
+
+    def dump(self, file, trace=0):
+        if trace:
+            print(self.name + ":", len(self.data), "bytes", file=sys.stderr)
+        fprint = partial(print, file=file)
+        fprint("static const char", self.name + "[] =")
+        s = '    "'
+        for item in self.data:
+            if item < 0x20 or item > 0x7E:
+                i = "\\x%02x" % item
+            elif item == ord("\\") or item == ord('"'):
+                i = "\\" + chr(item)
+            else:
+                i = chr(item)
+            if len(s) + len(i) > 78:
+                file.write(s + '"\n')
+                s = '    "' + i
+            else:
+                s += i
+        if len(s) > 6:
+            file.write(s + '"\n')
+        fprint(";\n\n")
+
+
 class Switch:
     def __init__(self, name, data):
         self.name = name
@@ -979,7 +1081,7 @@ class Index:
             # fmt: off
             fprint(f"static const {rectype}* {func}(unichar_t ch) {{")
             fprint(f"    int index = 0;")
-            fprint(f"    if (ch < 0x{UNICODE_MAX:x}) {{")
+            fprint(f"    if (ch < UNICODE_MAX) {{")
             fprint(f"        index = {prefix}_index1[ch >> {shift}];")
             fprint(f"        index = {prefix}_index2[(index << {shift}) + (ch & ((1 << {shift}) - 1))];")
             fprint(f"    }}")
