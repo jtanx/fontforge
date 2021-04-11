@@ -837,10 +837,10 @@ def makeuninames(unicode, trace):
         hangul_range = unicode.special_name_ranges["HANGUL SYLLABLE"]
         assert hangul_range == [(0xAC00, 0xD7A3)]
         fprint("    if (ch >= 0xAC00 && ch <= 0xD7A3) {")
-        fprint("        int s = ch - 0xAC00;")
-        fprint("        int l = s / JAMO_N_COUNT;")
-        fprint("        int v = (s % JAMO_N_COUNT) / JAMO_T_COUNT;")
-        fprint("        int t = s % JAMO_T_COUNT;")
+        fprint("        ch -= 0xAC00;")
+        fprint("        int l = ch / JAMO_N_COUNT;")
+        fprint("        int v = (ch % JAMO_N_COUNT) / JAMO_T_COUNT;")
+        fprint("        int t = ch % JAMO_T_COUNT;")
         fprint('        return smprintf("HANGUL SYLLABLE %s%s%s",')
         fprint("            jamo_l[l], jamo_v[v], jamo_t[t]);")
         fprint("    }")
