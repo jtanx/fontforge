@@ -207,7 +207,7 @@ class UnicodeData:
                     s.name = ""
                     field = dataclasses.astuple(s)[:15]
                 elif s.name[-5:] == "Last>":
-                    field_range = (int(field[0], 16), int(s.codepoint, 16) + 1)
+                    field_range = (int(field[0], 16), int(s.codepoint, 16))
                     if s.name.startswith("<Hangul Syllable"):
                         special_name_ranges["HANGUL SYLLABLE"].append(field_range)
                     elif s.name.startswith("<CJK Ideograph"):
@@ -257,11 +257,11 @@ class UnicodeData:
                 if min_range is None:
                     min_range = char
                 elif char != prev_char + 1:
-                    ranges.append((min_range, prev_char + 1))
+                    ranges.append((min_range, prev_char))
                     min_range = char
                 prev_char = char
             if min_range is not None:
-                ranges.append((min_range, prev_char + 1))
+                ranges.append((min_range, prev_char))
             special_name_ranges[k] = ranges
 
         # public attributes
@@ -787,6 +787,10 @@ def makeuninames(unicode, trace):
         fprint("#define FONTFORGE_UNINAMES_DATA_H")
         fprint()
 
+        fprint("#include <ustring.h>")
+        fprint("#include <utype.h>")
+        fprint()
+
         fprint("/* Basic definitions */")
         fprint("#define MAX_NAME_LENGTH", unicode.max_name)
         fprint("#define MAX_ANNOTATION_LENGTH", unicode.max_annot)
@@ -808,6 +812,62 @@ def makeuninames(unicode, trace):
         Array("phrasebook_index1", index1).dump(fp, trace)
         Array("phrasebook_index2", index2).dump(fp, trace)
         Array("phrasebook_shift", phrasebook_shifts).dump(fp, trace)
+
+        # fmt: off
+        jamo_l = ["G", "GG", "N", "D", "DD", "R", "M", "B", "BB", "S", "SS",
+            "", "J", "JJ", "C", "K", "T", "P", "H"]
+        jamo_v = ["A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O", "WA",
+            "WAE", "OE", "YO", "U", "WEO", "WE", "WI","YU", "EU", "YI", "I"]
+        jamo_t = ["", "G", "GG", "GS", "N", "NJ", "NH", "D", "L", "LG", "LM",
+            "LB", "LS", "LT", "LP", "LH", "M","B", "BS", "S", "SS", "NG",
+            "J", "C", "K", "T", "P", "H"]
+        # fmt: on
+
+        fprint("/* Unicode chapter 3.12 on Hangul Character Name Generation */")
+        fprint("#define JAMO_V_COUNT", len(jamo_v))
+        fprint("#define JAMO_T_COUNT", len(jamo_t))
+        fprint("#define JAMO_N_COUNT (JAMO_V_COUNT * JAMO_T_COUNT)")
+        Array("jamo_l", jamo_l).dump(fp, trace)
+        Array("jamo_v", jamo_v).dump(fp, trace)
+        Array("jamo_t", jamo_t).dump(fp, trace)
+
+        fprint("static char* get_derived_name(unichar_t ch) {")
+
+        # This follows NR1, see Unicode chapter 4, table 4.8
+        hangul_range = unicode.special_name_ranges["HANGUL SYLLABLE"]
+        assert hangul_range == [(0xAC00, 0xD7A3)]
+        fprint("    if (ch >= 0xAC00 && ch <= 0xD7A3) {")
+        fprint("        int s = ch - 0xAC00;")
+        fprint("        int l = s / JAMO_N_COUNT;")
+        fprint("        int v = (s % JAMO_N_COUNT) / JAMO_T_COUNT;")
+        fprint("        int t = s % JAMO_T_COUNT;")
+        fprint('        return smprintf("HANGUL SYLLABLE %s%s%s",')
+        fprint("            jamo_l[l], jamo_v[v], jamo_t[t]);")
+        fprint("    }")
+
+        # The rest follows NR2
+        items = sorted(unicode.special_name_ranges.items(), key=lambda x: x[1][0])
+        for name, ranges in items:
+            if name == "HANGUL SYLLABLE":
+                continue
+            cond = "    if ("
+            for i, (start, end) in enumerate(ranges):
+                if i > 0:
+                    cond += " || "
+                range_cond = "ch >= 0x%X && ch <= 0x%X" % (start, end)
+                if len(ranges) > 1:
+                    range_cond = "(" + range_cond + ")"
+                if len(cond) + len(range_cond) > 78:
+                    fprint(cond.rstrip())
+                    cond = "        " + range_cond
+                else:
+                    cond += range_cond
+            fprint(cond + ") {")
+            fprint('        return smprintf("%s-%%X", ch);' % name)
+            fprint("    }")
+        fprint("    return NULL;")
+        fprint("}")
+        fprint()
 
         fprint("#endif /* FONTFORGE_UNINAMES_DATA_H */")
 
@@ -886,24 +946,28 @@ class Array:
     def __init__(self, name, data):
         self.name = name
         self.data = data
+        self.is_str = isinstance(data[0], str) if data else False
 
     def dump(self, file, trace=0):
         # write data to file, as a C array
-        size = getsize(self.data)
-        if trace:
-            print(self.name + ":", size * len(self.data), "bytes", file=sys.stderr)
         file.write("static const ")
-        if size == 1:
-            file.write("unsigned char")
-        elif size == 2:
-            file.write("unsigned short")
+        if self.is_str:
+            file.write("char *")
         else:
-            file.write("unsigned int")
+            size = getsize(self.data)
+            if trace:
+                print(self.name + ":", size * len(self.data), "bytes", file=sys.stderr)
+            if size == 1:
+                file.write("unsigned char")
+            elif size == 2:
+                file.write("unsigned short")
+            else:
+                file.write("unsigned int")
         file.write(" " + self.name + "[] = {\n")
         if self.data:
             s = "    "
             for item in self.data:
-                i = str(int(item)) + ", "
+                i = str(int(item)) + ", " if not self.is_str else f'"{item}", '
                 if len(s) + len(i) > 78:
                     file.write(s.rstrip() + "\n")
                     s = "    " + i
