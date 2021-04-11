@@ -33,6 +33,9 @@
 #include <ctype.h> /* Include here so we can control it. If a system header includes it later bad things happen */
 #include "basics.h" /* Include here so we can use pre-defined int types to correctly size constant data arrays. */
 
+/* Unicode basics */
+#define UNICODE_MAX 0x110000
+
 /* Pose flags */
 #define FF_UNICODE_ABOVE           0x100
 #define FF_UNICODE_BELOW           0x200

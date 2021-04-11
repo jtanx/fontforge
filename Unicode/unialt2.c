@@ -2287,7 +2287,7 @@ static const unsigned short decomp_index2[] = {
 
 static const unichar_t* GetDecomp(unichar_t ch) {
     int index = 0;
-    if (ch < 0x110000) {
+    if (ch < UNICODE_MAX) {
         index = decomp_index1[ch >> DECOMP_SHIFT];
         index = decomp_index2[(index << DECOMP_SHIFT) + (ch & ((1 << DECOMP_SHIFT) - 1))];
     }

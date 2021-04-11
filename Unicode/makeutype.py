@@ -14,7 +14,7 @@ import re
 import sys
 import zipfile
 
-SCRIPT = sys.argv[0]
+SCRIPT = os.path.basename(__file__)
 
 UNIDATA_VERSION = "13.0.0"
 UNICODE_DATA = "UnicodeData%s.txt"
@@ -25,36 +25,6 @@ NAMES_LIST = "NamesList%s.txt"
 UNICODE_MAX = 0x110000
 
 DATA_DIR = "data"
-
-LICENSE = f"""/* This is a GENERATED file - from {SCRIPT} with Unicode {UNIDATA_VERSION} */
-
-/* Copyright (C) 2000-2012 by George Williams */
-{{extra}}/*
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
-
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
-
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
-
- * The name of the author may not be used to endorse or promote products
- * derived from this software without specific prior written permission.
-
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-"""
 
 
 class UcdTypeFlags(enum.IntFlag):  # rough character counts:
@@ -475,10 +445,8 @@ def makeutype(unicode, trace):
         fprint = partial(print, file=fp)
         alignment = max(len(flag.name) for flag in UcdTypeFlags)
 
-        fprint(
-            LICENSE.format(
-                extra="/* Contributions: Werner Lemberg, Khaled Hosny, Joe Da Silva */\n"
-            )
+        License(extra="Contributions: Werner Lemberg, Khaled Hosny, Joe Da Silva").dump(
+            fp
         )
         fprint("#include <assert.h>")
         fprint("#include <utype2.h>")
@@ -619,7 +587,7 @@ def makeunialt(unicode, trace):
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
 
-        fprint(LICENSE.format(extra=""))
+        License().dump(fp)
 
         fprint("#include <ustring.h>")
         fprint("#include <utype.h>")
@@ -691,9 +659,7 @@ def makearabicforms(unicode, trace):
 
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
-        fprint(
-            LICENSE.format(extra="/* Contributions: Khaled Hosny, Joe Da Silva */\n")
-        )
+        License(extra="Contributions: Khaled Hosny, Joe Da Silva").dump(fp)
         fprint("#include <utype.h>")
         fprint()
         fprint("struct arabicforms ArabicForms[] = {")
@@ -707,7 +673,7 @@ def makearabicforms(unicode, trace):
 
 
 def makeuninames(unicode, trace):
-    FILE = "uninames.c"
+    FILE = "uninames_data.h"
 
     print("--- Preparing", FILE, "...")
 
@@ -810,15 +776,20 @@ def makeuninames(unicode, trace):
     assert getsize(phrasebook) == 1
     assert getsize(phrasebook_offset) < 4
 
+    print("Number of lexicon entries:", len(lexicon_offset))
     print("--- Writing", FILE, "...")
 
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
 
-        fprint(LICENSE.format(extra=""))
+        License(copyright="2021 by Jeremy Tan").dump(fp)
+        fprint("#ifndef FONTFORGE_UNINAMES_DATA_H")
+        fprint("#define FONTFORGE_UNINAMES_DATA_H")
+        fprint()
 
-        fprint("#include <ustring.h>")
-        fprint("#include <utype.h>")
+        fprint("/* Basic definitions */")
+        fprint("#define MAX_NAME_LENGTH", unicode.max_name)
+        fprint("#define MAX_ANNOTATION_LENGTH", unicode.max_annot)
         fprint()
 
         fprint("/* lexicon data */")
@@ -838,72 +809,7 @@ def makeuninames(unicode, trace):
         Array("phrasebook_index2", index2).dump(fp, trace)
         Array("phrasebook_shift", phrasebook_shifts).dump(fp, trace)
 
-        fprint("char* uniname_name(unichar_t ch) {")
-        fprint("    int index = 0, shift_index;")
-        fprint("    const char *ptr;")
-        fprint("    char *ret = NULL, *ptr2;")
-        fprint()
-        fprint("    if (ch < UNICODE_MAX) {")
-        fprint("        index = phrasebook_index1[ch >> PHRASEBOOK_SHIFT1];")
-        fprint(
-            "        index = phrasebook_index2[(index << PHRASEBOOK_SHIFT1) + (ch & ((1 << PHRASEBOOK_SHIFT1) - 1))];"
-        )
-        fprint("    }")
-        fprint("    if (index == 0) {")
-        fprint("        return NULL;")
-        fprint("    }")
-        fprint()
-        fprint("    shift_index = ch >> PHRASEBOOK_SHIFT2")
-        fprint("    if (shift_index > PHRASEBOOK_SHIFT2_CAP) {")
-        fprint("        shift_index = PHRASEBOOK_SHIFT2_CAP;")
-        fprint("    }")
-        fprint("    index += phrasebook_shift[shift_index];")
-        fprint(
-            "    assert(index >= 0 && index < sizeof(phrasebook_data)/sizeof(phrasebook_data[0]));"
-        )
-        fprint()
-        fprint("    ptr = &phrasebook_data[index];")
-        fprint("    if (*ptr == '\\n' || *ptr == '\\0') {")
-        fprint("        return NULL;")
-        fprint("    }")
-        fprint("    ret = malloc(255);")  # TODO: max sizes
-        fprint("    if (ret == NULL) {")
-        fprint("         return NULL;")
-        fprint("    }")
-        fprint("    while (*ptr != '\\n' && *ptr != '\\0') {")
-        fprint("        switch (((unsigned char)*src) >> 4) {")
-        fprint(
-            "        case 8: case 9: case 10: case 11: // 0b10xx -> invalid utf-8; our escape"
-        )
-        fprint(
-            "            int lexicon_index = (((*ptr++) & 0x3f) << 7) | ((*ptr++) & 0x7f);"
-        )
-        fprint(
-            "            lexicon_index = lexicon_offset[lexicon_index] + lexicon_shift[lexicon_index >> LEXICON_SHIFT];"
-        )
-        fprint("            const char* lexptr = &lexicon_data[lexicon_index];")
-        fprint(
-            "            dst = read_lexicon(dst, (((*src++) & 0x3f) << 7) | ((*src++) & 0x7f));"
-        )
-        fprint("            break;")
-        fprint("        case 15: // 0b1111 -> 4 bytes")
-        fprint("            *dst++ = *src++;")
-        fprint("            // fallthrough")
-        fprint("        case 14: // 0b1110 -> 3 bytes")
-        fprint("            *dst++ = *src++;")
-        fprint("            // fallthrough")
-        fprint("        case 12: case 13: // 0b110x -> 2 bytes")
-        fprint("            *dst++ = *src++;")
-        fprint("            // fallthrough")
-        fprint("        default: // 0b0xxx -> 1 byte")
-        fprint("            *dst++ = *src++;")
-        fprint("        }")
-        fprint("    }")
-        fprint("}")
-        fprint()
-
-        # accessors
-        # special names
+        fprint("#endif /* FONTFORGE_UNINAMES_DATA_H */")
 
     return (
         phrasebook,
@@ -925,7 +831,7 @@ def makeutypeheader(utype_funcs):
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
 
-        fprint(LICENSE.format(extra=""))
+        License().dump(fp)
         fprint("#ifndef FONTFORGE_UNICODE_UTYPE2_H")
         fprint("#define FONTFORGE_UNICODE_UTYPE2_H")
         fprint()
@@ -1008,57 +914,6 @@ class Array:
         file.write("};\n\n")
 
 
-class CharArray:
-    def __init__(self, name, data):
-        self.name = name
-        self.data = data
-
-        if getsize(data) != 1:
-            raise ValueError("data unit size must be 1")
-
-    def dump(self, file, trace=0):
-        if trace:
-            print(self.name + ":", len(self.data), "bytes", file=sys.stderr)
-        fprint = partial(print, file=file)
-        fprint("static const char", self.name + "[] =")
-        s = '    "'
-        for item in self.data:
-            if item < 0x20 or item > 0x7E:
-                i = "\\x%02x" % item
-            elif item == ord("\\") or item == ord('"'):
-                i = "\\" + chr(item)
-            else:
-                i = chr(item)
-            if len(s) + len(i) > 78:
-                file.write(s + '"\n')
-                s = '    "' + i
-            else:
-                s += i
-        if len(s) > 6:
-            file.write(s + '"\n')
-        fprint(";\n\n")
-
-
-class Switch:
-    def __init__(self, name, data):
-        self.name = name
-        self.data = data
-
-    def dump(self, file):
-        fprint = partial(print, file=file)
-        fprint("int %s(unichar_t ch) {" % self.name)
-        fprint("    switch (ch) {")
-
-        for codepoint in sorted(self.data):
-            fprint("    case 0x%04X:" % (codepoint,))
-        fprint("        return 1;")
-
-        fprint("    }")
-        fprint("    return 0;")
-        fprint("}")
-        fprint()
-
-
 class Index:
     def __init__(self, prefix, rectype, index):
         self.prefix = prefix
@@ -1090,6 +945,66 @@ class Index:
             fprint(f"}}")
             fprint()
             # fmt: on
+
+
+class Switch:
+    def __init__(self, name, data):
+        self.name = name
+        self.data = data
+
+    def dump(self, file):
+        fprint = partial(print, file=file)
+        fprint("int %s(unichar_t ch) {" % self.name)
+        fprint("    switch (ch) {")
+
+        for codepoint in sorted(self.data):
+            fprint("    case 0x%04X:" % (codepoint,))
+        fprint("        return 1;")
+
+        fprint("    }")
+        fprint("    return 0;")
+        fprint("}")
+        fprint()
+
+
+class License:
+    def __init__(self, copyright=None, extra=None):
+        self.copyright = copyright or "2000-2012 by George Williams"
+        self.extra = f"/* {extra} */\n" if extra else ""
+
+    def dump(self, file):
+        file.write(
+            f"""/* This is a GENERATED file - from {SCRIPT} with Unicode {UNIDATA_VERSION} */
+
+/* Copyright (C) {self.copyright} */
+{self.extra}/*
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+
+ * The name of the author may not be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+"""
+        )
 
 
 def getsize(data: List[int]) -> int:
@@ -1175,6 +1090,7 @@ def maketables(trace=0):
     utype_funcs = makeutype(unicode, trace)
     unialt_funcs = makeunialt(unicode, trace)
     makearabicforms(unicode, trace)
+    makeuninames(unicode, trace)
     makeutypeheader(utype_funcs + unialt_funcs)
 
 

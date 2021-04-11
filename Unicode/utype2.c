@@ -3376,7 +3376,7 @@ static const unsigned char type_index2[] = {
 
 static const struct utypecasing* GetCasing(unichar_t ch) {
     int index = 0;
-    if (ch < 0x110000) {
+    if (ch < UNICODE_MAX) {
         index = casing_index1[ch >> CASING_SHIFT];
         index = casing_index2[(index << CASING_SHIFT) + (ch & ((1 << CASING_SHIFT) - 1))];
     }
@@ -3386,7 +3386,7 @@ static const struct utypecasing* GetCasing(unichar_t ch) {
 
 static const struct utypeflags* GetType(unichar_t ch) {
     int index = 0;
-    if (ch < 0x110000) {
+    if (ch < UNICODE_MAX) {
         index = type_index1[ch >> TYPE_SHIFT];
         index = type_index2[(index << TYPE_SHIFT) + (ch & ((1 << TYPE_SHIFT) - 1))];
     }
