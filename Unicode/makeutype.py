@@ -767,6 +767,8 @@ def makeuninames(unicode, trace):
             offset_index = min(char >> phrasebook_shift, phrasebook_shift_cap)
             if offset_index + 1 > len(phrasebook_shifts):
                 current_offset = offset - 1
+                while len(phrasebook_shifts) < offset_index:
+                    phrasebook_shifts.append(phrasebook_shifts[-1])
                 phrasebook_shifts.append(current_offset)
             offset -= current_offset
             assert offset > 0  # retain special meaning of 0 being no entry
