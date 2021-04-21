@@ -166,4 +166,18 @@ extern struct arabicforms {
     unsigned int required_lig_with_alef: 1;
 } ArabicForms[256]; /* for chars 0x600-0x6ff, subtract 0x600 to use array */
 
+struct unicode_range {
+    unichar_t start;
+    unichar_t end;
+    unichar_t first_char;
+    int num_assigned;
+    const char *name;
+};
+
+extern char* uniname_name(unichar_t ch);
+extern char* uniname_annotation(unichar_t ch);
+extern const struct unicode_range* uniname_block(unichar_t ch);
+extern const struct unicode_range* uniname_plane(unichar_t ch);
+extern const struct unicode_range* uniname_blocks(int *sz);
+extern const struct unicode_range* uniname_planes(int *sz);
 #endif /* FONTFORGE_UNICODE_UTYPE2_H */

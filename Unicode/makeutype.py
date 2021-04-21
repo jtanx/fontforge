@@ -14,6 +14,7 @@ import re
 import sys
 import zipfile
 
+BASE = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.basename(__file__)
 
 UNIDATA_VERSION = "13.0.0"
@@ -21,6 +22,7 @@ UNICODE_DATA = "UnicodeData%s.txt"
 DERIVED_CORE_PROPERTIES = "DerivedCoreProperties%s.txt"
 PROP_LIST = "PropList%s.txt"
 BIDI_MIRRORING = "BidiMirroring%s.txt"
+BLOCKS = "Blocks%s.txt"
 NAMES_LIST = "NamesList%s.txt"
 UNICODE_MAX = 0x110000
 
@@ -129,6 +131,7 @@ class UcdFile:
         self.version = version
 
     def records(self) -> Iterator[List[str]]:
+        print("Reading", self.template % ("-" + self.version,))
         with self.open_data(self.template, self.version) as file:
             for line in file:
                 line = line.split("#", 1)[0].strip()
@@ -219,17 +222,40 @@ class UnicodeData:
             elif field:
                 table[i] = UcdRecord.from_row(("%X" % i,) + field[1:])
 
+        blocks = []
+        for block_range, block in UcdFile(BLOCKS, version):
+            start, end = [int(c, 16) for c in block_range.split("..")]
+            first_char = next((i for i in range(start, end + 1) if table[i]), start)
+            num_assigned = sum(1 for i in range(start, end + 1) if table[i])
+            blocks.append((start, end, first_char, num_assigned, block))
+        planes = [
+            (0x0, 0xFFFF, 0x0, "Basic Multilingual Plane"),
+            (0x10000, 0x1FFFF, 0x10000, "Supplementary Multilingual Plane"),
+            (0x20000, 0x2FFFF, 0x20000, "Supplementary Ideographic Plane"),
+            (0x30000, 0x3FFFF, 0x30000, "Tertiary Ideographic Plane"),
+            (0xE0000, 0xEFFFF, 0xE0000, "Supplementary Special-purpose Plane"),
+            (0xF0000, 0xFFFFF, 0xF0000, "Supplementary Private Use Area-A"),
+            (0x100000, 0x10FFFF, 0x100000, "Supplementary Private Use Area-B"),
+        ]
+        planes = [
+            (s, e, f, sum(1 for i in range(s, e + 1) if table[i]), n)
+            for s, e, f, n in planes
+        ]
+        for i in range(0x40000, 0xE0000, 0x10000):
+            if all(x is None for x in table[i : i + 0x10000]):
+                planes.append(
+                    (i, i + 0x10000 - 1, i, 0, f"<Unassigned Plane {i//0x10000}>")
+                )
+            else:
+                raise ValueError(
+                    f"Assigned codepoints in plane {i//0x10000}, give this a name"
+                )
+
         max_name, max_annot = 0, 0
         special_names = {}
         names = {}
-        blocks = []
         for l in NamesList(NAMES_LIST, version):
-            if l[0][0] == "@@":
-                start = int(l[0][1], 16)
-                end = int(l[0][3], 16)
-                block = l[0][2]
-                blocks.append((start, end, block))
-            elif l[0][0].isalnum():
+            if l[0][0].isalnum():
                 char = int(l[0][0], 16)
                 name = [x[1] for x in l]
                 assert (len(x) == 2 for x in l)  # should only be two parts on the line
@@ -243,11 +269,13 @@ class UnicodeData:
                         specials = special_names.setdefault(m.group(1), set())
                         specials.add(char)
                 if any(l for l in name):
+                    nlines = len(name)
                     name = "\n".join(name).encode("utf-8") + b"\0"
                     name_split = name.split(b"\n", 1)
                     max_name = max(max_name, len(name_split[0]) + 1)
                     if len(name_split) > 1:
-                        max_annot = max(max_annot, len(name_split[1]) + 1)
+                        # each line expands to tab + prettified start (3 bytes)
+                        max_annot = max(max_annot, len(name_split[1]) + nlines * 3 + 1)
                     names[char] = name
 
         for k, v in special_names.items():
@@ -272,7 +300,8 @@ class UnicodeData:
         self.special_name_ranges = special_name_ranges
         self.max_name = ((max_name + 31) // 32) * 32
         self.max_annot = ((max_annot + 31) // 32) * 32
-        self.blocks = blocks
+        self.blocks = sorted(blocks, key=lambda x: x[0])
+        self.planes = sorted(planes, key=lambda x: x[0])
 
         for char, (p,) in UcdFile(DERIVED_CORE_PROPERTIES, version).expanded():
             if table[char]:
@@ -294,7 +323,6 @@ class UnicodeData:
 
 
 def makeutype(unicode, trace):
-
     FILE = "utype2.c"
 
     print("--- Preparing", FILE, "...")
@@ -589,8 +617,8 @@ def makeunialt(unicode, trace):
 
         License().dump(fp)
 
-        fprint("#include <ustring.h>")
-        fprint("#include <utype.h>")
+        fprint("#include <assert.h>")
+        fprint("#include <utype2.h>")
         fprint()
 
         fprint("/* decomposition data */")
@@ -619,7 +647,7 @@ def makeunialt(unicode, trace):
 
 
 def makearabicforms(unicode, trace):
-    FILE = "ArabicForm2.c"
+    FILE = "ArabicForms.c"
 
     print("--- Preparing", FILE, "...")
 
@@ -660,7 +688,7 @@ def makearabicforms(unicode, trace):
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
         License(extra="Contributions: Khaled Hosny, Joe Da Silva").dump(fp)
-        fprint("#include <utype.h>")
+        fprint("#include <utype2.h>")
         fprint()
         fprint("struct arabicforms ArabicForms[] = {")
         fprint(
@@ -680,15 +708,20 @@ def makeuninames(unicode, trace):
     # Chosen empirically, tweak as desired. Only ascii is allowed due to
     # how the lexicon is encoded. Generally longer replacements go first
     # so shorter replacements don't prevent them from working.
+    # As of Unicode 13 this is roughly 454kb excluding the size of the
+    # offset tables
     regexes = [
-        (500, re.compile(rb"[\x20-\x7F]{3,}[ -]")),
+        (100, re.compile(rb"[\x20-\x7F]{3,}[ -]")),
         (100, re.compile(rb"(?:[\x21-\x7F]+[ -]+){5}")),
-        (100, re.compile(rb"(?:[\x21-\x7F]+[ -]+){4}")),
-        (300, re.compile(rb"(?:[\x21-\x7F]+[ -]+){3}")),
-        (1900, re.compile(rb"(?:[\x21-\x7F]+[ -]+){2}")),
-        (1500, re.compile(rb"(?:[\x21-\x7F]+[ -]+){1}")),
+        (150, re.compile(rb"(?:[\x21-\x7F]+[ -]+){4}")),
+        (200, re.compile(rb"(?:[\x21-\x7F]+[ -]+){3}")),
+        (900, re.compile(rb"(?:[\x21-\x7F]+[ -]+){2}")),
+        (3400, re.compile(rb"(?:[\x21-\x7F]+[ -]+){1}")),
         (5000, re.compile(rb"\b[\x21-\x7F]{3,}\b")),
     ]
+    # The initial character on annotation lines are excluded from the phrasebook
+    # This allows us to substitute them for fancier characters
+    annot_re = re.compile(rb"\n(.) ")
 
     # Max realisable saving for given replacement. Other replacements may
     # preclude realising the full benefit. Each replacement costs 2 bytes,
@@ -700,7 +733,7 @@ def makeuninames(unicode, trace):
     # Decoder must also be utf-8 aware, and skip valid utf-8 sequences.
     # Possible alternative: Allow any value > 0x20 for second byte, to keep
     # newlines/nul chars in the raw string (permits strstr). (14 usable bits)
-    intermediate = {**unicode.names}
+    intermediate = {x: annot_re.sub(rb"\n", y) for x, y in unicode.names.items()}
     names = {**unicode.names}
     replacements = set()
     wordlist = {}
@@ -743,6 +776,8 @@ def makeuninames(unicode, trace):
         offset_index = len(lexicon_offset) >> lexicon_shift
         if offset_index + 1 > len(lexicon_shifts):
             current_offset = offset
+            while len(lexicon_shifts) < offset_index:
+                lexicon_shifts.append(lexicon_shifts[-1])
             lexicon_shifts.append(current_offset)
         offset -= current_offset
         lexicon_offset.append(offset)
@@ -763,6 +798,7 @@ def makeuninames(unicode, trace):
     for char in unicode.chars:
         name = names.get(char)
         if name is not None:
+            name = annot_re.sub(rb"\n\1", name)
             offset = len(phrasebook)
             offset_index = min(char >> phrasebook_shift, phrasebook_shift_cap)
             if offset_index + 1 > len(phrasebook_shifts):
@@ -777,6 +813,11 @@ def makeuninames(unicode, trace):
 
     assert getsize(phrasebook) == 1
     assert getsize(phrasebook_offset) < 4
+    # print("lexicon_offset", len(lexicon_offset))
+    # print("lexicon", len(lexicon))
+    # print("phrasebook", len(phrasebook))
+    # print("Lexicon+phrasebook data size", len(phrasebook)+len(lexicon))
+    # return
 
     print("Number of lexicon entries:", len(lexicon_offset))
     print("--- Writing", FILE, "...")
@@ -789,13 +830,25 @@ def makeuninames(unicode, trace):
         fprint("#define FONTFORGE_UNINAMES_DATA_H")
         fprint()
 
+        fprint("#include <intl.h>")
         fprint("#include <ustring.h>")
-        fprint("#include <utype.h>")
+        fprint("#include <utype2.h>")
         fprint()
 
         fprint("/* Basic definitions */")
         fprint("#define MAX_NAME_LENGTH", unicode.max_name)
         fprint("#define MAX_ANNOTATION_LENGTH", unicode.max_annot)
+        fprint()
+
+        fprint("/* unicode ranges data */")
+        fprint("static const struct unicode_range unicode_blocks[] = {")
+        for block in unicode.blocks:
+            fprint('    {0x%04X, 0x%04X, 0x%04X, %d, N_("%s")},' % block)
+        fprint("};")
+        fprint("static const struct unicode_range unicode_planes[] = {")
+        for plane in unicode.planes:
+            fprint('    {0x%04X, 0x%04X, 0x%04X, %d, N_("%s")},' % plane)
+        fprint("};")
         fprint()
 
         fprint("/* lexicon data */")
@@ -890,7 +943,7 @@ def makeutypeheader(utype_funcs):
 
     print("--- Writing", FILE, "...")
 
-    with open(FILE, "w") as fp:
+    with open(os.path.join(BASE, "..", "inc", FILE), "w") as fp:
         fprint = partial(print, file=fp)
 
         License().dump(fp)
@@ -937,6 +990,22 @@ def makeutypeheader(utype_funcs):
             "} ArabicForms[256]; /* for chars 0x600-0x6ff, subtract 0x600 to use array */"
         )
         fprint()
+
+        fprint("struct unicode_range {")
+        fprint("    unichar_t start;")
+        fprint("    unichar_t end;")
+        fprint("    unichar_t first_char;")
+        fprint("    int num_assigned;")
+        fprint("    const char *name;")
+        fprint("};")
+        fprint()
+
+        fprint("extern char* uniname_name(unichar_t ch);")
+        fprint("extern char* uniname_annotation(unichar_t ch);")
+        fprint("extern const struct unicode_range* uniname_block(unichar_t ch);")
+        fprint("extern const struct unicode_range* uniname_plane(unichar_t ch);")
+        fprint("extern const struct unicode_range* uniname_blocks(int *sz);")
+        fprint("extern const struct unicode_range* uniname_planes(int *sz);")
 
         fprint("#endif /* FONTFORGE_UNICODE_UTYPE2_H */")
 

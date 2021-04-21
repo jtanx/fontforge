@@ -27,8 +27,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ustring.h>
-#include <utype.h>
+#include <assert.h>
+#include <utype2.h>
 
 /* decomposition data */
 static const unsigned int decomp_data[] = {
