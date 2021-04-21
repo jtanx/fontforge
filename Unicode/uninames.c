@@ -1,5 +1,3 @@
-/* This is a GENERATED file - from makeutype.py with Unicode 13.0.0 */
-
 /* Copyright (C) 2021 by Jeremy Tan */
 /*
  * Redistribution and use in source and binary forms, with or without
