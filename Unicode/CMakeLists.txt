@@ -1,7 +1,7 @@
 # Distributed under the original FontForge BSD 3-clause license
 
 add_library(gunicode OBJECT
-  #ArabicForms.c
+  ArabicForms.c
   char.c
   combiners.h
   is_Ligature_data.h
@@ -12,7 +12,6 @@ add_library(gunicode OBJECT
   ustring.c
   utype.c
 
-  ArabicForm2.c
   unialt2.c
   utype2.c
   uninames.c
@@ -49,6 +48,7 @@ if (ENABLE_MAINTAINER_TOOLS)
   target_link_libraries(makebuildtables PRIVATE fontforge_common_headers)
 
   if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(gunicode PRIVATE -Wall -Wextra)
     target_compile_options(makeutype PRIVATE -Wall)
     target_compile_options(makebuildtables PRIVATE -Wall)
   endif()
