@@ -1,4 +1,15 @@
-# Based on makeunicodedata.py from CPython
+# Copyright (C) 2021 by Jeremy Tan
+
+# This file was originally based on makeunicodedata.py from CPython:
+# https://github.com/python/cpython/blob/a460ab3134cd5cf3932c2125aec012851268f0cc/Tools/unicode/makeunicodedata.py
+# It is licensed under the Python Software Foundation License Version 2.
+# For simplicity, everything in this file, excluding the generated source,
+# is similarly licensed as such.
+# The full license may be found here: https://docs.python.org/3/license.html
+# While serving as the basis, it has been heavily modified for FontForge.
+
+# This file generates the Unicode support source files for FontForge.
+# It requires Python 3.7 or higher to run.
 
 from __future__ import annotations
 from collections import Counter
@@ -12,7 +23,6 @@ import enum
 import os
 import re
 import sys
-import zipfile
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.basename(__file__)
@@ -44,7 +54,7 @@ class UcdTypeFlags(enum.IntFlag):
     FF_UNICODE_ISEURONUMERIC = 0x1000  # EN
     FF_UNICODE_ISEURONUMTERM = 0x2000  # ET
     FF_UNICODE_ISARABNUMERIC = 0x4000  # AN
-    FF_UNICODE_ISDECOMPOSITIONNORMATIVE = 0x8000  # Has a NFKD decomp
+    FF_UNICODE_ISDECOMPOSITIONNORMATIVE = 0x8000  # Has an NFKD decomp
     FF_UNICODE_ISDECOMPCIRCLE = 0x10000  # <circle> compatibility decomp
     FF_UNICODE_ISARABINITIAL = 0x20000  # <initial> compatibility decomp
     FF_UNICODE_ISARABMEDIAL = 0x40000  # <medial> compatibility decomp
@@ -435,11 +445,6 @@ def makeutype(unicode, trace):
                     and abs(title) <= 2147483647
                     and abs(mirror) <= 2147483647
                 )
-            # integer digit
-            # digit = 0
-            # if record.numeric_type:
-            #     flags |= UcdTypeFlags.FF_UNICODE_ISDIGIT
-            #     digit = int(record.numeric_type)
 
             # pose info
             ccc = int(record.canonical_combining_class)
@@ -957,6 +962,7 @@ def makeutypeheader(utype_funcs):
         fprint()
 
         fprint("/* Unicode basics */")
+        fprint('#define UNICODE_VERSION "%s"' % UNIDATA_VERSION)
         fprint("#define UNICODE_MAX 0x%x" % UNICODE_MAX)
         fprint()
 

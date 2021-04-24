@@ -34,6 +34,7 @@
 #include "basics.h" /* Include here so we can use pre-defined int types to correctly size constant data arrays. */
 
 /* Unicode basics */
+#define UNICODE_VERSION "13.0.0"
 #define UNICODE_MAX 0x110000
 
 /* Pose flags */

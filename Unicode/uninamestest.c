@@ -308,7 +308,7 @@ int main() {
 }
 #endif
 
-#if 1
+#if 0
 
 #include <chardata.h>
 #include <utype.h>
@@ -346,4 +346,30 @@ int main() {
         }
     }
 }
+#endif
+
+#if 1
+
+#include <utype.h>
+#include <utype2.h>
+
+int main() {
+    for (int i = 0; i < 0x10000; ++i) {
+        int old = combiningposmask(i);
+        int new = pose(i);
+
+        if (old != new && old != 0) {
+            printf("U+%04x: %x vs %x\n",
+                i, old, new);
+        }
+
+        int oldc = ffUnicodeUtype2((i))&FF_UNICODE_COMBININGCLASS;
+        int newc = ff_unicode_combiningclass(i);
+        if (oldc != newc) {
+            printf("U+%04x: CCC %d vs %d\n",
+                i, oldc, newc);
+        }
+    }
+}
+
 #endif
