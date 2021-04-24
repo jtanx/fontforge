@@ -30,7 +30,7 @@
 
 #include <utype.h>
 
-struct arabicforms ArabicForms[] = {
+static struct arabicforms arabic_forms[] = {
     /* initial, medial, final, isolated, isletter, joindual, required_lig_with_alef */
     { 0x0600, 0x0600, 0x0600, 0x0600, 0, 0, 0 },    /* 0x0600 */
     { 0x0601, 0x0601, 0x0601, 0x0601, 0, 0, 0 },
@@ -289,3 +289,10 @@ struct arabicforms ArabicForms[] = {
     { 0x06fe, 0x06fe, 0x06fe, 0x06fe, 0, 0, 0 },
     { 0x06ff, 0x06ff, 0x06ff, 0x06ff, 1, 0, 0 },
 };
+
+const struct arabicforms* arabicform(unichar_t ch) {
+    if (ch >= 0x600 && ch <= 0x6ff) {
+        return &arabic_forms[ch - 0x600];
+    }
+    return NULL;
+}

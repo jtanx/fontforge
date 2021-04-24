@@ -29,7 +29,6 @@
 #include <fontforge-config.h>
 
 #include "bvedit.h"
-#include "chardata.h"
 #include "encoding.h"
 #include "ffglib.h"
 #include "fontforgevw.h"

@@ -333,7 +333,7 @@ class UnicodeData:
 
 
 def makeutype(unicode, trace):
-    FILE = "utype2.c"
+    FILE = "utype.c"
 
     print("--- Preparing", FILE, "...")
 
@@ -483,7 +483,7 @@ def makeutype(unicode, trace):
             fp
         )
         fprint("#include <assert.h>")
-        fprint("#include <utype2.h>")
+        fprint("#include <utype.h>")
         fprint()
         for flag in UcdTypeFlags:
             fprint("#define %-*s 0x%x" % (alignment, flag.name, flag.value))
@@ -571,13 +571,13 @@ def makeutype(unicode, trace):
 
 
 def makeunialt(unicode, trace):
-    FILE = "unialt2.c"
+    FILE = "unialt.c"
 
     print("--- Preparing", FILE, "...")
 
-    decomp_data = [0]
-    decomp_index = [0] * len(unicode.chars)
-    decomp_chars = set()  # excl. visual alts
+    unialt_data = [0]
+    unialt_index = [0] * len(unicode.chars)
+    unialt_chars = set()  # excl. visual alts
 
     for char in unicode.chars:
         record = unicode.table[char]
@@ -596,22 +596,22 @@ def makeunialt(unicode, trace):
             if decomp[0].startswith("<"):
                 decomp.pop(0)  # subset of category info stored in utype flags
             decomp = [int(s, 16) for s in decomp]
-            decomp_chars.add(char)
+            unialt_chars.add(char)
         else:
             decomp = VISUAL_ALTS[char]
             assert len(decomp) <= 19
 
         # content
         decomp = decomp + [0]
-        decomp_index[char] = len(decomp_data)
-        decomp_data.extend(decomp)
+        unialt_index[char] = len(unialt_data)
+        unialt_data.extend(decomp)
 
     # NFKD forms always take precedence over visual alts
     print(
         "Ignored visual alts:",
-        ", ".join("U+%04x" % x for x in VISUAL_ALTS.keys() & decomp_chars),
+        ", ".join("U+%04x" % x for x in VISUAL_ALTS.keys() & unialt_chars),
     )
-    print(len(decomp_data), "unique decomposition entries")
+    print(len(unialt_data), "unique decomposition entries")
 
     print("--- Writing", FILE, "...")
 
@@ -621,21 +621,21 @@ def makeunialt(unicode, trace):
         License().dump(fp)
 
         fprint("#include <assert.h>")
-        fprint("#include <utype2.h>")
+        fprint("#include <utype.h>")
         fprint()
 
-        fprint("/* decomposition data */")
-        Array("decomp_data", decomp_data).dump(fp, trace)
+        fprint("/* decomposition + visual alternates data */")
+        Array("unialt_data", unialt_data).dump(fp, trace)
 
-        Index("decomp", "unichar_t", decomp_index).dump(fp, trace)
+        Index("unialt", "unichar_t", unialt_index).dump(fp, trace)
 
-        fprint("int ff_unicode_hasdecomposition(unichar_t ch) {")
-        fprint("   return *GetDecomp(ch) != 0;")
+        fprint("int ff_unicode_hasunialt(unichar_t ch) {")
+        fprint("   return *GetUnialt(ch) != 0;")
         fprint("}")
         fprint()
 
-        fprint("const unichar_t* ff_unicode_decomposition(unichar_t ch) {")
-        fprint("    const unichar_t* ptr = GetDecomp(ch);")
+        fprint("const unichar_t* ff_unicode_unialt(unichar_t ch) {")
+        fprint("    const unichar_t* ptr = GetUnialt(ch);")
         fprint("    if (!*ptr) {")
         fprint("        return NULL;")
         fprint("    }")
@@ -644,8 +644,8 @@ def makeunialt(unicode, trace):
         fprint()
 
         return [
-            ("int", "ff_unicode_hasdecomposition"),
-            ("const unichar_t*", "ff_unicode_decomposition"),
+            ("int", "ff_unicode_hasunialt"),
+            ("const unichar_t*", "ff_unicode_unialt"),
         ]
 
 
@@ -693,7 +693,7 @@ def makearabicforms(unicode, trace):
         License(extra="Contributions: Khaled Hosny, Joe Da Silva").dump(fp)
         fprint("#include <utype.h>")
         fprint()
-        fprint("struct arabicforms ArabicForms[] = {")
+        fprint("static struct arabicforms arabic_forms[] = {")
         fprint(
             "    /* initial, medial, final, isolated, isletter, joindual, required_lig_with_alef */"
         )
@@ -701,6 +701,14 @@ def makearabicforms(unicode, trace):
             fp.write("    { 0x%04x, 0x%04x, 0x%04x, 0x%04x, %d, %d, %d }," % form)
             fprint(f"    /* 0x{0x600+i:04x} */" if (i % 32) == 0 else "")
         fprint("};")
+        fprint()
+
+        fprint("const struct arabicforms* arabicform(unichar_t ch) {")
+        fprint("    if (ch >= 0x600 && ch <= 0x6ff) {")
+        fprint("        return &arabic_forms[ch - 0x600];")
+        fprint("    }")
+        fprint("    return NULL;")
+        fprint("}")
 
 
 def makeuninames(unicode, trace):
@@ -835,7 +843,7 @@ def makeuninames(unicode, trace):
 
         fprint("#include <intl.h>")
         fprint("#include <ustring.h>")
-        fprint("#include <utype2.h>")
+        fprint("#include <utype.h>")
         fprint()
 
         fprint("/* Basic definitions */")
@@ -941,7 +949,7 @@ def makeuninames(unicode, trace):
 
 
 def makeutypeheader(utype_funcs):
-    FILE = "utype2.h"
+    FILE = "utype.h"
     utype_funcs = [(t, n, n.replace("ff_unicode_", "")) for t, n in utype_funcs]
 
     print("--- Writing", FILE, "...")
@@ -968,6 +976,7 @@ def makeutypeheader(utype_funcs):
 
         alignment = len("FF_UNICODE_") + max(len(x.name) for x in Pose)
         fprint("/* Pose flags */")
+        fprint("#define %-*s -1" % (alignment, "FF_UNICODE_NOPOSDATAGIVEN"))
         for c in Pose:
             fprint("#define %-*s 0x%x" % (alignment, "FF_UNICODE_" + c.name, c))
         fprint()
@@ -985,15 +994,15 @@ def makeutypeheader(utype_funcs):
             fprint("#define %-*s %s((ch))" % (alignment, realfn + "(ch)", fn))
         fprint()
 
-        # fprint("extern struct arabicforms {")
-        # fprint("    unsigned short initial, medial, final, isolated;")
-        # fprint("    unsigned int isletter: 1;")
-        # fprint("    unsigned int joindual: 1;")
-        # fprint("    unsigned int required_lig_with_alef: 1;")
-        # fprint(
-        #     "} ArabicForms[256]; /* for chars 0x600-0x6ff, subtract 0x600 to use array */"
-        # )
-        # fprint()
+        fprint("struct arabicforms {")
+        fprint("    unsigned short initial, medial, final, isolated;")
+        fprint("    unsigned int isletter: 1;")
+        fprint("    unsigned int joindual: 1;")
+        fprint("    unsigned int required_lig_with_alef: 1;")
+        fprint("};")
+        fprint()
+        fprint("extern const struct arabicforms* arabicform(unichar_t ch);")
+        fprint()
 
         fprint("struct unicode_range {")
         fprint("    unichar_t start;")
@@ -1010,6 +1019,7 @@ def makeutypeheader(utype_funcs):
         fprint("extern const struct unicode_range* uniname_plane(unichar_t ch);")
         fprint("extern const struct unicode_range* uniname_blocks(int *sz);")
         fprint("extern const struct unicode_range* uniname_planes(int *sz);")
+        fprint()
 
         fprint("#endif /* FONTFORGE_UNICODE_UTYPE2_H */")
 

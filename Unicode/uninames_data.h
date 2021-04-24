@@ -32,7 +32,7 @@
 
 #include <intl.h>
 #include <ustring.h>
-#include <utype2.h>
+#include <utype.h>
 
 /* Basic definitions */
 #define MAX_NAME_LENGTH 96
