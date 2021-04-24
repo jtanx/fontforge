@@ -598,12 +598,8 @@ def makeunialt(unicode, trace):
 
         # content
         decomp = decomp + [0]
-        try:
-            i = decomp_data.index(decomp)
-        except ValueError:
-            i = len(decomp_data)
-            decomp_data.extend(decomp)
-        decomp_index[char] = i
+        decomp_index[char] = len(decomp_data)
+        decomp_data.extend(decomp)
 
     # NFKD forms always take precedence over visual alts
     print(
