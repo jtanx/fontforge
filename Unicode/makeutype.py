@@ -605,6 +605,7 @@ def makeunialt(unicode, trace):
             decomp_data.extend(decomp)
         decomp_index[char] = i
 
+    # NFKD forms always take precedence over visual alts
     print(
         "Ignored visual alts:",
         ", ".join("U+%04x" % x for x in VISUAL_ALTS.keys() & decomp_chars),

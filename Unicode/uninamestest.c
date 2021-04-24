@@ -122,7 +122,7 @@ int main() {
 }
 #endif
 
-#if 1
+#if 0
 #include <utype.h>
 
 int64_t flags[0x110000] = {0};
@@ -305,5 +305,45 @@ int main() {
     }
     printf("MAX U+%04X: %d\n", maxidx,maxlen);
     return 0;
+}
+#endif
+
+#if 1
+
+#include <chardata.h>
+#include <utype.h>
+#include <utype2.h>
+
+#undef isunicodepointassigned
+
+static const unichar_t* get_old_decomp(unichar_t ch) {
+    if (unicode_alternates[ch>>8]) {
+        return unicode_alternates[ch>>8][ch&0xff];
+    }
+    return NULL;
+}
+
+int main() {
+    for (int i = 0; i < 0x10000; ++i) {
+        const unichar_t* old = get_old_decomp(i);
+        const unichar_t* new = decomposition(i);
+
+        if ((old == NULL) != (new == NULL)) {
+            printf("U+%04x: %p vs %p (%d)\n",
+                i, old, new, isunicodepointassigned(i));
+            if (old) {
+                do  {
+                    printf("0x%02x ", *old);
+                } while (*old++);
+                printf("\n");
+            }
+        } else if (old && new) {
+            if (u_strcmp(old, new)) {
+                printf("U+%04X: OLD(%s), NEW(%s), CIRCLED(%d)\n",
+                    i, u2utf8_copy(old), u2utf8_copy(new),
+                    isdecompcircle(i));
+            }
+        }
+    }
 }
 #endif
