@@ -62,6 +62,7 @@ int main() {
 }
 #endif
 
+#if 0
 #include <utype.h>
 
 #define BREAK_AFTER 0x1
@@ -119,6 +120,156 @@ int main() {
         }
     }
 }
+#endif
+
+#if 1
+#include <utype.h>
+
+int64_t flags[0x110000] = {0};
+int64_t nflags[0x110000] = {0};
+const char* flagnames[] = {
+    "isunicodepointassigned",
+    "isalpha",
+    "isideographic",
+    "islefttoright",
+    "isrighttoleft",
+    "islower",
+    "isupper",
+    "isdigit",
+    "isligvulgfrac",
+    "iscombining",
+    "iszerowidth",
+    "iseuronumeric",
+    "iseuronumterm",
+    "isarabnumeric",
+    "isdecompositionnormative",
+    "isarabinitial",
+    "isarabmedial",
+    "isarabfinal",
+    "isarabisolated",
+    "isideoalpha",
+    "isalnum",
+    "isspace",
+    "iseuronumsep",
+    "iscommonsep",
+    "ishexdigit",
+    "istitle",
+};
+
+void doold() {
+    for (int i = 0; i < 0x110000; ++i) {
+        if (isunicodepointassigned(i)) flags[i] |= 1LL << 0;
+        if (isalpha(i)) flags[i] |= 1LL << 1;
+        if (isideographic(i)) flags[i] |= 1LL << 2;
+        if (islefttoright(i)) flags[i] |= 1LL << 3;
+        if (isrighttoleft(i)) flags[i] |= 1LL << 4;
+        if (islower(i)) flags[i] |= 1LL << 5;
+        if (isupper(i)) flags[i] |= 1LL << 6;
+        if (isdigit(i)) flags[i] |= 1LL << 7;
+        if (isligorfrac(i)) flags[i] |= 1LL << 8;
+        if (iscombining(i)) flags[i] |= 1LL << 9;
+        if (iszerowidth(i)) flags[i] |= 1LL << 10;
+        if (iseuronumeric(i)) flags[i] |= 1LL << 11;
+        if (iseuronumterm(i))
+            flags[i] |= 1LL << 12;
+        if (isarabnumeric(i)) flags[i] |= 1LL << 13;
+        if (isdecompositionnormative(i)) flags[i] |= 1LL << 14;
+        if (isarabinitial(i)) flags[i] |= 1LL << 15;
+        if (isarabmedial(i)) flags[i] |= 1LL << 16;
+        if (isarabfinal(i)) flags[i] |= 1LL << 17;
+        if (isarabisolated(i)) flags[i] |= 1LL << 18;
+        if (isideoalpha(i)) flags[i] |= 1LL << 19;
+        if (isalnum(i)) flags[i] |= 1LL << 20;
+        if (isspace(i)) flags[i] |= 1LL << 21;
+        if (iseuronumsep(i)) flags[i] |= 1LL << 22;
+        if (iscommonsep(i)) flags[i] |= 1LL << 23;
+        if (ishexdigit(i)) flags[i] |= 1LL << 24;
+        if (istitle(i)) flags[i] |= 1LL << 25;
+    }
+}
+
+#include <utype2.h>
+void donew() {
+    for (int i = 0; i < 0x110000; ++i) {
+        if (isunicodepointassigned(i)) nflags[i] |= 1LL << 0;
+        if (isalpha(i)) nflags[i] |= 1LL << 1;
+        if (isideographic(i)) nflags[i] |= 1LL << 2;
+        if (islefttoright(i)) nflags[i] |= 1LL << 3;
+        if (isrighttoleft(i)) nflags[i] |= 1LL << 4;
+        if (islower(i)) nflags[i] |= 1LL << 5;
+        if (isupper(i)) nflags[i] |= 1LL << 6;
+        if (isdigit(i)) nflags[i] |= 1LL << 7;
+        if (isligvulgfrac(i)) nflags[i] |= 1LL << 8;
+        if (iscombining(i)) nflags[i] |= 1LL << 9;
+        if (iszerowidth(i)) nflags[i] |= 1LL << 10;
+        if (iseuronumeric(i)) nflags[i] |= 1LL << 11;
+        if (iseuronumterm(i)) nflags[i] |= 1LL << 12;
+        if (isarabnumeric(i)) nflags[i] |= 1LL << 13;
+        if (isdecompositionnormative(i)) nflags[i] |= 1LL << 14;
+        if (isarabinitial(i)) nflags[i] |= 1LL << 15;
+        if (isarabmedial(i)) nflags[i] |= 1LL << 16;
+        if (isarabfinal(i)) nflags[i] |= 1LL << 17;
+        if (isarabisolated(i)) nflags[i] |= 1LL << 18;
+        if (isideoalpha(i)) nflags[i] |= 1LL << 19;
+        if (isalnum(i)) nflags[i] |= 1LL << 20;
+        if (isspace(i)) nflags[i] |= 1LL << 21;
+        if (iseuronumsep(i)) nflags[i] |= 1LL << 22;
+        if (iscommonsep(i)) nflags[i] |= 1LL << 23;
+        if (ishexdigit(i)) nflags[i] |= 1LL << 24;
+        if (istitle(i)) nflags[i] |= 1LL << 25;
+    }
+}
+
+// #define iseuronumtermo(ch)	(ffUnicodeUtype((ch))&FF_UNICODE_ENT)
+
+int main() {
+    doold();
+    donew();
+
+    for (int i = 0; i < 0x10000; ++i) {
+        int al = !!ff_unicode_isalnum(i);
+        int gl = !!g_unichar_isalnum(i);
+        if (al != gl) {
+            printf("U+%04X GALPHA %d %d\n",
+            i, al, gl);
+        }
+        if (flags[i] != nflags[i]) {
+            for (int j = 0; j < sizeof(flagnames)/sizeof(flagnames[0]); ++j) {
+                int64_t res = (flags[i] & (1LL << j)) == (nflags[i] & (1LL << j));
+                if (!res && (flags[i] & 1)) {
+                    // printf("%d\n", iseuronumtermo(i));
+                    printf("U+%04X: %s: old(%d) new(%d) oldassigned(%d) newassigned(%d)\n",
+                        i, flagnames[j], !!(flags[i] & (1LL << j)), !!(nflags[i] & (1LL << j)),
+                        !!(flags[i] & (1LL << 0)), !!(nflags[i] & (1LL << 0)));
+                }
+            }
+        }
+
+        int l1 = ffUnicodeToLower(i);
+        int l2 = ff_unicode_tolower(i);
+        if (l1 != l2 && (flags[i]&1)) {
+            printf("LOWER U+%04X: U+%04x vs U+%04X\n", i, l1, l2);
+        }
+        l1 = ffUnicodeToUpper(i);
+        l2 = ff_unicode_toupper(i);
+        if (l1 != l2 && (flags[i]&1)) {
+            printf("UPPER U+%04X: U+%04x vs U+%04X\n", i, l1, l2);
+        }
+        l1 = ffUnicodeToTitle(i);
+        l2 = ff_unicode_totitle(i);
+        if (l1 != l2 && (flags[i]&1)) {
+            printf("TITLE U+%04X: U+%04x vs U+%04X\n", i, l1, l2);
+        }
+        l1 = ffUnicodeToMirror(i);
+        l2 = ff_unicode_tomirror(i);
+        if (l1 != l2 && (flags[i]&1)) {
+            printf("MIRROR U+%04X: U+%04x vs U+%04X\n", i, l1, l2);
+        }
+    }
+}
+
+
+#endif
 
 #if 0
 int main() {

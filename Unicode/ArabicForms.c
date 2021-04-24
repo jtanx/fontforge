@@ -28,7 +28,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <utype2.h>
+#include <utype.h>
 
 struct arabicforms ArabicForms[] = {
     /* initial, medial, final, isolated, isletter, joindual, required_lig_with_alef */

@@ -37,7 +37,7 @@ static char* read_lexicon(char* dst, unsigned int idx, int* bufsiz) {
     return dst;
 }
 
-static const char* get_phrasebook_entry(unichar_t ch) {
+static const unsigned char* get_phrasebook_entry(unichar_t ch) {
     int index = 0, shift_index;
     if (ch < UNICODE_MAX) {
         index = phrasebook_index1[ch >> PHRASEBOOK_SHIFT1];
@@ -51,7 +51,7 @@ static const char* get_phrasebook_entry(unichar_t ch) {
         shift_index = PHRASEBOOK_SHIFT2_CAP;
     }
     index += phrasebook_shift[shift_index];
-    assert(index >= 0 && index < sizeof(phrasebook_data)/sizeof(phrasebook_data[0]));
+    assert(index >= 0 && (size_t)index < sizeof(phrasebook_data)/sizeof(phrasebook_data[0]));
     return &phrasebook_data[index];
 }
 
@@ -72,7 +72,7 @@ static char* prettify_annotation_start(char* dst, int src, int* bufsiz) {
 }
 
 char* uniname_name(unichar_t ch) {
-    const char *src;
+    const unsigned char *src;
     static char ret[MAX_NAME_LENGTH];
     int bufsiz = sizeof(ret)/sizeof(ret[0]);
     char* dst = ret;
@@ -83,9 +83,10 @@ char* uniname_name(unichar_t ch) {
     }
 
     while (*src != '\n' && *src != '\0' && bufsiz > 4) {
-        switch (((unsigned char)*src) >> 4) {
+        switch (*src >> 4) {
         case 8: case 9: case 10: case 11: // 0b10xx -> invalid utf-8; our escape
-            dst = read_lexicon(dst, (((*src++) & 0x3f) << 7) | ((*src++) & 0x7f), &bufsiz);
+            dst = read_lexicon(dst, ((src[0] & 0x3f) << 7) | (src[1] & 0x7f), &bufsiz);
+            src += 2;
             break;
         case 15: // 0b1111 -> 4 bytes
             *dst++ = *src++;
@@ -113,7 +114,7 @@ char* uniname_name(unichar_t ch) {
 }
 
 char* uniname_annotation(unichar_t ch) {
-    const char *src;
+    const unsigned char *src;
     char ret[MAX_ANNOTATION_LENGTH];
     int bufsiz = sizeof(ret)/sizeof(ret[0]);
     char* dst = ret;
@@ -123,7 +124,7 @@ char* uniname_annotation(unichar_t ch) {
         return NULL;
     }
 
-    src = strchr(src, '\n');
+    src = (const unsigned char*)strchr((const char*)src, '\n');
     if (src == NULL) {
         return NULL;
     }
@@ -135,9 +136,10 @@ char* uniname_annotation(unichar_t ch) {
     bufsiz -= 2;
 
     while (*src != '\0' && bufsiz > 4) {
-        switch (((unsigned char)*src) >> 4) {
+        switch (*src >> 4) {
         case 8: case 9: case 10: case 11: // 0b10xx -> invalid utf-8; our escape
-            dst = read_lexicon(dst, (((*src++) & 0x3f) << 7) | ((*src++) & 0x7f), &bufsiz);
+            dst = read_lexicon(dst, ((src[0] & 0x3f) << 7) | (src[1] & 0x7f), &bufsiz);
+            src += 2;
             break;
         case 15: // 0b1111 -> 4 bytes
             *dst++ = *src++;

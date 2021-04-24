@@ -29,27 +29,27 @@ UNICODE_MAX = 0x110000
 DATA_DIR = "data"
 
 
-class UcdTypeFlags(enum.IntFlag):  # rough character counts:
+class UcdTypeFlags(enum.IntFlag):
     FF_UNICODE_ISUNICODEPOINTASSIGNED = 0x1  # all
-    FF_UNICODE_ISALPHA = 0x2  # 49471
-    FF_UNICODE_ISIDEOGRAPHIC = 0x4  # 28044
-    FF_UNICODE_ISLEFTTORIGHT = 0x10  # 57906
-    FF_UNICODE_ISRIGHTTOLEFT = 0x20  # 1286
-    FF_UNICODE_ISLOWER = 0x40  # 1434
-    FF_UNICODE_ISUPPER = 0x80  # 1119
-    FF_UNICODE_ISDIGIT = 0x100  # 758
-    FF_UNICODE_ISLIGVULGFRAC = 0x200  # 615
-    FF_UNICODE_ISCOMBINING = 0x400  # 2295
-    FF_UNICODE_ISZEROWIDTH = 0x800  # 404 Really ISDEFAULTIGNORABLE now
-    FF_UNICODE_ISEURONUMERIC = 0x1000  # 168
-    FF_UNICODE_ISEURONUMTERM = 0x2000  # 76
-    FF_UNICODE_ISARABNUMERIC = 0x4000
-    FF_UNICODE_ISDECOMPOSITIONNORMATIVE = 0x8000
-    FF_UNICODE_ISDECOMPCIRCLE = 0x10000
-    FF_UNICODE_ISARABINITIAL = 0x20000
-    FF_UNICODE_ISARABMEDIAL = 0x40000
-    FF_UNICODE_ISARABFINAL = 0x80000
-    FF_UNICODE_ISARABISOLATED = 0x100000
+    FF_UNICODE_ISALPHA = 0x2  # Lu | Ll | Lt | Lm | Lo (letters)
+    FF_UNICODE_ISIDEOGRAPHIC = 0x4  # Ideographic (PropList)
+    FF_UNICODE_ISLEFTTORIGHT = 0x10  # Bidi L | LRE | LRO
+    FF_UNICODE_ISRIGHTTOLEFT = 0x20  # Bidi R | AL | RLE | RLO
+    FF_UNICODE_ISLOWER = 0x40  # Lo | Other_Lowercase
+    FF_UNICODE_ISUPPER = 0x80  # Lu | Other_Uppercase
+    FF_UNICODE_ISDIGIT = 0x100  # Ld
+    FF_UNICODE_ISLIGVULGFRAC = 0x200  # dodgy
+    FF_UNICODE_ISCOMBINING = 0x400  # Mn | Mc | Me (Marks)
+    FF_UNICODE_ISZEROWIDTH = 0x800  # Default_Ignorable_Code_Point
+    FF_UNICODE_ISEURONUMERIC = 0x1000  # EN
+    FF_UNICODE_ISEURONUMTERM = 0x2000  # ET
+    FF_UNICODE_ISARABNUMERIC = 0x4000  # AN
+    FF_UNICODE_ISDECOMPOSITIONNORMATIVE = 0x8000  # Has a NFKD decomp
+    FF_UNICODE_ISDECOMPCIRCLE = 0x10000  # <circle> compatibility decomp
+    FF_UNICODE_ISARABINITIAL = 0x20000  # <initial> compatibility decomp
+    FF_UNICODE_ISARABMEDIAL = 0x40000  # <medial> compatibility decomp
+    FF_UNICODE_ISARABFINAL = 0x80000  # <final> compatibility decomp
+    FF_UNICODE_ISARABISOLATED = 0x100000  # <isolated> compatibility decomp
 
 
 @dataclasses.dataclass
@@ -62,9 +62,9 @@ class UcdRecord:
     canonical_combining_class: str
     bidi_class: str
     decomposition_type: str
-    decomposition_mapping: str
-    numeric_type: str
-    numeric_value: str
+    numeric_value1: str
+    numeric_value2: str
+    numeric_value3: str
     bidi_mirrored: str
     unicode_1_name: str  # obsolete
     iso_comment: str  # obsolete
@@ -348,16 +348,26 @@ def makeutype(unicode, trace):
             bidirectional = record.bidi_class
             properties = record.binary_properties
             flags = UcdTypeFlags.FF_UNICODE_ISUNICODEPOINTASSIGNED
-            if category in ["Lm", "Lt", "Lu", "Ll", "Lo"]:
-                flags |= UcdTypeFlags.FF_UNICODE_ISALPHA
-            if category in ["M", "Mn", "Mc", "Me"]:
+            if category in ["Mn", "Mc", "Me"]:
                 flags |= UcdTypeFlags.FF_UNICODE_ISCOMBINING
-            if "Lowercase" in properties:
-                flags |= UcdTypeFlags.FF_UNICODE_ISLOWER
-            if "Ideographic" in properties:
-                flags |= UcdTypeFlags.FF_UNICODE_ISIDEOGRAPHIC
+            if category == "Nd":
+                flags |= UcdTypeFlags.FF_UNICODE_ISDIGIT
             if category == "Zs" or bidirectional in ("WS", "B", "S"):
                 switches.setdefault("space", []).append(char)
+            if category == "Lt":
+                switches.setdefault("title", []).append(char)
+            if category in ["Lm", "Lt", "Lu", "Ll", "Lo"]:
+                flags |= UcdTypeFlags.FF_UNICODE_ISALPHA
+            if "Lowercase" in properties:
+                flags |= UcdTypeFlags.FF_UNICODE_ISLOWER
+            if "Uppercase" in properties:
+                flags |= UcdTypeFlags.FF_UNICODE_ISUPPER
+            if "Ideographic" in properties:
+                flags |= UcdTypeFlags.FF_UNICODE_ISIDEOGRAPHIC
+            if "ASCII_Hex_Digit" in properties:
+                switches.setdefault("hexdigit", []).append(char)
+            if "Default_Ignorable_Code_Point" in properties:
+                flags |= UcdTypeFlags.FF_UNICODE_ISZEROWIDTH
 
             # bidi flags
             if bidirectional in ("L", "LRE", "LRO"):
@@ -374,15 +384,6 @@ def makeutype(unicode, trace):
                 switches.setdefault("commonsep", []).append(char)
             elif bidirectional == "ET":
                 flags |= UcdTypeFlags.FF_UNICODE_ISEURONUMTERM
-
-            if category == "Lt":
-                switches.setdefault("title", []).append(char)
-            if "Uppercase" in properties:
-                flags |= UcdTypeFlags.FF_UNICODE_ISUPPER
-            if "ASCII_Hex_Digit" in properties:
-                switches.setdefault("hexdigit", []).append(char)
-            if "Default_Ignorable_Code_Point" in properties:
-                flags |= UcdTypeFlags.FF_UNICODE_ISZEROWIDTH
 
             # This is questionable... But ok
             if any(x in record.name for x in ("LIGATURE", "VULGAR", "FRACTION")):
@@ -435,10 +436,10 @@ def makeutype(unicode, trace):
                     and abs(mirror) <= 2147483647
                 )
             # integer digit
-            digit = 0
-            if record.numeric_type:
-                flags |= UcdTypeFlags.FF_UNICODE_ISDIGIT
-                digit = int(record.numeric_type)
+            # digit = 0
+            # if record.numeric_type:
+            #     flags |= UcdTypeFlags.FF_UNICODE_ISDIGIT
+            #     digit = int(record.numeric_type)
 
             # pose info
             ccc = int(record.canonical_combining_class)
@@ -688,7 +689,7 @@ def makearabicforms(unicode, trace):
     with open(FILE, "w") as fp:
         fprint = partial(print, file=fp)
         License(extra="Contributions: Khaled Hosny, Joe Da Silva").dump(fp)
-        fprint("#include <utype2.h>")
+        fprint("#include <utype.h>")
         fprint()
         fprint("struct arabicforms ArabicForms[] = {")
         fprint(
@@ -981,15 +982,15 @@ def makeutypeheader(utype_funcs):
             fprint("#define %-*s %s((ch))" % (alignment, realfn + "(ch)", fn))
         fprint()
 
-        fprint("extern struct arabicforms {")
-        fprint("    unsigned short initial, medial, final, isolated;")
-        fprint("    unsigned int isletter: 1;")
-        fprint("    unsigned int joindual: 1;")
-        fprint("    unsigned int required_lig_with_alef: 1;")
-        fprint(
-            "} ArabicForms[256]; /* for chars 0x600-0x6ff, subtract 0x600 to use array */"
-        )
-        fprint()
+        # fprint("extern struct arabicforms {")
+        # fprint("    unsigned short initial, medial, final, isolated;")
+        # fprint("    unsigned int isletter: 1;")
+        # fprint("    unsigned int joindual: 1;")
+        # fprint("    unsigned int required_lig_with_alef: 1;")
+        # fprint(
+        #     "} ArabicForms[256]; /* for chars 0x600-0x6ff, subtract 0x600 to use array */"
+        # )
+        # fprint()
 
         fprint("struct unicode_range {")
         fprint("    unichar_t start;")
@@ -1075,7 +1076,7 @@ class Index:
             fprint(f"        index = {prefix}_index1[ch >> {shift}];")
             fprint(f"        index = {prefix}_index2[(index << {shift}) + (ch & ((1 << {shift}) - 1))];")
             fprint(f"    }}")
-            fprint(f"    assert(index >= 0 && index < sizeof({prefix}_data)/sizeof({prefix}_data[0]));")
+            fprint(f"    assert(index >= 0 && (size_t)index < sizeof({prefix}_data)/sizeof({prefix}_data[0]));")
             fprint(f"    return &{prefix}_data[index];")
             fprint(f"}}")
             fprint()

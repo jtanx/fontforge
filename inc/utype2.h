@@ -159,13 +159,6 @@ extern const unichar_t* ff_unicode_decomposition(unichar_t ch);
 #define hasdecomposition(ch)         ff_unicode_hasdecomposition((ch))
 #define decomposition(ch)            ff_unicode_decomposition((ch))
 
-extern struct arabicforms {
-    unsigned short initial, medial, final, isolated;
-    unsigned int isletter: 1;
-    unsigned int joindual: 1;
-    unsigned int required_lig_with_alef: 1;
-} ArabicForms[256]; /* for chars 0x600-0x6ff, subtract 0x600 to use array */
-
 struct unicode_range {
     unichar_t start;
     unichar_t end;

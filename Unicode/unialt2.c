@@ -2291,7 +2291,7 @@ static const unichar_t* GetDecomp(unichar_t ch) {
         index = decomp_index1[ch >> DECOMP_SHIFT];
         index = decomp_index2[(index << DECOMP_SHIFT) + (ch & ((1 << DECOMP_SHIFT) - 1))];
     }
-    assert(index >= 0 && index < sizeof(decomp_data)/sizeof(decomp_data[0]));
+    assert(index >= 0 && (size_t)index < sizeof(decomp_data)/sizeof(decomp_data[0]));
     return &decomp_data[index];
 }
 
