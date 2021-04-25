@@ -1,0 +1,103 @@
+FF_UNICODE_L
+FF_UNICODE_U
+FF_UNICODE_TITLE
+FF_UNICODE_D
+FF_UNICODE_S
+FF_UNICODE_P // Punct, NOT USED
+FF_UNICODE_X // Hex digit, not in makeunicodedata
+FF_UNICODE_ZW // Zero width
+FF_UNICODE_L2R
+FF_UNICODE_R2L
+FF_UNICODE_ENUM // euro numeric
+FF_UNICODE_ANUM // arab numeric
+FF_UNICODE_ENS // euro num sep
+FF_UNICODE_CS // common sep
+FF_UNICODE_ENT // iseuronumterm
+FF_UNICODE_COMBINE // iscombining
+FF_UNICODE_BB // break between
+FF_UNICODE_BA // break after?
+FF_UNICODE_NS // breaks
+FF_UNICODE_NE // breaks
+FF_UNICODE_UB // URL break after? not used
+FF_UNICODE_NB // is no break
+FF_UNICODE_AL // alpha flag
+FF_UNICODE_ID // ideographic
+FF_UNICODE_INITIAL // arab initial
+FF_UNICODE_MEDIAL // arab medial
+FF_UNICODE_FINAL // arab final
+FF_UNICODE_ISOLATED // arab isolated
+FF_UNICODE_DECOMPNORM // isdecompositionnormative
+FF_UNICODE_LIG_OR_FRAC
+
+// counts
+
+LOWER_MASK 1434,FF_UNICODE_L
+UPPER_MASK 1119,FF_UNICODE_U
+TITLE_MASK 31,FF_UNICODE_TITLE
+DIGIT_MASK 370,FF_UNICODE_D
+Iswhitespace 27,FF_UNICODE_S
+N/A 153,FF_UNICODE_P // Punct, NOT USED
+N/A 44,FF_UNICODE_X // Hex digit, not in makeunicodedata
+N/A 6,FF_UNICODE_ZW // Zero width
+N/A 57906,FF_UNICODE_L2R
+N/A 1286,FF_UNICODE_R2L
+N/A 70,FF_UNICODE_ENUM // euro numeric
+N/A 20,FF_UNICODE_ANUM // arab numeric
+N/A 12,FF_UNICODE_ENS // euro num sep
+N/A 15,FF_UNICODE_CS // common sep
+N/A 71,FF_UNICODE_ENT // iseuronumterm
+N/A 221,FF_UNICODE_COMBINE // iscombining fun bug, 202a incorrectly marked as combining.  ucd.general_category in ["M", "Mn", "Mc", "Me"]
+30857,FF_UNICODE_BB // break between
+30967,FF_UNICODE_BA // break after?
+125,FF_UNICODE_NS // breaks
+1290,FF_UNICODE_NE // breaks
+1,FF_UNICODE_UB // URL break after? not used
+49471,FF_UNICODE_NB // is no break there's 4 of these
+ALPHA_MASK, 28044,FF_UNICODE_AL // alpha flag
+171,FF_UNICODE_ID // ideographic
+82,FF_UNICODE_INITIAL // arab initial
+240,FF_UNICODE_MEDIAL // arab medial
+238,FF_UNICODE_FINAL // arab final
+4,FF_UNICODE_ISOLATED // arab isolated
+3884,FF_UNICODE_DECOMPNORM // isdecompositionnormative
+564,FF_UNICODE_LIG_OR_FRAC
+0,
+0
+
+F FF_UNICODE_L            1434,    // LOWER_MASK // Derived core properties
+F FF_UNICODE_U            1119,    // UPPER_MASK // Derived core properties
+U FF_UNICODE_TITLE        31,      // TITLE_MASK // Lt general prop
+F FF_UNICODE_D            370,     // DIGIT_MASK // Has numeric_type
+U FF_UNICODE_S            27,      // IsWhitespace // category == "Zs" or bidirectional in ("WS", "B", "S")
+// FF_UNICODE_P            153,     // N/A NOT USED (used to be part of usprintf)
+U FF_UNICODE_X            44,      // N/A HEX DIGIT // ASCII_Hex_Digit
+F FF_UNICODE_ZW           6,       // N/A ZERO WIDTH // replace with Default_Ignorable_Code_Point
+F FF_UNICODE_L2R          57906,   // N/A // bidi category is L, LRE, LRO
+F FF_UNICODE_R2L          1286,    // N/A // bidi category is R, AL, RLE, RLO
+U FF_UNICODE_ENUM         70,      // N/A Euro numeric // bidi EN flag
+U FF_UNICODE_ANUM         20,      // N/A Arab numeric // bidi AN flag
+U FF_UNICODE_ENS          12,      // N/A euro num sep // bidi ES flag
+U FF_UNICODE_CS           15,      // N/A common sep // bidi CS flag
+U FF_UNICODE_ENT          71,      // N/A iseuronumterm // bidi ET flag
+F FF_UNICODE_COMBINE      221,     // iscombining fun bug, 202a incorrectly marked as combining.  ucd.general_category in ["M", "Mn", "Mc", "Me"]
+
+FF_UNICODE_BB           30857,   // break before ok
+FF_UNICODE_BA           30967,   // break after ok
+FF_UNICODE_NS           125,     // FF_UNICODE_NONSTART
+FF_UNICODE_NE           1290,    // FF_UNICODE_NONEND
+FF_UNICODE_UB           1,       // url break NOT USED
+FF_UNICODE_NB           4,       // no break NOT USED (also manually set, replaced with the GL/glue flag in linebreak.txt)
+
+F FF_UNICODE_AL           49471,   // ALPHA_MASK
+F FF_UNICODE_ID           28044,   // Is ideographic character (CJK)// Ideographic from PropList.txt
+
+// Decomposition properties, for these look up the decomp and strcmp the category or add category flags
+FF_UNICODE_INITIAL      171,     // Arab initial // decomposition compatibility flag
+FF_UNICODE_MEDIAL       82,      // Arab medial // decomposition compat flag
+FF_UNICODE_FINAL        240,     // Arab final // decomposition compat flag
+FF_UNICODE_ISOLATED     238,     // Arab isolated // decomposition compat flag
+
+F FF_UNICODE_LIG_OR_FRAC  564,     // sigh, replace with LVF which is 'VULGAR' in name or 'LIGATURE' in name or 'FRACTION' in name and val!=0x2044
+
+// Check if a decomp exists in the primary decomp table
+FF_UNICODE_DECOMPNORM   3884,    // Whether or not the decomposition is normative, that is the official one described in UnicodeData.txt or if it's a GWW special
