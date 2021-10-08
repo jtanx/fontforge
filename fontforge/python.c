@@ -152,6 +152,9 @@ typedef struct {
 
 /* ----------------------------------------------------- */
 
+static PyTypeObject PyFF_FontType;
+static PyTypeObject PyFF_GlyphType;
+
 static PyObject *InitializePythonMainNamespace(void);
 
 
@@ -1538,6 +1541,7 @@ return( reto );
 /* Points */
 /* ************************************************************************** */
 
+static PyTypeObject PyFF_PointType;
 static const char *py_point_types[] = { "splineCorner", "splineCurve", "splineHVCurve",
 				     "splineTangent", NULL };
 #define MAX_POINTTYPE_VAL 3
@@ -5186,6 +5190,7 @@ return( layer );
 /* ************************************************************************** */
 /* GlyphPen Standard Methods */
 /* ************************************************************************** */
+static PyTypeObject PyFF_GlyphPenType;
 
 static void PyFF_GlyphPen_dealloc(PyFF_GlyphPen *self) {
     if ( self->sc!=NULL ) {
@@ -5675,6 +5680,7 @@ return( -1 );
 /* Layers dictionary iterator type */
 /* ************************************************************************** */
 
+static PyTypeObject PyFF_LayerArrayType;
 typedef struct {
 	PyObject_HEAD
 	PyFF_LayerArray *layers;
@@ -5924,6 +5930,7 @@ static PyTypeObject PyFF_LayerArrayType = {
 /* References Array Standard Methods */
 /* ************************************************************************** */
 
+static PyTypeObject PyFF_RefArrayType;
 static void PyFF_RefArray_dealloc(PyFF_RefArray *self) {
     self->sc = NULL;
     Py_TYPE(self)->tp_free((PyObject *) self);
@@ -9532,6 +9539,8 @@ static PyTypeObject PyFF_CvtIterType = {
 /* Cvt sequence object */
 /* ************************************************************************** */
 
+static PyTypeObject PyFF_CvtType;
+
 static void PyFFCvt_dealloc(PyFF_Cvt *self) {
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -9862,6 +9871,8 @@ static PyTypeObject PyFF_CvtType = {
 /* Selection Standard Methods */
 /* ************************************************************************** */
 
+static PyTypeObject PyFF_SelectionType;
+
 static void PyFFSelection_dealloc(PyFF_Selection *self) {
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
@@ -10191,6 +10202,9 @@ static PyTypeObject PyFF_SelectionType = {
 /* ************************************************************************** */
 /* Layers info array iterator type */
 /* ************************************************************************** */
+
+static PyTypeObject PyFF_LayerInfoType;
+static PyTypeObject PyFF_LayerInfoArrayType;
 
 typedef struct {
 	PyObject_HEAD
