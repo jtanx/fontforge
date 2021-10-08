@@ -954,7 +954,7 @@ void MVRefreshMetric(MetricsView *mv) {
 
 static void MVRemetric(MetricsView *mv) {
     SplineChar *anysc, *goodsc;
-    int i, cnt, goodpos;
+    int i, cnt;
     const unichar_t *_script = _GGadgetGetTitle(mv->script);
     uint32 script, lang, *feats;
     char buf[20];
@@ -962,7 +962,7 @@ static void MVRemetric(MetricsView *mv) {
     GTextInfo **ti;
     SplineFont *sf;
 
-    anysc = goodsc = NULL; goodpos = -1;
+    anysc = goodsc = NULL;
     // We recurse through all of the characters in the metrics view.
     for ( i=0; i<mv->clen && mv->chars[i] ; ++i ) {
         // We assign the first splinechar to anysc.
@@ -970,7 +970,6 @@ static void MVRemetric(MetricsView *mv) {
         // We assign the first splinechar of a non-default script to goodsc.
 	if ( SCScriptFromUnicode(mv->chars[i])!=DEFAULT_SCRIPT ) {
 	    goodsc = mv->chars[i];
-	    goodpos = i;
     break;
 	}
     }
@@ -1913,7 +1912,6 @@ static void MVTextChanged(MetricsView *mv) {
     const unichar_t *ret = 0, *pt, *ept, *tpt;
     int i,ei, j, start=0, end=0;
     int missing;
-    int direction_change = false;
     SplineChar **hold = NULL;
 
     ret = _GGadgetGetTitle(mv->text);
@@ -1927,7 +1925,6 @@ static void MVTextChanged(MetricsView *mv) {
 
     if (( isrighttoleft(ret[0]) && !mv->right_to_left ) ||
 	    ( !isrighttoleft(ret[0]) && mv->right_to_left )) {
-	direction_change = true;
 	mv->right_to_left = !mv->right_to_left;
     }
     for ( pt=ret, i=0; i<mv->clen && *pt!='\0'; ++i, ++pt )
@@ -3151,7 +3148,7 @@ static void MVMoveInWordListByOffset( MetricsView *mv, int offset )
 {
     if ( mv->word_index!=-1 ) {
 	int32 len;
-	GTextInfo **ti = GGadgetGetList(mv->text,&len);
+	GGadgetGetList(mv->text,&len);
 	/* We subtract 3 because: There are two lines saying "load * list" */
 	/*  and then a line with a rule on it which we don't want access to */
 	if ( mv->word_index+offset >=0 && mv->word_index+offset<len-3 ) {
@@ -3163,7 +3160,6 @@ static void MVMoveInWordListByOffset( MetricsView *mv, int offset )
 		MVFigureGlyphNames(mv,tit+1);
 	    else
 		MVTextChanged(mv);
-	    ti = NULL;
 	}
     }
 }
@@ -4958,7 +4954,6 @@ return( true );
 static int mv_e_h(GWindow gw, GEvent *event) {
     MetricsView *mv = (MetricsView *) GDrawGetUserData(gw);
     SplineFont *sf;
-    GGadget *active = 0;
 //    printf("mv_e_h()  event->type:%d\n", event->type );
 
     switch ( event->type ) {
@@ -5006,7 +5001,6 @@ static int mv_e_h(GWindow gw, GEvent *event) {
 #endif // 0
       break;
       case et_mouseup: case et_mousemove: case et_mousedown:
-          active = GWindowGetFocusGadgetOfWindow(mv->gw);
           if( GGadgetContainsEventLocation( mv->textPrev, event ))
           {
               GGadgetPreparePopup(mv->gw,c_to_u("Show the previous word in the current word list\n"
@@ -5502,9 +5496,6 @@ void MVSelectFirstKerningTable(struct metricsview *mv)
 	return;
     }
 
-    GTextInfo **ti=NULL;
-    int32 len;
-    ti = GGadgetGetList(mv->features,&len);
     GGadgetSelectOneListItem(mv->features,0);
     MVRemetric(mv);
     GDrawRequestExpose(mv->v,NULL,false);

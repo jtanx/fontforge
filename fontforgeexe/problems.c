@@ -2273,7 +2273,7 @@ static int mgAsk(struct problems *p,char **_str,char *str, char *end,uint32 tag,
     GTextInfo label[12];
     struct mgask_data d;
     int blen = GIntGetResource(_NUM_Buttonsize), ptwidth;
-    int k, rplpos;
+    int k;
 
     end_ch = *end; *end = '\0';
 
@@ -2353,7 +2353,6 @@ static int mgAsk(struct problems *p,char **_str,char *str, char *end,uint32 tag,
     gcd[k].gd.flags = gg_visible | gg_enabled;
     gcd[k++].creator = GLabelCreate;
 
-    rplpos = k;
     gcd[k].gd.pos.x = 10; gcd[k].gd.pos.y = gcd[k-1].gd.pos.y+13; gcd[k].gd.pos.width = ptwidth-20;
     gcd[k].gd.flags = gg_visible | gg_enabled;
     gcd[k].gd.cid = CID_RplText;
@@ -2727,10 +2726,6 @@ static int CheckForATT(struct problems *p) {
     ASM *sm;
     KernClass *kc;
     SplineFont *_sf, *sf;
-    static char *buts[3];
-    buts[0] = _("_Yes");
-    buts[1] = _("_No");
-    buts[2] = NULL;
 
     _sf = p->fv->b.sf;
     if ( _sf->cidmaster ) _sf = _sf->cidmaster;
