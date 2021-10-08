@@ -1232,7 +1232,6 @@ return;
 }
 
 static void gt_draw_cursor(GWindow pixmap, SFTextArea *st) {
-    GRect old;
     int x, y, fh, l;
 
     if (st->has_dd_cursor) {

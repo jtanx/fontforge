@@ -565,7 +565,6 @@ static void WinLoadUserFonts(const char *prefix) {
     WIN32_FIND_DATA fileData;
     char path[MAX_PATH], *ext;
     HRESULT ret;
-    int i;
 
     if (prefix == NULL) {
         return;

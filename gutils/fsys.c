@@ -793,7 +793,7 @@ void FindProgDir(char *prog) {
     char* tail = 0;
     unsigned int  len = GetModuleFileNameA(NULL, path, MAX_PATH);
     path[len] = '\0';
-    for(; *c; *c++){
+    for(; *c; c++){
     	if(*c == '\\'){
     	    tail=c;
     	    *c = '/';
@@ -910,8 +910,7 @@ return NULL;
  * http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
  */
 char *getFontForgeUserDir(int dir) {
-	const char *def;
-	const char *home, *xdg;
+	const char *home;
 	char *buf = NULL;
 
 	/* find home directory first, it is needed if any of the xdg env vars are

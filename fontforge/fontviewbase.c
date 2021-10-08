@@ -327,7 +327,6 @@ return;
 static void LinkEncToGid(FontViewBase *fv,int enc, int gid) {
     EncMap *map = fv->map;
     int old_gid;
-    int flags = -1;
     int j;
 
     if ( map->map[enc]!=-1 && map->map[enc]!=gid ) {
@@ -1502,7 +1501,6 @@ void FVRemoveUnused(FontViewBase *fv) {
     EncMap *map = fv->map;
     int oldcount = map->enccount;
     int gid, i;
-    int flags = -1;
 
     for ( i=map->enccount-1;
             i>=map->enc->char_cnt &&
@@ -1564,7 +1562,6 @@ void FVDetachAndRemoveGlyphs(FontViewBase *fv) {
     int i, j, gid;
     EncMap *map = fv->map;
     SplineFont *sf = fv->sf;
-    int flags = -1;
     int changed = false, altered = false;
     FontViewBase *fvs;
 
