@@ -671,7 +671,7 @@ return( true );
 	}
 return( false );
     } else if ( event->type==et_resize ) {
-	HistResize(hist);;
+	HistResize(hist);
     } else if ( event->type==et_mousemove ) {
 	GGadgetEndPopup();
     } else if ( event->type==et_mousedown ) {

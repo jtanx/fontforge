@@ -1052,7 +1052,7 @@ return( gl );
 }
 
 GGadget *GLabelCreate(struct gwindow *base, GGadgetData *gd,void *data) {
-    GLabel *gl = calloc(1,sizeof(GListButton));;
+    GLabel *gl = calloc(1,sizeof(GListButton));
     int i;
 
     if ( gd->u.list!=NULL ) {
