@@ -470,6 +470,7 @@ return( true );
       case et_destroy:
 	IError("Who killed the splash screen?");
       break;
+      default: break;
     }
 return( true );
 }

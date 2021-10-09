@@ -1469,6 +1469,7 @@ return( true );
       case et_close:
 	SetPaletteVisible(NULL, gw, false);
       break;
+      default: break;
     }
 return( true );
 }
@@ -1988,6 +1989,7 @@ return(true);
 	} else
 	    Layer2Scroll(cv,event);
       break;
+      default: break;
     }
 return( true );
 }
@@ -3979,6 +3981,7 @@ return( true );
 	    GDrawRequestExpose(bv->v,NULL,false);
 	}
       break;
+      default: break;
     }
 return( true );
 }
@@ -4207,6 +4210,7 @@ return( true );
       case et_close:
 	SetPaletteVisible(NULL, gw, false);
       break;
+      default: break;
     }
 return( true );
 }
@@ -4443,6 +4447,7 @@ return( true );
       case et_close:
 	SetPaletteVisible(NULL, gw, false);
       break;
+      default: break;
     }
 return( true );
 }

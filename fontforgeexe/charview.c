@@ -5770,6 +5770,7 @@ return( GGadgetDispatchEvent(cv->vsb,event));
 		GDrawSetGIC(gw,cv->gic,0,20);
 	}
       break;
+      default: break;
     }
 return( true );
 }
@@ -6306,6 +6307,7 @@ return( GGadgetDispatchEvent(cv->vsb,event));
 	    else
 		CVVScroll(cv,&event->u.control.u.sb);
 	  break;
+	  default: break;
 	}
       break;
       case et_map:
@@ -6435,6 +6437,7 @@ return( GGadgetDispatchEvent(cv->vsb,event));
 #endif
 	}
       break;
+      default: break;
     }
 return( true );
 }
@@ -13135,6 +13138,7 @@ static int nested_cv_e_h(GWindow gw, GEvent *event) {
 	    else
 		CVVScroll(cv,&event->u.control.u.sb);
 	  break;
+	  default: break;
 	}
       break;
       case et_map:
@@ -13157,6 +13161,7 @@ static int nested_cv_e_h(GWindow gw, GEvent *event) {
 	GGadgetEndPopup();
 	CVPaletteActivate(cv);
       break;
+      default: break;
     }
 return( true );
 }

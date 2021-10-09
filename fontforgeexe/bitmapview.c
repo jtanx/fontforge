@@ -1496,6 +1496,7 @@ return( GGadgetDispatchEvent(bv->vsb,event));
 	    else
 		BVVScroll(bv,&event->u.control.u.sb);
 	  break;
+	  default: break;
 	}
       break;
       case et_destroy:
@@ -1523,6 +1524,7 @@ return( GGadgetDispatchEvent(bv->vsb,event));
       break;
       case et_focus:
       break;
+      default: break;
     }
 return( true );
 }

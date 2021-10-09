@@ -1391,6 +1391,7 @@ return( gmenu_destroy(m));
       case et_close:
 	GMenuDestroy(m);
 return( true );
+      default: break;
     }
 return( false );
 }

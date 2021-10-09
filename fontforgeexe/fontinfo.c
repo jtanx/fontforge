@@ -5733,6 +5733,7 @@ return( true );
       case et_sb_thumbrelease:
         newpos = event->u.control.u.sb.pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>(sb_max-sb_pagesize) )
         newpos = (sb_max-sb_pagesize);
@@ -7412,6 +7413,7 @@ return( GFI_Char(gfi,event) );
 	GFI_LookupScrollbars(gfi,true,false);
       }
       break;
+      default: break;
     }
 return( true );
 }

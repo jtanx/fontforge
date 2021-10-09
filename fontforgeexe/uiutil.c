@@ -193,6 +193,7 @@ static void ErrScroll(struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>errdata.cnt-errdata.linecnt )
         newpos = errdata.cnt-errdata.linecnt;
@@ -273,6 +274,7 @@ return( ErrChar(event));
 	  case et_scrollbarchange:
 	    ErrScroll(&event->u.control.u.sb);
 	  break;
+	  default: break;
 	}
       break;
       case et_close:
@@ -282,6 +284,7 @@ return( ErrChar(event));
       break;
       case et_destroy:
       break;
+      default: break;
     }
 return( true );
 }

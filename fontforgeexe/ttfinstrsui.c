@@ -527,6 +527,7 @@ void instr_scroll(struct instrinfo *ii,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>ii->lheight+1-ii->vheight/ii->fh )
         newpos = ii->lheight+1-ii->vheight/ii->fh;
@@ -615,6 +616,7 @@ int ii_v_e_h(GWindow gw, GEvent *event) {
       break;
       case et_focus:
       break;
+      default: break;
     }
 return( true );
 }
@@ -665,6 +667,7 @@ static int iv_e_h(GWindow gw, GEvent *event) {
 		iv->inedit = toedit;
 	    }
 	  break;
+	  default: break;
 	}
       break;
       case et_close:
@@ -683,6 +686,7 @@ static int iv_e_h(GWindow gw, GEvent *event) {
 	free(iv->instrdata);
 	free(iv);
       } break;
+      default: break;
     }
 return( true );
 }
@@ -1247,6 +1251,7 @@ static void short_scroll(ShortView *sv,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>sv->lheight-sv->vheight/sv->fh )
         newpos = sv->lheight-sv->vheight/sv->fh;
@@ -1319,6 +1324,7 @@ static int sv_v_e_h(GWindow gw, GEvent *event) {
       break;
       case et_focus:
       break;
+      default: break;
     }
 return( true );
 }
@@ -1353,6 +1359,7 @@ static int sv_e_h(GWindow gw, GEvent *event) {
 	  case et_scrollbarchange:
 	    short_scroll(sv,&event->u.control.u.sb);
 	  break;
+	  default: break;
 	}
       break;
       case et_close:
@@ -1361,6 +1368,7 @@ static int sv_e_h(GWindow gw, GEvent *event) {
       case et_destroy:
 	ShortViewFree(sv);
       break;
+      default: break;
     }
 return( true );
 }
@@ -1698,6 +1706,7 @@ return( false );
       case et_close:
 	MP_DoClose(mp);
       break;
+      default: break;
     }
 return( true );
 }

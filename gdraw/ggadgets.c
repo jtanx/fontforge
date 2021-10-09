@@ -1130,6 +1130,7 @@ int GGadgetContainsEventLocation(GGadget *g, GEvent* e )
         case et_mousemove:
         case et_mouseup: case et_mousedown:
             return( GGadgetContains( g, e->u.mouse.x, e->u.mouse.y ));
+        default: break;
     }
     
     return 0;
@@ -1444,6 +1445,7 @@ return( (g->handle_controlevent)(g,event) );
 	else
 	    GDrawPostEvent(event);
 return( true );
+      default: break;
     }
 return( false );
 }

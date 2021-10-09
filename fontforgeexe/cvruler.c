@@ -314,6 +314,7 @@ static int ruler_e_h(GWindow gw, GEvent *event) {
 	GDrawDestroyWindow(gw);
 	cv->ruler_w = NULL;
       break;
+      default: break;
     }
 return( true );
 }
@@ -334,6 +335,7 @@ static int ruler_linger_e_h(GWindow gw, GEvent *event) {
 	// GDrawDestroyWindow(gw);
 	// cv->ruler_linger_w = NULL;
       break;
+      default: break;
     }
 return( true );
 }
@@ -806,6 +808,7 @@ static int cpinfo_e_h(GWindow gw, GEvent *event) {
 	if ( PtInfoText(cv,0,-1,buf,sizeof(buf))!=NULL )
 	    GDrawDrawText8(gw,2,y,buf,-1,0x000000);
       break;
+      default: break;
     }
 return( true );
 }

@@ -1731,6 +1731,7 @@ static void MVHScroll(MetricsView *mv,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>mv->glyphcnt-cnt )
         newpos = mv->glyphcnt-cnt;
@@ -1786,6 +1787,7 @@ static void MVVScroll(MetricsView *mv,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>max-page )
         newpos = max-page;
@@ -3233,6 +3235,7 @@ return( false );
       case et_close:
 	pxsz->done = true;
       break;
+      default: break;
     }
 return( true );
 }
@@ -4947,6 +4950,7 @@ return( true );
       case et_drop:
 	MVDrop(mv,event);
       break;
+      default: break;
     }
 return( true );
 }
@@ -5055,6 +5059,7 @@ return( true );
 	    else
 		MVVScroll(mv,&event->u.control.u.sb);
 	  break;
+	  default: break;
 	}
       break;
       case et_close:
@@ -5075,6 +5080,7 @@ return( true );
       break;
       case et_focus:
       break;
+      default: break;
     }
 return( true );
 }

@@ -311,6 +311,7 @@ static void GroupScroll(struct groupdlg *grp,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>grp->open_cnt-grp->lines_page )
         newpos = grp->open_cnt-grp->lines_page;
@@ -350,6 +351,7 @@ static void GroupHScroll(struct groupdlg *grp,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>grp->maxl-grp->page_width )
         newpos = grp->maxl-grp->page_width;
@@ -544,6 +546,7 @@ return( GroupChar(grp,event));
       case et_mouseup:
 	GroupWMouse(grp,event);
       break;
+      default: break;
     }
 return( true );
 }
@@ -1122,6 +1125,7 @@ return( GroupChar(grp,event));
 	    grp->done = true;
 	    grp->oked = event->u.control.g == grp->ok;
 	  break;
+	  default: break;
 	}
       break;
       case et_close:
@@ -1131,6 +1135,7 @@ return( GroupChar(grp,event));
 	if ( grp->newsub!=NULL )
 	    free(grp);
 return( true );
+      default: break;
     }
     if ( grp->done && grp->newsub!=NULL ) {
 	if ( grp->oked ) {

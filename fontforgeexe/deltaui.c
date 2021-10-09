@@ -929,6 +929,7 @@ return( false );
 	QG_SetSb(qg);
 	GDrawRequestExpose(qg->v,NULL,false);
       } break;
+      default: break;
     }
 return( true );
 }

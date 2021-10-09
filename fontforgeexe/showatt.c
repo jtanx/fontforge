@@ -2554,6 +2554,7 @@ static void AttScroll(struct att_dlg *att,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>att->open_cnt-att->lines_page )
         newpos = att->open_cnt-att->lines_page;
@@ -2594,6 +2595,7 @@ static void AttHScroll(struct att_dlg *att,struct sbevent *sb) {
       case et_sb_thumbrelease:
         newpos = sb->pos;
       break;
+      case et_sb_halfup: case et_sb_halfdown: break;
     }
     if ( newpos>att->maxl-att->page_width )
         newpos = att->maxl-att->page_width;
@@ -2716,6 +2718,7 @@ return( AttChar(att,event));
       case et_mouseup:
 	AttMouse(att,event);
       break;
+      default: break;
     }
 return( true );
 }
@@ -2751,6 +2754,7 @@ return( AttChar(att,event));
 	    if ( att->dlg_type==dt_font_comp )
 		GDrawDestroyWindow(gw);
 	  break;
+	  default: break;
 	}
       break;
       case et_close:
@@ -2763,6 +2767,7 @@ return( AttChar(att,event));
 	    nodesfree(att->tables);
 	    free(att);
 	}
+      default: break;
     }
 return( true );
 }
