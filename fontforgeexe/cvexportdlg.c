@@ -537,8 +537,8 @@ static int GFD_NewDir(GGadget *g, GEvent *e) {
             return( true );
         if ( !GFileIsAbsolute(newdir)) {
             unichar_t *tmp_dir = GFileChooserGetDir(d->gfc);
-            char *basedir = u2utf8_copy(tmp_dir);
-            char *temp = GFileAppendFile(basedir,newdir,false);
+            char *basedir = u2def_copy(tmp_dir);
+            char *temp = smprintf("%s/%s", basedir, newdir);
             free(newdir); free(basedir); free(tmp_dir);
             newdir = temp;
         }
@@ -546,7 +546,7 @@ static int GFD_NewDir(GGadget *g, GEvent *e) {
              ff_post_notice(_("Couldn't create directory"),
                 _("Couldn't create directory: %s"), newdir);
         } else {
-            utemp = utf82u_copy(newdir);
+            utemp = def2u_copy(newdir);
             GFileChooserSetDir(d->gfc, utemp);
         }
         free(newdir);

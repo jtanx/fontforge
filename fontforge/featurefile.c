@@ -2444,15 +2444,13 @@ return;
 
     pt = strrchr(tok->filename[tok->inc_depth],'/');
     if ( pt != NULL ) *pt = '\0';
-    filename_deprecated = GFileAppendFile(tok->filename[tok->inc_depth],namebuf,false);
+    filename_deprecated = smprintf("%s/%s", tok->filename[tok->inc_depth], namebuf);
     if ( pt != NULL ) *pt = '/';
     if ( tok->in_ufo && *namebuf!='/' ) {
         // we know this is a UFO's features.fea file
         filename = GFileDirName(tok->filename[tok->inc_depth]);
-        char* filename_above = GFileAppendFile(filename, "..", false);
-        char* filename_fea = GFileAppendFile(filename_above, namebuf, false);
+        char* filename_fea = smprintf("%s/../%s", filename, namebuf);
         TRACE("fea_handle_include: FEA: %s, deprecated FEA: %s\n", filename_fea, filename_deprecated);
-        free(filename_above);
         free(filename);
         filename = filename_fea;
     } else {
